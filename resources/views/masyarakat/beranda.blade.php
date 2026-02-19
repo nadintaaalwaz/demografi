@@ -371,10 +371,6 @@
             <i class="fas fa-chart-bar"></i>
             Pelajari Data
         </a>
-        <a href="{{ route('public.kontak') }}" class="btn btn-outline">
-            <i class="fas fa-envelope"></i>
-            Laporkan Surat
-        </a>
     </div>
 </section>
 

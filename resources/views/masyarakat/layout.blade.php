@@ -227,7 +227,7 @@
                 padding: 15px 20px;
             }
 
-            .main-nav {
+            .nav-wrapper {
                 display: none;
                 position: absolute;
                 top: 100%;
@@ -235,15 +235,30 @@
                 right: 0;
                 background: #0C342C;
                 padding: 20px;
+                flex-direction: column;
+                gap: 15px;
             }
 
-            .main-nav.active {
-                display: block;
+            .nav-wrapper.active {
+                display: flex;
+            }
+
+            .main-nav {
+                width: 100%;
             }
 
             .main-nav ul {
                 flex-direction: column;
                 gap: 10px;
+            }
+
+            .btn-login {
+                width: 100%;
+                text-align: center;
+                justify-content: center;
+                display: flex;
+                align-items: center;
+                gap: 8px;
             }
 
             .mobile-menu-toggle {
@@ -288,14 +303,20 @@
                 </div>
             </div>
 
-            <nav class="main-nav" id="mainNav">
-                <ul>
-                    <li><a href="{{ route('public.home') }}" class="nav-link {{ request()->routeIs('public.home') ? 'active' : '' }}">Beranda</a></li>
-                    <li><a href="{{ route('public.profil') }}" class="nav-link {{ request()->routeIs('public.profil') ? 'active' : '' }}">Profil Desa</a></li>
-                    <li><a href="{{ route('public.statistik') }}" class="nav-link {{ request()->routeIs('public.statistik') ? 'active' : '' }}">Statistik</a></li>
-                    <li><a href="{{ route('public.peta') }}" class="nav-link {{ request()->routeIs('public.peta') ? 'active' : '' }}">Peta Wilayah</a></li>
-                </ul>
-            </nav>
+            <div class="nav-wrapper">
+                <nav class="main-nav" id="mainNav">
+                    <ul>
+                        <li><a href="{{ route('public.home') }}" class="nav-link {{ request()->routeIs('public.home') ? 'active' : '' }}">Beranda</a></li>
+                        <li><a href="{{ route('public.profil') }}" class="nav-link {{ request()->routeIs('public.profil') ? 'active' : '' }}">Profil Desa</a></li>
+                        <li><a href="{{ route('public.statistik') }}" class="nav-link {{ request()->routeIs('public.statistik') ? 'active' : '' }}">Statistik</a></li>
+                        <li><a href="{{ route('public.peta') }}" class="nav-link {{ request()->routeIs('public.peta') ? 'active' : '' }}">Peta Wilayah</a></li>
+                    </ul>
+                </nav>
+
+                <a href="{{ route('login') }}" class="btn-login">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </a>
+            </div>
 
             <button class="mobile-menu-toggle" id="mobileMenuToggle">
                 <i class="fas fa-bars"></i>
@@ -365,10 +386,10 @@
     <script>
         // Mobile menu toggle
         const mobileMenuToggle = document.getElementById('mobileMenuToggle');
-        const mainNav = document.getElementById('mainNav');
+        const navWrapper = document.querySelector('.nav-wrapper');
 
         mobileMenuToggle.addEventListener('click', function() {
-            mainNav.classList.toggle('active');
+            navWrapper.classList.toggle('active');
             const icon = this.querySelector('i');
             icon.classList.toggle('fa-bars');
             icon.classList.toggle('fa-times');
