@@ -466,8 +466,7 @@
         <div class="visi-box">
             <span class="visi-badge">Visi Desa</span>
             <p class="visi-text">
-                "Terwujudnya Desa Sebalor yang Mandiri, Sejahtera, dan Berbudaya 
-                melalui Tata Kelola Pemerintahan yang Bersih dan Transparan."
+                "Terbangunnya Tata Kelola Pemerintahan yang Baik dan Bersih untuk Mewujudkan Desa Sebalor yang lebih maju"
             </p>
         </div>
 
@@ -486,7 +485,15 @@
                         <i class="fas fa-check"></i>
                     </div>
                     <p class="misi-text">
-                        Mewujudkan kualitas pelayanan publik yang cepat, tepat, dan transparan
+                        Menyelenggarakan pemerintahan yang melayani dan mengayomi masyarakat;
+                </li>
+
+                <li class="misi-item">
+                    <div class="misi-check">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <p class="misi-text">
+                        Menyelenggarakan pemerintahan yang amanah, bersih, terbebas dari korupsi, kolusi dan Nepotisme. 
                     </p>
                 </li>
 
@@ -495,7 +502,7 @@
                         <i class="fas fa-check"></i>
                     </div>
                     <p class="misi-text">
-                        Meningkatkan potensi ekonomi lokal berbasis pertanian dan UMKM
+                        Meningkatkan perekonomian masyarakat melalui penciptaan lapangan kerja dengan berbasiskan pada potensi desa.
                     </p>
                 </li>
 
@@ -504,7 +511,7 @@
                         <i class="fas fa-check"></i>
                     </div>
                     <p class="misi-text">
-                        Mengembangkan sarana dan prasarana infrastruktur pendukung
+                        Meningkatkan mutu kesejahteraan masyarakat untuk mencapai taraf hidup yang lebih baik dan layak. 
                     </p>
                 </li>
 
@@ -513,18 +520,30 @@
                         <i class="fas fa-check"></i>
                     </div>
                     <p class="misi-text">
-                        Melestarikan nilai-nilai budaya dan kearifan lokal masyarakat
+                        Membangun mental spiritual bagi seluruh birokrasi dan masyarakat untuk mewujudkan desa Sebalor yang religius dan bermartabat melalui peningkatan mutu lembaga pendidikan dan keagamaan yang ada.
                     </p>
                 </li>
-
                 <li class="misi-item">
                     <div class="misi-check">
                         <i class="fas fa-check"></i>
                     </div>
                     <p class="misi-text">
-                        Mengoptimalkan infrastruktur desa yang membuka dan berkelanjutan
+                        Meningkatkan sarana dan prasarana umum guna mendukung kelancaran perekonomian masyarakat.
                     </p>
                 </li>
+                <li class="misi-item">
+                    <div class="misi-check">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <p class="misi-text">
+                        Pemerataan pembangunan fisik dan non fisik, sehingga tidak akan tejadi kesenjangan sosial di seluruh masyarakat Desa Sebalor.
+                </li>
+                <li class="misi-item">
+                    <div class="misi-check">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <p class="misi-text">
+                        Koordinasi dan bekerja sama dengan semua unsur kelembagaan desa, lembaga keagamaan dan lembaga sosial politik supaya dapat memberikan pelayanan yang terbaik kepada masyarakat yang meliputi bidang : ekonomi, sosial, politik, budaya, olahraga, ketertiban dan keamanan masyarakat.
             </ul>
         </div>
     </div>

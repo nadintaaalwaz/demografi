@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
 use App\Http\Controllers\AuthController;
 
 /*
@@ -35,6 +37,72 @@ Route::get('/kontak', function () {
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+// Test route untuk debug
+Route::get('/test-auth', function() {
+    if (Auth::check()) {
+        $user = Auth::user();
+        return response()->json([
+            'logged_in' => true,
+            'user' => [
+                'id' => $user->id,
+                'username' => $user->username,
+                'nama' => $user->nama,
+                'role' => $user->role
+            ],
+            'session_id' => session()->getId()
+        ]);
+    }
+    return response()->json(['logged_in' => false]);
+});
+
+// Test direct login
+Route::get('/test-direct-login', function(Request $request) {
+    $credentials = [
+        'username' => 'kasi',
+        'password' => 'kasisebalor726'
+    ];
+    
+    if (Auth::attempt($credentials, true)) {
+        $request->session()->regenerate();
+        $user = Auth::user();
+        
+        // Langsung cek apakah Auth::check() berhasil
+        return response()->json([
+            'success' => true,
+            'message' => 'Login berhasil!',
+            'auth_check' => Auth::check(),
+            'user' => [
+                'id' => $user->id,
+                'username' => $user->username,
+                'nama' => $user->nama,
+                'role' => $user->role
+            ],
+            'session_id' => session()->getId()
+        ]);
+    }
+    
+    return response()->json([
+        'success' => false,
+        'message' => 'Login gagal!',
+        'user_exists' => \App\Models\User::where('username', 'kasi')->exists(),
+        'user_data' => \App\Models\User::where('username', 'kasi')->first(['id', 'username', 'nama'])
+    ]);
+});
+
+// Test dashboard tanpa middleware
+Route::get('/kasi/dashboard-test', function () {
+    return view('kasi.dashboard', [
+        'totalPenduduk' => 1450,
+        'totalLakiLaki' => 754,
+        'totalPerempuan' => 696,
+        'persenLakiLaki' => 52,
+        'persenPerempuan' => 48,
+        'totalBalita' => 145,
+        'totalProduktif' => 980,
+        'totalLansia' => 325,
+    ]);
+});
 
 // ==================== KASI PEMERINTAHAN ROUTES ====================
 Route::prefix('kasi')->name('kasi.')->middleware(['auth', 'role:kasi'])->group(function () {

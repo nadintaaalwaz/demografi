@@ -353,7 +353,7 @@
                 <div class="user-profile">
                     <div class="user-avatar">KP</div>
                     <div class="user-info">
-                        <span class="user-name">{{ Auth::user()->name ?? 'Admin' }}</span>
+                        <span class="user-name">{{ Auth::user()->nama ?? 'Admin' }}</span>
                         <span class="user-role">Kasi Pemerintahan</span>
                     </div>
                     <i class="fas fa-chevron-down" style="color: #6b7280; font-size: 12px;"></i>

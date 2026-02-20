@@ -64,9 +64,21 @@ class User extends Authenticatable
     }
 
     /**
-     * Override default username field for authentication
+     * Get the name of the unique identifier for the user.
+     *
+     * @return string
      */
     public function getAuthIdentifierName()
+    {
+        return 'username';
+    }
+
+    /**
+     * Get the column name for the "username".
+     *
+     * @return string
+     */
+    public function username()
     {
         return 'username';
     }
