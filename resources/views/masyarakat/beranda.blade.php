@@ -13,7 +13,7 @@
     .hero-section {
         background: linear-gradient(135deg, rgba(12, 52, 44, 0.95), rgba(7, 102, 83, 0.95)), 
                     url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 400"><defs><pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(227,239,38,0.05)" stroke-width="1"/></pattern></defs><rect width="1200" height="400" fill="url(%23grid)"/></svg>');
-        padding: 100px 40px;
+        padding: 50px 40px 40px;
         text-align: center;
         position: relative;
         overflow: hidden;
@@ -27,15 +27,15 @@
         border-radius: 30px;
         font-size: 13px;
         font-weight: 600;
-        margin-bottom: 25px;
+        margin-bottom: 18px;
         border: 1px solid rgba(227, 239, 38, 0.3);
     }
 
     .hero-title {
-        font-size: 52px;
+        font-size: 42px;
         font-weight: 800;
         color: #fff;
-        margin-bottom: 15px;
+        margin-bottom: 12px;
         line-height: 1.2;
     }
 
@@ -44,11 +44,11 @@
     }
 
     .hero-subtitle {
-        font-size: 18px;
+        font-size: 16px;
         color: rgba(255, 255, 255, 0.85);
         max-width: 700px;
-        margin: 0 auto 40px;
-        line-height: 1.7;
+        margin: 0 auto 30px;
+        line-height: 1.6;
     }
 
     .hero-buttons {
@@ -98,8 +98,8 @@
     /* Stats Section */
     .stats-section {
         background: #076653;
-        padding: 0 40px;
-        margin-top: -50px;
+        padding: 40px 40px;
+        margin-top: 0;
         position: relative;
         z-index: 10;
     }
@@ -348,7 +348,7 @@
         }
 
         .stats-section {
-            padding: 0 20px;
+            padding: 40px 20px;
         }
     }
 </style>

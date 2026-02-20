@@ -12,19 +12,19 @@
     /* Hero Section */
     .profile-hero {
         background: linear-gradient(135deg, rgba(12, 52, 44, 0.95), rgba(7, 102, 83, 0.95));
-        padding: 80px 40px;
+        padding: 50px 40px 40px;
         text-align: center;
     }
 
     .profile-hero h1 {
-        font-size: 48px;
+        font-size: 40px;
         font-weight: 800;
         color: #fff;
-        margin-bottom: 15px;
+        margin-bottom: 12px;
     }
 
     .profile-hero p {
-        font-size: 17px;
+        font-size: 15px;
         color: rgba(255, 255, 255, 0.85);
         max-width: 600px;
         margin: 0 auto;
@@ -33,8 +33,8 @@
     /* Stats Cards */
     .profile-stats {
         background: #076653;
-        padding: 0 40px;
-        margin-top: -40px;
+        padding: 40px 40px;
+        margin-top: 0;
         position: relative;
         z-index: 10;
     }
@@ -401,7 +401,7 @@
         }
 
         .profile-stats {
-            padding: 0 20px;
+            padding: 40px 20px;
         }
     }
 </style>
@@ -410,7 +410,7 @@
 @section('content')
 <!-- Hero -->
 <section class="profile-hero">
-    <h1>Profil Desa Maju Jaya</h1>
+    <h1>Profil Desa Sebalor</h1>
     <p>Mengenal lebih dekat sejarah, visi, misi, dan potensi wilayah Desa Maju Jaya Kecamatan Sejahtera</p>
 </section>
 
@@ -466,7 +466,7 @@
         <div class="visi-box">
             <span class="visi-badge">Visi Desa</span>
             <p class="visi-text">
-                "Terwujudnya Desa Maju Jaya yang Mandiri, Sejahtera, dan Berbudaya 
+                "Terwujudnya Desa Sebalor yang Mandiri, Sejahtera, dan Berbudaya 
                 melalui Tata Kelola Pemerintahan yang Bersih dan Transparan."
             </p>
         </div>
@@ -537,7 +537,7 @@
             <span class="sejarah-badge">LATAR BELAKANG</span>
             <h2 class="sejarah-title">Sejarah Desa</h2>
             <p class="sejarah-intro">
-                Desa Maju Jaya memiliki sejarah panjang yang dimulai sejak zaman kolonial 
+                Desa Sebalor memiliki sejarah panjang yang dimulai sejak zaman kolonial 
                 hingga menjadi desa mandiri yang terus berkembang hingga saat ini.
             </p>
         </div>
@@ -548,7 +548,7 @@
                     <span class="timeline-year">1960</span>
                     <h3 class="timeline-title">Awal Mula Desa</h3>
                     <p class="timeline-text">
-                        Pada mulanya, Desa Maju Jaya merupakan wilayah hutan belantara yang 
+                        Pada mulanya, Desa Sebalor merupakan wilayah hutan belantara yang 
                         dibuka oleh para perintis. Sejak tahun 1960 nama "Maju Jaya" diberikan 
                         sebagai harapan agar wilayah ini terus berkembang dan menyejahterakan 
                         masyarakatnya di masa mendatang.
@@ -580,7 +580,7 @@
                     <span class="timeline-year">2000</span>
                     <h3 class="timeline-title">Era Modernisasi</h3>
                     <p class="timeline-text">
-                        Hingga kini, Desa Maju Jaya telah bertransformasi menjadi desa modern 
+                        Hingga kini, Desa Sebalor telah bertransformasi menjadi desa modern 
                         dengan potensi alam yang melimpah. Komunitas petani dan UMKM terus 
                         berkembang, didukung oleh pemerintah desa yang transparan dan akuntabel 
                         untuk kebaikan bersama.
