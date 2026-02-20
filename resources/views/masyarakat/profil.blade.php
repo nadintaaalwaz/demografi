@@ -411,7 +411,7 @@
 <!-- Hero -->
 <section class="profile-hero">
     <h1>Profil Desa Sebalor</h1>
-    <p>Mengenal lebih dekat sejarah, visi, misi, dan potensi wilayah Desa Maju Jaya Kecamatan Sejahtera</p>
+    <p>Mengenal lebih dekat sejarah, visi, misi, dan potensi wilayah Desa Sebalor Kecamatan Bandung Kabupaten Tulungagung</p>
 </section>
 
 <!-- Stats -->
@@ -556,21 +556,30 @@
             <span class="sejarah-badge">LATAR BELAKANG</span>
             <h2 class="sejarah-title">Sejarah Desa</h2>
             <p class="sejarah-intro">
-                Desa Sebalor memiliki sejarah panjang yang dimulai sejak zaman kolonial 
-                hingga menjadi desa mandiri yang terus berkembang hingga saat ini.
+                Sejarah Desa Sebalor memiliki latar belakang yang unik dan menarik sejak masa lampau hingga era kemerdekaan.
             </p>
         </div>
 
         <div class="timeline">
             <div class="timeline-item">
                 <div class="timeline-content">
-                    <span class="timeline-year">1960</span>
-                    <h3 class="timeline-title">Awal Mula Desa</h3>
+                    <span class="timeline-year">Masa Silam</span>
+                    <h3 class="timeline-title">Asal Usul Desa Sebalor</h3>
                     <p class="timeline-text">
-                        Pada mulanya, Desa Sebalor merupakan wilayah hutan belantara yang 
-                        dibuka oleh para perintis. Sejak tahun 1960 nama "Maju Jaya" diberikan 
-                        sebagai harapan agar wilayah ini terus berkembang dan menyejahterakan 
-                        masyarakatnya di masa mendatang.
+                        Sejarah Desa Sebalor yang secara pasti tidak dapat diketahui secara tepat. Sebab tidak terdapat tanda tanda tertulis yang berwujud prasasti dan lain sebagainya, jadi jelasnya riwayat tersebut hanya merupakan cerita atau dongengan secara turun temurun. Baru setelah menginjak jaman kemerdekaan, ada beberapa peninggalan pasti, berdasarkan narasumber yang sekarang masih hidup. Demikian pula bagi Desa Sebalor, pada masa masa silam mempunyai sejarah yang unik sehingga sejarah dapat kami bagi dua periode, yaitu yang pertama sejarah masa silam dan yang kedua sejarah masa perang kemerdekaan.
+                    </p>
+                </div>
+                <div class="timeline-icon">
+                    <i class="fas fa-book"></i>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-content">
+                    <span class="timeline-year">1873</span>
+                    <h3 class="timeline-title">Pembabatan Desa</h3>
+                    <p class="timeline-text">
+                        Berdasarkan cerita dari nara sumber yang dapat kami percaya dan sekarang masih hidup, maka desa yang sekarang di sebut Sebalor itu dibuka (dibabat) kurang lebih pada taun 1873, dan sebagai pembabatnya (pendirinya) ialah seorang yang bernama Mbah Guru Eyang Djalaludin Sihab. Kemudian Beliau mendirikan suatu perguruan dengan nama Putuk Pengajaran. Karena sang guru orang yang sakti dan mumpuni dalam ilmu lahir dan batin, maka banyaklah orang yang berguru kepadaNya.
                     </p>
                 </div>
                 <div class="timeline-icon">
@@ -580,33 +589,53 @@
 
             <div class="timeline-item">
                 <div class="timeline-content">
-                    <span class="timeline-year">1975</span>
-                    <h3 class="timeline-title">Perkembangan Awal</h3>
+                    <span class="timeline-year">Era Perguruan</span>
+                    <h3 class="timeline-title">Asal Nama Sebalor</h3>
                     <p class="timeline-text">
-                        Seiring berjalannya waktu, desa ini mengalami perkembangan pesat. 
-                        Berdiri fasilitas-fasilitas dasar dan sarana transportasi yang mendorong 
-                        kemajuan ekonomi lokal. Generasi pertama mulai membangun pondasi 
-                        kehidupan bersama dengan gotong royong.
+                        Demikian banyaknya orang yang berguru maka diaturlah waktu menghadap sang guru, sehingga semua siswa dapat bertatap muka, guna mendapatkan wejangan ilmu seluruhnya. Dalam pengaturan Waktu tersebut siswa yang bersal dari utara perguruan harus menanti dalam bahasa jawa Sebo dulu sebelum mendapat panggilan. Sehingga tempat menantinya (Sebonya) para siswa dari bagian utara bahasa jawanya adalah Lor tersebut sampai sekarang terkenal dengan nama Sebalor, yang maknanya PASEBON BAGIAN UTARA (LOR), Berubah ucapan menjadi SEBANLOR dan akhirnya berubah ucapan lagi menjadi SEBALOR.
                     </p>
                 </div>
                 <div class="timeline-icon">
-                    <i class="fas fa-seedling"></i>
+                    <i class="fas fa-graduation-cap"></i>
                 </div>
             </div>
 
             <div class="timeline-item">
                 <div class="timeline-content">
-                    <span class="timeline-year">2000</span>
-                    <h3 class="timeline-title">Era Modernisasi</h3>
+                    <span class="timeline-year">1940</span>
+                    <h3 class="timeline-title">Masa Perang Kemerdekaan</h3>
                     <p class="timeline-text">
-                        Hingga kini, Desa Sebalor telah bertransformasi menjadi desa modern 
-                        dengan potensi alam yang melimpah. Komunitas petani dan UMKM terus 
-                        berkembang, didukung oleh pemerintah desa yang transparan dan akuntabel 
-                        untuk kebaikan bersama.
+                        Pada masa perang kemerdekaan tahun 1940, karena pada umumnya daerah kota (termasuk ibukota Kecamatan) sudah diduduki Belanda, maka para pejuang meneruskan perlawanan dengan taktik Gerilya. Guna Mengatur siasat dicarilah tempat yang sangat strategis yang dipusatkan dilereng gunung yang terletak di Dukuh Cunduk Desa Sebalor.
                     </p>
                 </div>
                 <div class="timeline-icon">
-                    <i class="fas fa-city"></i>
+                    <i class="fas fa-flag"></i>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-content">
+                    <span class="timeline-year">Era Perjuangan</span>
+                    <h3 class="timeline-title">Pos Komando Batalyon 121 Mliwis</h3>
+                    <p class="timeline-text">
+                        Tempatnya di rumah Bapak Songgolo sebagai warga setempat. Rumah tersebut dijadikan Pos Komado dari Batalyon 121 Mliwis TNI AD dibawah pimpinan Mayor Sobiran. Adapun nama-nama pimpinan Batalyon tersebut adalah Mayor Sobiran Sebagai DAN YON, Kapten Witarmin sebagai DAN K I, Letda Sandiman Sebagai DAN KI II, Letda Hartono sebagai DAN KI III dan Kapten Muyadi Sebagai DAN KI IV.
+                    </p>
+                </div>
+                <div class="timeline-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-content">
+                    <span class="timeline-year">1985</span>
+                    <h3 class="timeline-title">Monumen Peringatan</h3>
+                    <p class="timeline-text">
+                        Untuk mengenang sejarah tersebut, maka pada tahun 1985 rekan – rekan guru yang tergabung dalam Peserta Penataran Pendidikan Sejarah Perjuangan Bangsa (PSPB) telah mengadakan kerjasama dengan pemerintah setempat untuk mengadakan pelacakan kembali. Dan akhirnya dihalaman rumah Pak Songgolo tersebut di dirikan sebuah monument mekipun sangat sederhana.
+                    </p>
+                </div>
+                <div class="timeline-icon">
+                    <i class="fas fa-monument"></i>
                 </div>
             </div>
         </div>
