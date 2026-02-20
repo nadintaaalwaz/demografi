@@ -18,9 +18,11 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'name',
-        'email',
+        'username',
         'password',
+        'nama',
+        'role',
+        'id_dusun',
     ];
 
     /**
@@ -41,8 +43,31 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Check if user is Kasi Pemerintahan
+     */
+    public function isKasi()
+    {
+        return $this->role === 'kasi';
+    }
+
+    /**
+     * Check if user is Kepala Dusun
+     */
+    public function isKasun()
+    {
+        return $this->role === 'kasun';
+    }
+
+    /**
+     * Override default username field for authentication
+     */
+    public function getAuthIdentifierName()
+    {
+        return 'username';
     }
 }

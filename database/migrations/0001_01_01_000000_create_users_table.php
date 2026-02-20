@@ -13,12 +13,16 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
+            $table->string('username')->unique();
             $table->string('password');
+            $table->string('nama');
+            $table->enum('role', ['kasi', 'kasun']);
+            $table->unsignedBigInteger('id_dusun')->nullable();
             $table->rememberToken();
             $table->timestamps();
+            
+            // Foreign key constraint (akan dibuat setelah tabel wilayah ada)
+            // $table->foreign('id_dusun')->references('id')->on('wilayah')->onDelete('set null');
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {

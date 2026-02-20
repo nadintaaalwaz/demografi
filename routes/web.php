@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuthController;
 
 /*
 |--------------------------------------------------------------------------
@@ -31,21 +32,12 @@ Route::get('/kontak', function () {
 })->name('public.kontak');
 
 // ==================== LOGIN ROUTES ====================
-Route::get('/login', function () {
-    return view('kasi.login');
-})->name('login');
-
-Route::post('/login', function () {
-    // Untuk testing, redirect ke dashboard
-    return redirect()->route('kasi.dashboard');
-})->name('login.submit');
-
-Route::post('/logout', function () {
-    return redirect()->route('login');
-})->name('logout');
+Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // ==================== KASI PEMERINTAHAN ROUTES ====================
-Route::prefix('kasi')->name('kasi.')->group(function () {
+Route::prefix('kasi')->name('kasi.')->middleware(['auth', 'role:kasi'])->group(function () {
     
     // Dashboard
     Route::get('/dashboard', function () {
@@ -128,7 +120,7 @@ Route::prefix('kasi')->name('kasi.')->group(function () {
 });
 
 // ==================== KASUN ROUTES ====================
-Route::prefix('kasun')->name('kasun.')->group(function () {
+Route::prefix('kasun')->name('kasun.')->middleware(['auth', 'role:kasun'])->group(function () {
     
     // Dashboard Kasun
     Route::get('/dashboard', function () {
