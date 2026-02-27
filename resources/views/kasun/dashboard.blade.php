@@ -1,7 +1,10 @@
 @extends('kasun.layout')
 
 @section('title', 'Dashboard Dusun')
-@section('page-title', 'Dashboard Dusun {{ Auth::user()->dusun->nama ?? "" }}')
+
+@section('page-title')
+Dashboard {{ Auth::user()->dusun_name ?? "Dusun" }}
+@endsection
 
 @push('styles')
 <style>
@@ -235,8 +238,8 @@
 <!-- Info Banner -->
 <div class="info-banner">
     <div class="info-banner-content">
-        <h2>Selamat Datang, {{ Auth::user()->name ?? 'Kasun' }}</h2>
-        <p>Berikut adalah data statistik dan monitoring untuk {{ Auth::user()->dusun->nama ?? 'Dusun Anda' }}</p>
+        <h2>Selamat Datang, {{ Auth::user()->nama ?? 'Kasun' }}</h2>
+        <p>Berikut adalah data statistik dan monitoring untuk {{ Auth::user()->dusun_name ?? 'Dusun Anda' }}</p>
     </div>
     <div class="info-banner-icon">
         <i class="fas fa-home"></i>
@@ -504,7 +507,7 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 const marker = L.marker([-7.50, 110.50]).addTo(dusunMap);
 marker.bindPopup(`
     <div style="font-family: 'Segoe UI', sans-serif;">
-        <h3 style="margin: 0 0 10px 0; color: #0C342C;">{{ Auth::user()->dusun->nama ?? 'Dusun' }}</h3>
+        <h3 style="margin: 0 0 10px 0; color: #0C342C;">{{ Auth::user()->dusun_name ?? 'Dusun' }}</h3>
         <p style="margin: 5px 0;"><strong>Total Penduduk:</strong> 450</p>
         <p style="margin: 5px 0;"><strong>Laki-laki:</strong> 234 (52%)</p>
         <p style="margin: 5px 0;"><strong>Perempuan:</strong> 216 (48%)</p>

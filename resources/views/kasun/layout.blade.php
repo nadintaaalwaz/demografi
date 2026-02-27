@@ -316,7 +316,7 @@
             </div>
             <h2 class="sidebar-title">Desa Sebalor</h2>
             <p class="sidebar-subtitle">Kepala Dusun</p>
-            <span class="dusun-badge">{{ Auth::user()->dusun->nama ?? 'Dusun' }}</span>
+            <span class="dusun-badge">{{ Auth::user()->dusun_name ?? 'Dusun' }}</span>
         </div>
 
         <ul class="sidebar-menu">
@@ -372,9 +372,9 @@
                     <i class="fas fa-bell"></i>
                 </div>
                 <div class="user-profile">
-                    <div class="user-avatar">KD</div>
+                    <div class="user-avatar">{{ Auth::user()->initials ?? 'KD' }}</div>
                     <div class="user-info">
-                        <span class="user-name">{{ Auth::user()->name ?? 'Kasun' }}</span>
+                        <span class="user-name">{{ Auth::user()->nama ?? 'Kasun' }}</span>
                         <span class="user-role">Kepala Dusun</span>
                     </div>
                     <i class="fas fa-chevron-down" style="color: #6b7280; font-size: 12px;"></i>

@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserManagementController;
+use App\Http\Controllers\WilayahController;
 
 /*
 |--------------------------------------------------------------------------
@@ -155,18 +156,13 @@ Route::prefix('kasi')->name('kasi.')->middleware(['auth', 'role:kasi'])->group(f
         return response()->download(public_path('templates/template-penduduk.xlsx'));
     })->name('upload.template');
     
-    // Wilayah
-    Route::get('/wilayah', function () {
-        return view('kasi.wilayah.index');
-    })->name('wilayah.index');
-    
-    Route::get('/wilayah/create', function () {
-        return view('kasi.wilayah.create');
-    })->name('wilayah.create');
-    
-    Route::get('/wilayah/{id}/edit', function ($id) {
-        return view('kasi.wilayah.edit', ['id' => $id]);
-    })->name('wilayah.edit');
+    // Wilayah (CRUD)
+    Route::get('/wilayah', [WilayahController::class, 'index'])->name('wilayah.index');
+    Route::get('/wilayah/create', [WilayahController::class, 'create'])->name('wilayah.create');
+    Route::post('/wilayah', [WilayahController::class, 'store'])->name('wilayah.store');
+    Route::get('/wilayah/{id}/edit', [WilayahController::class, 'edit'])->name('wilayah.edit');
+    Route::put('/wilayah/{id}', [WilayahController::class, 'update'])->name('wilayah.update');
+    Route::delete('/wilayah/{id}', [WilayahController::class, 'destroy'])->name('wilayah.destroy');
     
     // Laporan
     Route::get('/laporan', function () {

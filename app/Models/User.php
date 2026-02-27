@@ -82,4 +82,27 @@ class User extends Authenticatable
     {
         return 'username';
     }
+
+    /**
+     * Get formatted dusun name
+     */
+    public function getDusunNameAttribute()
+    {
+        if ($this->id_dusun) {
+            return 'Dusun ' . $this->id_dusun;
+        }
+        return 'Belum Ditentukan';
+    }
+
+    /**
+     * Get user initials for avatar
+     */
+    public function getInitialsAttribute()
+    {
+        $words = explode(' ', $this->nama);
+        if (count($words) >= 2) {
+            return strtoupper(substr($words[0], 0, 1) . substr($words[1], 0, 1));
+        }
+        return strtoupper(substr($this->nama, 0, 2));
+    }
 }
