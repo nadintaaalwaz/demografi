@@ -267,20 +267,24 @@
 
                     <div class="form-group">
                         <label for="id_dusun">
-                            ID Dusun
+                            Dusun
                         </label>
                         <div class="input-group">
                             <i class="fas fa-map-marker-alt input-icon"></i>
-                            <input 
-                                type="number" 
+                            <select 
                                 id="id_dusun" 
                                 name="id_dusun" 
-                                class="form-control @error('id_dusun') error @enderror" 
-                                value="{{ old('id_dusun') }}"
-                                placeholder="Masukkan ID dusun (opsional)"
+                                class="form-control @error('id_dusun') error @enderror"
                             >
+                                <option value="">-- Pilih Dusun --</option>
+                                @foreach($dusunList as $dusun)
+                                    <option value="{{ $dusun->id }}" {{ old('id_dusun') == $dusun->id ? 'selected' : '' }}>
+                                        {{ $dusun->nama }}
+                                    </option>
+                                @endforeach
+                            </select>
                         </div>
-                        <small class="form-text">Opsional: ID dusun yang dikelola oleh kasun</small>
+                        <small class="form-text">Opsional: Dusun yang dikelola oleh kasun</small>
                         @error('id_dusun')
                             <span class="error-message">
                                 <i class="fas fa-exclamation-circle"></i>

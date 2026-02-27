@@ -311,7 +311,7 @@
                         <th>Nama Kasun</th>
                         <th>Username</th>
                         <th>Role</th>
-                        <th>ID Dusun</th>
+                        <th>Dusun</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
@@ -331,10 +331,8 @@
                                 </div>
                             </td>
                             <td>{{ $user->username }}</td>
-                            <td>
-                                <span class="role-badge">{{ ucfirst($user->role) }}</span>
-                            </td>
-                            <td>{{ $user->id_dusun ?? '-' }}</td>
+                            <td>{{ $user->role }}</td>
+                            <td>{{ $user->dusun->nama ?? '-' }}</td>
                             <td>
                                 <div class="action-buttons">
                                     <a href="{{ route('kasi.users.edit', $user->id) }}" class="btn btn-warning">

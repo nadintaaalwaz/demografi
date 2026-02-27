@@ -84,12 +84,20 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the dusun (wilayah) that the user belongs to
+     */
+    public function dusun()
+    {
+        return $this->belongsTo(Wilayah::class, 'id_dusun')->where('tipe', 'dusun');
+    }
+
+    /**
      * Get formatted dusun name
      */
     public function getDusunNameAttribute()
     {
-        if ($this->id_dusun) {
-            return 'Dusun ' . $this->id_dusun;
+        if ($this->dusun) {
+            return $this->dusun->nama;
         }
         return 'Belum Ditentukan';
     }

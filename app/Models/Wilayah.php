@@ -23,12 +23,20 @@ class Wilayah extends Model
     ];
 
     /**
+     * Get the users (kasun) that belong to this dusun
+     */
+    public function users()
+    {
+        return $this->hasMany(User::class, 'id_dusun');
+    }
+
+    /**
      * Get jumlah penduduk di wilayah ini
      */
     public function getJumlahPendudukAttribute()
     {
         if ($this->tipe === 'dusun') {
-            return User::where('id_dusun', $this->id)->count();
+            return $this->users()->count();
         }
         return 0; // Untuk RT/RW bisa dikembangkan nanti
     }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Wilayah;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
@@ -35,7 +36,11 @@ class UserManagementController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        return view('kasi.manajemen-user.create');
+        $dusunList = Wilayah::where('tipe', 'dusun')
+            ->orderBy('nama', 'asc')
+            ->get();
+
+        return view('kasi.manajemen-user.create', compact('dusunList'));
     }
 
     /**
@@ -76,8 +81,11 @@ class UserManagementController extends Controller
         }
 
         $user = User::where('role', 'kasun')->findOrFail($id);
+        $dusunList = Wilayah::where('tipe', 'dusun')
+            ->orderBy('nama', 'asc')
+            ->get();
 
-        return view('kasi.manajemen-user.edit', compact('user'));
+        return view('kasi.manajemen-user.edit', compact('user', 'dusunList'));
     }
 
     /**
