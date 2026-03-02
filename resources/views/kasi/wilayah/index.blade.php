@@ -7,111 +7,108 @@ Manajemen Wilayah
 @endsection
 
 @push('styles')
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>
-    .btn {
-        padding: 12px 24px;
-        border-radius: 10px;
-        text-decoration: none;
-        font-weight: 600;
-        font-size: 14px;
-        transition: all 0.3s ease;
-        border: none;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
+    .wilayah-container {
+        display: grid;
+        grid-template-columns: 1fr 450px;
+        gap: 25px;
+        align-items: start;
     }
 
-    .btn-primary {
-        background: linear-gradient(135deg, #076653, #0C342C);
-        color: #fff;
-    }
-
-    .btn-primary:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(7, 102, 83, 0.3);
-    }
-
-    .btn-warning {
-        background: linear-gradient(135deg, #f59e0b, #d97706);
-        color: #fff;
-        padding: 8px 16px;
-        font-size: 13px;
-    }
-
-    .btn-warning:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
-    }
-
-    .btn-danger {
-        background: linear-gradient(135deg, #ef4444, #dc2626);
-        color: #fff;
-        padding: 8px 16px;
-        font-size: 13px;
-    }
-
-    .btn-danger:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
-    }
-
-    .action-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 25px;
-    }
-
-    .wilayah-tabs {
-        display: flex;
-        gap: 10px;
-        margin-bottom: 25px;
-        border-bottom: 2px solid #e5e7eb;
-        padding-bottom: 0;
-    }
-
-    .tab-btn {
-        padding: 12px 24px;
-        background: transparent;
-        border: none;
-        border-bottom: 3px solid transparent;
-        color: #6b7280;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        font-size: 14px;
-    }
-
-    .tab-btn:hover {
-        color: #076653;
-    }
-
-    .tab-btn.active {
-        color: #076653;
-        border-bottom-color: #076653;
-    }
-
-    .wilayah-table-container {
+    .wilayah-left {
         background: #fff;
         border-radius: 16px;
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
         overflow: hidden;
-        margin-bottom: 20px;
     }
 
-    .table-header {
+    .search-filter-section {
         padding: 20px 25px;
-        background: linear-gradient(135deg, #076653, #0C342C);
-        color: #fff;
-    }
-
-    .table-header h3 {
-        font-size: 18px;
-        font-weight: 600;
+        background: #0C342C;
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 15px;
+    }
+
+    .search-box {
+        flex: 1;
+        position: relative;
+    }
+
+    .search-box input {
+        width: 100%;
+        padding: 12px 15px 12px 45px;
+        border: none;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.15);
+        color: #fff;
+        font-size: 14px;
+    }
+
+    .search-box input::placeholder {
+        color: rgba(255, 255, 255, 0.7);
+    }
+
+    .search-box i {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: rgba(255, 255, 255, 0.7);
+    }
+
+    .btn-add {
+        background: #E3EF26;
+        color: #0C342C;
+        padding: 12px 20px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 14px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+
+    .btn-add:hover {
+        background: #d4e01d;
+        transform: translateY(-2px);
+    }
+
+    .filter-tabs {
+        display: flex;
+        background: #f9fafb;
+        border-bottom: 2px solid #e5e7eb;
+    }
+
+    .filter-tab {
+        flex: 1;
+        padding: 14px 20px;
+        text-align: center;
+        background: transparent;
+        border: none;
+        color: #6b7280;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border-bottom: 3px solid transparent;
+    }
+
+    .filter-tab:hover {
+        color: #076653;
+        background: #f3f4f6;
+    }
+
+    .filter-tab.active {
+        color: #076653;
+        border-bottom-color: #076653;
+        background: #fff;
     }
 
     .wilayah-table {
@@ -124,9 +121,9 @@ Manajemen Wilayah
     }
 
     .wilayah-table th {
-        padding: 16px 25px;
+        padding: 14px 18px;
         text-align: left;
-        font-size: 13px;
+        font-size: 12px;
         font-weight: 600;
         color: #6b7280;
         text-transform: uppercase;
@@ -144,47 +141,48 @@ Manajemen Wilayah
     }
 
     .wilayah-table td {
-        padding: 18px 25px;
-        font-size: 14px;
+        padding: 16px 18px;
+        font-size: 13px;
         color: #374151;
     }
 
-    .wilayah-info {
+    .wilayah-name {
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 10px;
     }
 
-    .wilayah-icon {
-        width: 45px;
-        height: 45px;
+    .wilayah-dot {
+        width: 10px;
+        height: 10px;
         border-radius: 50%;
-        background: linear-gradient(135deg, #076653, #0C342C);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #E3EF26;
-        font-size: 18px;
+        flex-shrink: 0;
     }
 
-    .wilayah-details h4 {
-        font-size: 15px;
+    .wilayah-dot.yellow {
+        background: #E3EF26;
+    }
+
+    .wilayah-dot.green {
+        background: #10b981;
+    }
+
+    .wilayah-dot.blue {
+        background: #3b82f6;
+    }
+
+    .wilayah-name span {
         font-weight: 600;
         color: #0C342C;
-        margin-bottom: 3px;
-    }
-
-    .wilayah-details p {
-        font-size: 13px;
-        color: #6b7280;
     }
 
     .badge {
         display: inline-block;
-        padding: 6px 14px;
-        border-radius: 20px;
-        font-size: 12px;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 11px;
         font-weight: 600;
+        text-transform: uppercase;
     }
 
     .badge-dusun {
@@ -202,22 +200,80 @@ Manajemen Wilayah
         color: #92400e;
     }
 
-    .stat-value {
+    .action-btns {
+        display: flex;
+        gap: 6px;
+    }
+
+    .btn-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        border: none;
         display: flex;
         align-items: center;
-        gap: 8px;
-        font-weight: 600;
-        color: #0C342C;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 14px;
     }
 
-    .stat-value i {
-        color: #076653;
-        font-size: 16px;
+    .btn-edit {
+        background: #fef3c7;
+        color: #d97706;
     }
 
-    .action-buttons {
+    .btn-edit:hover {
+        background: #fde68a;
+        transform: translateY(-2px);
+    }
+
+    .btn-delete {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+
+    .btn-delete:hover {
+        background: #fecaca;
+        transform: translateY(-2px);
+    }
+
+    .map-container {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+        position: sticky;
+        top: 30px;
+    }
+
+    .map-header {
+        padding: 18px 20px;
+        background: #0C342C;
+        color: #E3EF26;
         display: flex;
-        gap: 8px;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .map-header h3 {
+        font-size: 16px;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    #map {
+        height: 600px;
+        width: 100%;
+    }
+
+    .map-hint {
+        padding: 15px 20px;
+        background: #f9fafb;
+        border-top: 1px solid #e5e7eb;
+        font-size: 12px;
+        color: #6b7280;
+        text-align: center;
     }
 
     .empty-state {
@@ -227,19 +283,19 @@ Manajemen Wilayah
     }
 
     .empty-state i {
-        font-size: 64px;
-        margin-bottom: 20px;
+        font-size: 48px;
+        margin-bottom: 15px;
         opacity: 0.5;
     }
 
-    .empty-state h3 {
-        font-size: 18px;
+    .empty-state h4 {
+        font-size: 16px;
         color: #6b7280;
-        margin-bottom: 10px;
+        margin-bottom: 8px;
     }
 
     .empty-state p {
-        font-size: 14px;
+        font-size: 13px;
     }
 
     /* Delete Modal */
@@ -293,6 +349,7 @@ Manajemen Wilayah
         font-size: 20px;
         color: #0C342C;
         font-weight: 700;
+        margin: 0;
     }
 
     .modal-body {
@@ -308,23 +365,46 @@ Manajemen Wilayah
         justify-content: flex-end;
     }
 
+    .btn {
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 14px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
     .btn-cancel {
         background: #e5e7eb;
         color: #374151;
-        padding: 10px 20px;
-        font-size: 14px;
     }
 
     .btn-cancel:hover {
         background: #d1d5db;
     }
 
-    .tabcontent {
-        display: none;
+    .btn-danger {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        color: #fff;
     }
 
-    .tabcontent.active {
-        display: block;
+    .btn-danger:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+    }
+
+    @media (max-width: 1200px) {
+        .wilayah-container {
+            grid-template-columns: 1fr;
+        }
+
+        .map-container {
+            position: static;
+        }
     }
 </style>
 @endpush
@@ -344,325 +424,89 @@ Manajemen Wilayah
     </div>
 @endif
 
-<div class="action-header">
-    <div></div>
-    <a href="{{ route('kasi.wilayah.create') }}" class="btn btn-primary">
-        <i class="fas fa-plus"></i> Tambah Wilayah Baru
-    </a>
-</div>
-
-<!-- Tabs -->
-<div class="wilayah-tabs">
-    <button class="tab-btn active" onclick="openTab(event, 'semua')">
-        <i class="fas fa-list"></i> Semua Wilayah
-    </button>
-    <button class="tab-btn" onclick="openTab(event, 'dusun')">
-        <i class="fas fa-home"></i> Dusun
-    </button>
-    <button class="tab-btn" onclick="openTab(event, 'rt')">
-        <i class="fas fa-users"></i> RT
-    </button>
-    <button class="tab-btn" onclick="openTab(event, 'rw')">
-        <i class="fas fa-user-friends"></i> RW
-    </button>
-</div>
-
-<!-- Semua Wilayah -->
-<div id="semua" class="tabcontent active">
-    <div class="wilayah-table-container">
-        <div class="table-header">
-            <h3>
-                <i class="fas fa-map-marked-alt"></i>
-                Semua Wilayah ({{ $wilayah->count() }})
-            </h3>
+<div class="wilayah-container">
+    <!-- Left: Table Section -->
+    <div class="wilayah-left">
+        <!-- Search and Add Button -->
+        <div class="search-filter-section">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Cari nama wilayah" onkeyup="searchWilayah()">
+            </div>
+            <a href="{{ route('kasi.wilayah.create') }}" class="btn-add">
+                <i class="fas fa-plus"></i> Tambah Wilayah
+            </a>
         </div>
 
-        @if($wilayah->count() > 0)
-            <table class="wilayah-table">
-                <thead>
-                    <tr>
-                        <th>No</th>
-                        <th>Nama Wilayah</th>
-                        <th>Tipe</th>
-                        <th>Luas</th>
-                        <th>Jumlah Penduduk</th>
-                        <th>Kepadatan</th>
-                        <th>Koordinat</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($wilayah as $index => $item)
+        <!-- Filter Tabs -->
+        <div class="filter-tabs">
+            <button class="filter-tab active" onclick="filterWilayah('all')">All</button>
+            <button class="filter-tab" onclick="filterWilayah('dusun')">Dusun</button>
+            <button class="filter-tab" onclick="filterWilayah('rt')">RT</button>
+            <button class="filter-tab" onclick="filterWilayah('rw')">RW</button>
+        </div>
+
+        <!-- Wilayah Table -->
+        <div id="wilayahTableContainer">
+            @if($wilayah->count() > 0)
+                <table class="wilayah-table" id="wilayahTable">
+                    <thead>
                         <tr>
-                            <td>{{ $index + 1 }}</td>
-                            <td>
-                                <div class="wilayah-info">
-                                    <div class="wilayah-icon">
-                                        <i class="fas fa-{{ $item->tipe === 'dusun' ? 'home' : ($item->tipe === 'rt' ? 'users' : 'user-friends') }}"></i>
-                                    </div>
-                                    <div class="wilayah-details">
-                                        <h4>{{ $item->nama }}</h4>
-                                        @if($item->nomor_rt)
-                                            <p>RT {{ $item->nomor_rt }}</p>
-                                        @elseif($item->nomor_rw)
-                                            <p>RW {{ $item->nomor_rw }}</p>
-                                        @endif
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <span class="badge badge-{{ $item->tipe }}">
-                                    {{ ucfirst($item->tipe) }}
-                                </span>
-                            </td>
-                            <td>{{ $item->luas_formatted }}</td>
-                            <td>
-                                <div class="stat-value">
-                                    <i class="fas fa-users"></i>
-                                    {{ number_format($item->jumlah_penduduk) }}
-                                </div>
-                            </td>
-                            <td>
-                                @if($item->kepadatan > 0)
-                                    {{ number_format($item->kepadatan, 2) }} jiwa/km²
-                                @else
-                                    -
-                                @endif
-                            </td>
-                            <td>
-                                <small>{{ $item->latitude }}, {{ $item->longitude }}</small>
-                            </td>
-                            <td>
-                                <div class="action-buttons">
-                                    <a href="{{ route('kasi.wilayah.edit', $item->id) }}" class="btn btn-warning">
-                                        <i class="fas fa-edit"></i> Edit
-                                    </a>
-                                    <button type="button" class="btn btn-danger" onclick="confirmDelete({{ $item->id }}, '{{ $item->nama }}')">
-                                        <i class="fas fa-trash"></i> Hapus
-                                    </button>
-                                </div>
-                            </td>
+                            <th>Nama Wilayah</th>
+                            <th>Tipe</th>
+                            <th>Luas (Ha)</th>
+                            <th>Koordinat</th>
+                            <th>Aksi</th>
                         </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        @else
-            <div class="empty-state">
-                <i class="fas fa-map"></i>
-                <h3>Belum Ada Data Wilayah</h3>
-                <p>Klik tombol "Tambah Wilayah Baru" untuk menambahkan wilayah</p>
-            </div>
-        @endif
+                    </thead>
+                    <tbody>
+                        @foreach($wilayah as $item)
+                            <tr data-tipe="{{ $item->tipe }}" data-lat="{{ $item->latitude }}" data-lng="{{ $item->longitude }}" data-nama="{{ $item->nama }}">
+                                <td>
+                                    <div class="wilayah-name">
+                                        <div class="wilayah-dot {{ $item->tipe === 'dusun' ? 'yellow' : ($item->tipe === 'rt' ? 'green' : 'blue') }}"></div>
+                                        <span>{{ $item->nama }}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge badge-{{ $item->tipe }}">{{ ucfirst($item->tipe) }}</span>
+                                </td>
+                                <td>{{ $item->luas_wilayah ? number_format($item->luas_wilayah, 2) . ' Ha' : '-' }}</td>
+                                <td><small>{{ $item->latitude }}, {{ $item->longitude }}</small></td>
+                                <td>
+                                    <div class="action-btns">
+                                        <a href="{{ route('kasi.wilayah.edit', $item->id) }}" class="btn-icon btn-edit" title="Edit">
+                                            <i class="fas fa-pen"></i>
+                                        </a>
+                                        <button type="button" class="btn-icon btn-delete" onclick="confirmDelete({{ $item->id }}, '{{ $item->nama }}')" title="Hapus">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            @else
+                <div class="empty-state">
+                    <i class="fas fa-map"></i>
+                    <h4>Belum Ada Data Wilayah</h4>
+                    <p>Klik "Tambah Wilayah" untuk menambahkan data</p>
+                </div>
+            @endif
+        </div>
     </div>
-</div>
 
-<!-- Dusun Only -->
-<div id="dusun" class="tabcontent">
-    <div class="wilayah-table-container">
-        <div class="table-header">
-            <h3>
-                <i class="fas fa-home"></i>
-                Daftar Dusun ({{ $wilayah->where('tipe', 'dusun')->count() }})
-            </h3>
+    <!-- Right: Map Section -->
+    <div class="map-container">
+        <div class="map-header">
+            <i class="fas fa-map-marked-alt"></i>
+            <h3>Peta Lokasi</h3>
         </div>
-
-        @if($wilayah->where('tipe', 'dusun')->count() > 0)
-            <table class="wilayah-table">
-                <thead>
-                    <tr>
-                        <th>No</th>
-                        <th>Nama Dusun</th>
-                        <th>Luas</th>
-                        <th>Jumlah Penduduk</th>
-                        <th>Kepadatan</th>
-                        <th>Koordinat</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($wilayah->where('tipe', 'dusun') as $index => $item)
-                        <tr>
-                            <td>{{ $index + 1 }}</td>
-                            <td>
-                                <div class="wilayah-info">
-                                    <div class="wilayah-icon">
-                                        <i class="fas fa-home"></i>
-                                    </div>
-                                    <div class="wilayah-details">
-                                        <h4>{{ $item->nama }}</h4>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>{{ $item->luas_formatted }}</td>
-                            <td>
-                                <div class="stat-value">
-                                    <i class="fas fa-users"></i>
-                                    {{ number_format($item->jumlah_penduduk) }}
-                                </div>
-                            </td>
-                            <td>
-                                @if($item->kepadatan > 0)
-                                    {{ number_format($item->kepadatan, 2) }} jiwa/km²
-                                @else
-                                    -
-                                @endif
-                            </td>
-                            <td>
-                                <small>{{ $item->latitude }}, {{ $item->longitude }}</small>
-                            </td>
-                            <td>
-                                <div class="action-buttons">
-                                    <a href="{{ route('kasi.wilayah.edit', $item->id) }}" class="btn btn-warning">
-                                        <i class="fas fa-edit"></i> Edit
-                                    </a>
-                                    <button type="button" class="btn btn-danger" onclick="confirmDelete({{ $item->id }}, '{{ $item->nama }}')">
-                                        <i class="fas fa-trash"></i> Hapus
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        @else
-            <div class="empty-state">
-                <i class="fas fa-home"></i>
-                <h3>Belum Ada Data Dusun</h3>
-                <p>Klik tombol "Tambah Wilayah Baru" untuk menambahkan dusun</p>
-            </div>
-        @endif
-    </div>
-</div>
-
-<!-- RT Only -->
-<div id="rt" class="tabcontent">
-    <div class="wilayah-table-container">
-        <div class="table-header">
-            <h3>
-                <i class="fas fa-users"></i>
-                Daftar RT ({{ $wilayah->where('tipe', 'rt')->count() }})
-            </h3>
+        <div id="map"></div>
+        <div class="map-hint">
+            Klik marker untuk melihat detail wilayah
         </div>
-
-        @if($wilayah->where('tipe', 'rt')->count() > 0)
-            <table class="wilayah-table">
-                <thead>
-                    <tr>
-                        <th>No</th>
-                        <th>Nama RT</th>
-                        <th>Nomor</th>
-                        <th>Luas</th>
-                        <th>Koordinat</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($wilayah->where('tipe', 'rt') as $index => $item)
-                        <tr>
-                            <td>{{ $index + 1 }}</td>
-                            <td>
-                                <div class="wilayah-info">
-                                    <div class="wilayah-icon">
-                                        <i class="fas fa-users"></i>
-                                    </div>
-                                    <div class="wilayah-details">
-                                        <h4>{{ $item->nama }}</h4>
-                                        <p>RT {{ $item->nomor_rt }}</p>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>{{ $item->nomor_rt }}</td>
-                            <td>{{ $item->luas_formatted }}</td>
-                            <td>
-                                <small>{{ $item->latitude }}, {{ $item->longitude }}</small>
-                            </td>
-                            <td>
-                                <div class="action-buttons">
-                                    <a href="{{ route('kasi.wilayah.edit', $item->id) }}" class="btn btn-warning">
-                                        <i class="fas fa-edit"></i> Edit
-                                    </a>
-                                    <button type="button" class="btn btn-danger" onclick="confirmDelete({{ $item->id }}, '{{ $item->nama }}')">
-                                        <i class="fas fa-trash"></i> Hapus
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        @else
-            <div class="empty-state">
-                <i class="fas fa-users"></i>
-                <h3>Belum Ada Data RT</h3>
-                <p>Klik tombol "Tambah Wilayah Baru" untuk menambahkan RT</p>
-            </div>
-        @endif
-    </div>
-</div>
-
-<!-- RW Only -->
-<div id="rw" class="tabcontent">
-    <div class="wilayah-table-container">
-        <div class="table-header">
-            <h3>
-                <i class="fas fa-user-friends"></i>
-                Daftar RW ({{ $wilayah->where('tipe', 'rw')->count() }})
-            </h3>
-        </div>
-
-        @if($wilayah->where('tipe', 'rw')->count() > 0)
-            <table class="wilayah-table">
-                <thead>
-                    <tr>
-                        <th>No</th>
-                        <th>Nama RW</th>
-                        <th>Nomor</th>
-                        <th>Luas</th>
-                        <th>Koordinat</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($wilayah->where('tipe', 'rw') as $index => $item)
-                        <tr>
-                            <td>{{ $index + 1 }}</td>
-                            <td>
-                                <div class="wilayah-info">
-                                    <div class="wilayah-icon">
-                                        <i class="fas fa-user-friends"></i>
-                                    </div>
-                                    <div class="wilayah-details">
-                                        <h4>{{ $item->nama }}</h4>
-                                        <p>RW {{ $item->nomor_rw }}</p>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>{{ $item->nomor_rw }}</td>
-                            <td>{{ $item->luas_formatted }}</td>
-                            <td>
-                                <small>{{ $item->latitude }}, {{ $item->longitude }}</small>
-                            </td>
-                            <td>
-                                <div class="action-buttons">
-                                    <a href="{{ route('kasi.wilayah.edit', $item->id) }}" class="btn btn-warning">
-                                        <i class="fas fa-edit"></i> Edit
-                                    </a>
-                                    <button type="button" class="btn btn-danger" onclick="confirmDelete({{ $item->id }}, '{{ $item->nama }}')">
-                                        <i class="fas fa-trash"></i> Hapus
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        @else
-            <div class="empty-state">
-                <i class="fas fa-user-friends"></i>
-                <h3>Belum Ada Data RW</h3>
-                <p>Klik tombol "Tambah Wilayah Baru" untuk menambahkan RW</p>
-            </div>
-        @endif
     </div>
 </div>
 
@@ -693,28 +537,109 @@ Manajemen Wilayah
         </div>
     </div>
 </div>
+@endsection
 
+@push('scripts')
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    function openTab(evt, tabName) {
-        var i, tabcontent, tablinks;
-        
-        // Hide all tabcontent
-        tabcontent = document.getElementsByClassName("tabcontent");
-        for (i = 0; i < tabcontent.length; i++) {
-            tabcontent[i].classList.remove("active");
+    // Initialize map
+    const map = L.map('map').setView([-7.5, 110.5], 13);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Add markers for each wilayah
+    const wilayahData = @json($wilayah);
+    const markers = [];
+
+    wilayahData.forEach(item => {
+        if (item.latitude && item.longitude) {
+            let markerColor = '';
+            if (item.tipe === 'dusun') markerColor = '#E3EF26';
+            else if (item.tipe === 'rt') markerColor = '#10b981';
+            else markerColor = '#3b82f6';
+
+            const customIcon = L.divIcon({
+                className: 'custom-marker',
+                html: `<div style="background-color: ${markerColor}; width: 24px; height: 24px; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"></div>`,
+                iconSize: [24, 24],
+                iconAnchor: [12, 12]
+            });
+
+            const marker = L.marker([item.latitude, item.longitude], { icon: customIcon }).addTo(map);
+            
+            marker.bindPopup(`
+                <div style="font-family: 'Segoe UI', sans-serif; min-width: 180px;">
+                    <h3 style="margin: 0 0 8px 0; color: #0C342C; font-size: 15px;">${item.nama}</h3>
+                    <p style="margin: 4px 0; font-size: 12px; color: #6b7280;">
+                        <strong>Tipe:</strong> ${item.tipe.toUpperCase()}
+                    </p>
+                    <p style="margin: 4px 0; font-size: 12px; color: #6b7280;">
+                        <strong>Luas:</strong> ${item.luas_wilayah ? item.luas_wilayah + ' Ha' : '-'}
+                    </p>
+                    <p style="margin: 4px 0; font-size: 12px; color: #6b7280;">
+                        <strong>Koordinat:</strong> ${item.latitude}, ${item.longitude}
+                    </p>
+                </div>
+            `);
+
+            markers.push({ marker: marker, tipe: item.tipe, nama: item.nama.toLowerCase() });
         }
-        
-        // Remove active class from all tabs
-        tablinks = document.getElementsByClassName("tab-btn");
-        for (i = 0; i < tablinks.length; i++) {
-            tablinks[i].classList.remove("active");
-        }
-        
-        // Show current tab and mark button as active
-        document.getElementById(tabName).classList.add("active");
-        evt.currentTarget.classList.add("active");
+    });
+
+    // Filter wilayah function
+    function filterWilayah(tipe) {
+        // Update tab active state
+        const tabs = document.querySelectorAll('.filter-tab');
+        tabs.forEach(tab => tab.classList.remove('active'));
+        event.target.classList.add('active');
+
+        // Filter table rows
+        const rows = document.querySelectorAll('#wilayahTable tbody tr');
+        rows.forEach(row => {
+            if (tipe === 'all' || row.dataset.tipe === tipe) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        // Filter map markers
+        markers.forEach(item => {
+            if (tipe === 'all' || item.tipe === tipe) {
+                map.addLayer(item.marker);
+            } else {
+                map.removeLayer(item.marker);
+            }
+        });
     }
 
+    // Search wilayah function
+    function searchWilayah() {
+        const searchValue = document.getElementById('searchInput').value.toLowerCase();
+        const rows = document.querySelectorAll('#wilayahTable tbody tr');
+
+        rows.forEach(row => {
+            const namaWilayah = row.dataset.nama.toLowerCase();
+            if (namaWilayah.includes(searchValue)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        // Filter markers
+        markers.forEach(item => {
+            if (item.nama.includes(searchValue)) {
+                map.addLayer(item.marker);
+            } else {
+                map.removeLayer(item.marker);
+            }
+        });
+    }
+
+    // Delete modal functions
     function confirmDelete(wilayahId, wilayahName) {
         const modal = document.getElementById('deleteModal');
         const deleteForm = document.getElementById('deleteForm');
@@ -738,4 +663,4 @@ Manajemen Wilayah
         }
     }
 </script>
-@endsection
+@endpush
