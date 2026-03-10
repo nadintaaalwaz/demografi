@@ -259,6 +259,171 @@
             font-size: 18px;
         }
 
+        /* Alert Styles */
+        .alert {
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border-left: 4px solid #10b981;
+        }
+
+        .alert-danger {
+            background: #fee2e2;
+            color: #7f1d1d;
+            border-left: 4px solid #ef4444;
+        }
+
+        .alert i {
+            font-size: 18px;
+        }
+
+        /* Logout Modal */
+        .logout-modal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .logout-modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .logout-modal-content {
+            background: #fff;
+            border-radius: 20px;
+            padding: 35px;
+            max-width: 450px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logout-modal-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .logout-modal-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 28px;
+            box-shadow: 0 8px 20px rgba(245, 158, 11, 0.3);
+        }
+
+        .logout-modal-header h3 {
+            font-size: 22px;
+            color: #0C342C;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .logout-modal-body {
+            margin-bottom: 30px;
+            color: #6b7280;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .logout-modal-body p {
+            margin-bottom: 10px;
+        }
+
+        .logout-modal-footer {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        .logout-btn {
+            padding: 12px 28px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 14px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logout-btn-cancel {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .logout-btn-cancel:hover {
+            background: #e5e7eb;
+        }
+
+        .logout-btn-confirm {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: #fff;
+        }
+
+        .logout-btn-confirm:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.3);
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .sidebar {
@@ -365,16 +530,12 @@
                 </a>
             </li>
             <li class="menu-item">
-                <a href="{{ route('logout') }}" class="menu-link" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                <a href="#" class="menu-link" onclick="event.preventDefault(); showLogoutModal();">
                     <i class="fas fa-sign-out-alt"></i>
                     <span>Logout</span>
                 </a>
             </li>
         </ul>
-
-        <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
-            @csrf
-        </form>
     </aside>
 
     <!-- Main Content -->
@@ -402,9 +563,61 @@
 
         <!-- Content Area -->
         <div class="content-area">
+            @if(session('login_success'))
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle"></i>
+                    <span>{{ session('login_success') }}</span>
+                </div>
+            @endif
+
             @yield('content')
         </div>
     </main>
+
+    <!-- Logout Confirmation Modal -->
+    <div id="logoutModal" class="logout-modal">
+        <div class="logout-modal-content">
+            <div class="logout-modal-header">
+                <div class="logout-modal-icon">
+                    <i class="fas fa-sign-out-alt"></i>
+                </div>
+                <h3>Konfirmasi Logout</h3>
+            </div>
+            <div class="logout-modal-body">
+                <p><strong>{{ Auth::user()->nama ?? 'Admin' }}</strong>, apakah Anda yakin ingin keluar dari sistem?</p>
+                <p>Anda harus login kembali untuk mengakses sistem.</p>
+            </div>
+            <div class="logout-modal-footer">
+                <button type="button" class="logout-btn logout-btn-cancel" onclick="closeLogoutModal()">
+                    <i class="fas fa-times"></i> Batal
+                </button>
+                <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: inline;">
+                    @csrf
+                    <button type="submit" class="logout-btn logout-btn-confirm">
+                        <i class="fas fa-sign-out-alt"></i> Ya, Logout
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showLogoutModal() {
+            document.getElementById('logoutModal').classList.add('active');
+        }
+
+        function closeLogoutModal() {
+            document.getElementById('logoutModal').classList.remove('active');
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('logoutModal');
+            if (event.target === modal) {
+                closeLogoutModal();
+            }
+        }
+    </script>
 
     @stack('scripts')
 </body>

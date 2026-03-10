@@ -41,6 +41,10 @@ class AuthController extends Controller
             // Regenerate session untuk keamanan
             $request->session()->regenerate();
 
+            // Set success message
+            $userName = Auth::user()->nama;
+            $request->session()->flash('login_success', 'Selamat datang, ' . $userName . '!');
+
             // Redirect sesuai role
             return $this->redirectToDashboard();
         }

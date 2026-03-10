@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Sistem Informasi Demografi Desa</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -193,22 +194,50 @@
         }
 
         .alert {
-            padding: 12px 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
             font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideDown 0.4s ease-out;
+            backdrop-filter: blur(10px);
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .alert-danger {
-            background: rgba(239, 68, 68, 0.2);
-            border: 1px solid rgba(239, 68, 68, 0.4);
+            background: rgba(239, 68, 68, 0.25);
+            border: 2px solid rgba(239, 68, 68, 0.5);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.2);
+        }
+
+        .alert-danger i {
             color: #fca5a5;
+            font-size: 20px;
         }
 
         .alert-success {
-            background: rgba(34, 197, 94, 0.2);
-            border: 1px solid rgba(34, 197, 94, 0.4);
+            background: rgba(34, 197, 94, 0.25);
+            border: 2px solid rgba(34, 197, 94, 0.5);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.2);
+        }
+
+        .alert-success i {
             color: #86efac;
+            font-size: 20px;
         }
 
         @media (max-width: 480px) {
@@ -243,13 +272,15 @@
 
         @if(session('error'))
             <div class="alert alert-danger">
-                {{ session('error') }}
+                <i class="fas fa-exclamation-circle"></i>
+                <span>{{ session('error') }}</span>
             </div>
         @endif
 
         @if(session('success'))
             <div class="alert alert-success">
-                {{ session('success') }}
+                <i class="fas fa-check-circle"></i>
+                <span>{{ session('success') }}</span>
             </div>
         @endif
 
