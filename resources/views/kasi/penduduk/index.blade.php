@@ -264,7 +264,7 @@
         <a href="{{ route('kasi.penduduk.create') }}" class="btn btn-primary">
             <i class="fas fa-plus"></i> Tambah Data
         </a>
-        <a href="{{ route('kasi.upload') }}" class="btn btn-success">
+        <a href="{{ route('kasi.upload.form') }}" class="btn btn-success">
             <i class="fas fa-file-upload"></i> Upload Excel
         </a>
     </div>

@@ -497,7 +497,7 @@
                 </a>
             </li>
             <li class="menu-item">
-                <a href="{{ route('kasi.upload') }}" class="menu-link {{ request()->routeIs('kasi.upload') ? 'active' : '' }}">
+                <a href="{{ route('kasi.upload.form') }}" class="menu-link {{ request()->routeIs('kasi.upload.*') ? 'active' : '' }}">
                     <i class="fas fa-file-upload"></i>
                     <span>Upload Data</span>
                 </a>

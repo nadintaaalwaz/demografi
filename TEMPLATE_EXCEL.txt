@@ -1,0 +1,6 @@
+nik,nama_lengkap,jenis_kelamin,tanggal_lahir,alamat,dusun,pendidikan,pekerjaan,nomor_kartu_keluarga
+3401012001010001,Ahmad Budiman,L,01-01-2001,Jl. Mawar No. 12 RT 01 RW 01,Dusun 1,SMA,Petani,3401011999010001
+3401012002020002,Siti Aminah,P,15-02-2002,Jl. Melati No. 5 RT 02 RW 01,Dusun 1,SMP,Ibu Rumah Tangga,3401012000020001
+3401013001010003,Budi Santoso,L,10-01-2000,Jl. Anggrek No. 8 RT 01 RW 02,Dusun 2,S1,PNS,3401012998010002
+3401014501010004,Dewi Lestari,P,20-05-2005,Jl. Kenanga No. 3 RT 01 RW 01,Dusun 1,SMA,Pelajar,3401011999010001
+3401015001010005,Eko Prasetyo,L,05-01-2000,Jl. Dahlia No. 7 RT 03 RW 01,Dusun 3,D3,Wiraswasta,3401012001010003

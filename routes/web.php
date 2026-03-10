@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\WilayahController;
+use App\Http\Controllers\PendudukController;
 
 /*
 |--------------------------------------------------------------------------
@@ -124,11 +125,8 @@ Route::prefix('kasi')->name('kasi.')->middleware(['auth', 'role:kasi'])->group(f
     })->name('dashboard');
     
     // Data Penduduk
-    Route::get('/penduduk', function () {
-        return view('kasi.penduduk.index', [
-            'penduduk' => [] // Empty untuk sample data di blade
-        ]);
-    })->name('penduduk.index');
+    Route::get('/penduduk', [PendudukController::class, 'index'])->name('penduduk.index');
+    Route::get('/penduduk/{nik}', [PendudukController::class, 'show'])->name('penduduk.show');
     
     Route::get('/penduduk/create', function () {
         return view('kasi.penduduk.create');
@@ -142,14 +140,9 @@ Route::prefix('kasi')->name('kasi.')->middleware(['auth', 'role:kasi'])->group(f
         return redirect()->route('kasi.penduduk.index')->with('success', 'Data berhasil dihapus');
     })->name('penduduk.destroy');
     
-    // Upload Data
-    Route::get('/upload', function () {
-        return view('kasi.upload');
-    })->name('upload');
-    
-    Route::post('/upload/process', function () {
-        return redirect()->route('kasi.penduduk.index')->with('success', 'Data berhasil diupload dan diimport');
-    })->name('upload.process');
+    // Upload Data Bank KK
+    Route::get('/upload', [PendudukController::class, 'uploadForm'])->name('upload.form');
+    Route::post('/upload/process', [PendudukController::class, 'upload'])->name('upload.process');
     
     Route::get('/upload/template', function () {
         // Return download template Excel (implementation later)

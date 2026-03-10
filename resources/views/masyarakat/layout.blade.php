@@ -355,15 +355,11 @@
                 <h3>Kontak Kami</h3>
                 <div class="footer-contact-item">
                     <i class="fas fa-map-marker-alt"></i>
-                    <p>Jl. Desa Sebalor No. 123<br>Kecamatan, Kabupaten, Provinsi</p>
-                </div>
-                <div class="footer-contact-item">
-                    <i class="fas fa-phone"></i>
-                    <p>(0123) 456-7890</p>
+                    <p>Jl. Raya Desa Sebalor<br>Kecamatan Bandung, Kabupaten Tulungagung, Provinsi Jawa Timur</p>
                 </div>
                 <div class="footer-contact-item">
                     <i class="fas fa-envelope"></i>
-                    <p>info@desasebalor.id</p>
+                    <p>https://sebalor.tulungagungdaring.id</p>
                 </div>
             </div>
 
