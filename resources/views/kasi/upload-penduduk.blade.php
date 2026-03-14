@@ -211,14 +211,14 @@
             @endif
 
             {{-- Validation Errors --}}
-            @if(session('errors') && is_array(session('errors')))
+            @if(session('import_errors') && is_array(session('import_errors')))
             <div class="alert alert-danger">
                 <i class="fas fa-exclamation-triangle"></i>
                 <div class="alert-content">
                     <strong>Data Tidak Valid!</strong>
-                    <p>Ditemukan {{ count(session('errors')) }} error:</p>
+                    <p>Ditemukan {{ count(session('import_errors')) }} error:</p>
                     <ul class="error-list">
-                        @foreach(array_slice(session('errors'), 0, 10) as $error)
+                        @foreach(array_slice(session('import_errors'), 0, 10) as $error)
                         <li class="error-item">
                             @if(isset($error['row']) && isset($error['errors']) && is_array($error['errors']))
                                 <strong>Baris {{ $error['row'] }}:</strong>
@@ -234,8 +234,8 @@
                             @endif
                         </li>
                         @endforeach
-                        @if(count(session('errors')) > 10)
-                        <li class="error-item"><em>... dan {{ count(session('errors')) - 10 }} error lainnya</em></li>
+                        @if(count(session('import_errors')) > 10)
+                        <li class="error-item"><em>... dan {{ count(session('import_errors')) - 10 }} error lainnya</em></li>
                         @endif
                     </ul>
                 </div>

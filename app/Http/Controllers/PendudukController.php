@@ -28,51 +28,43 @@ class PendudukController extends Controller
      * Proses upload file Excel
      */
     public function upload(Request $request)
-    {
-        // Validasi file
-        $request->validate([
-            'file_excel' => 'required|file|mimes:xlsx,xls,csv|max:10240', // Max 10MB
-        ], [
-            'file_excel.required' => 'File wajib dipilih',
-            'file_excel.mimes' => 'File harus berformat Excel (.xlsx, .xls) atau CSV (.csv)',
-            'file_excel.max' => 'Ukuran file maksimal 10MB',
-        ]);
+{
+    // Validasi file
+    $request->validate([
+        'file_excel' => 'required|file|mimes:xlsx,xls|max:10240',
+    ], [
+        'file_excel.required' => 'File wajib dipilih',
+        'file_excel.mimes' => 'File harus berformat Excel (.xlsx, .xls)',
+        'file_excel.max' => 'Ukuran file maksimal 10MB',
+    ]);
 
-        $file = $request->file('file_excel');
-        $originalFileName = $file->getClientOriginalName();
+    $file = $request->file('file_excel');
+    $originalFileName = $file->getClientOriginalName();
 
-        // Simpan file sementara
-        $filePath = $file->storeAs('temp', uniqid() . '_' . $originalFileName);
-        $fullPath = storage_path('app/' . $filePath);
+    try {
 
-        try {
-            // Proses import
-            $result = $this->importService->import($fullPath, $originalFileName);
+        // kirim langsung file ke service
+        $result = $this->importService->import($file, $originalFileName);
 
-            // Hapus file temporary
-            Storage::delete($filePath);
-
-            if ($result['success']) {
-                return redirect()
-                    ->route('kasi.upload.form')
-                    ->with('success', "Data berhasil diimport! Total {$result['total_record']} record.");
-            } else {
-                return redirect()
-                    ->route('kasi.upload.form')
-                    ->with('errors', $result['errors'])
-                    ->withInput();
-            }
-
-        } catch (\Exception $e) {
-            // Hapus file temporary jika ada error
-            Storage::delete($filePath);
-
+        if ($result['success']) {
             return redirect()
                 ->route('kasi.upload.form')
-                ->with('error', 'Terjadi kesalahan: ' . $e->getMessage())
+                ->with('success', "Data berhasil diimport! Total {$result['total_record']} record.");
+        } else {
+            return redirect()
+                ->route('kasi.upload.form')
+                ->with('import_errors', $result['errors'])
                 ->withInput();
         }
+
+    } catch (\Exception $e) {
+
+        return redirect()
+            ->route('kasi.upload.form')
+            ->with('error', 'Terjadi kesalahan: ' . $e->getMessage())
+            ->withInput();
     }
+}
 
     /**
      * Tampilkan data penduduk

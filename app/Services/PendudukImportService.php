@@ -14,16 +14,21 @@ use Illuminate\Support\Facades\Auth;
 class PendudukImportService
 {
     /**
+     * Menyimpan daftar error service (opsional).
+     */
+    private array $errors = [];
+
+    /**
      * Proses import file Excel menggunakan Laravel Excel
      */
-    public function import($filePath, $originalFileName)
+    public function import($file, $originalFileName)
     {
         try {
             DB::beginTransaction();
 
             // 1. Import Excel menggunakan Laravel Excel
             $import = new PendudukImport();
-            Excel::import($import, $filePath);
+            Excel::import($import, $file);
 
             // 2. Cek jika ada error validasi
             if (!empty($import->errors)) {
