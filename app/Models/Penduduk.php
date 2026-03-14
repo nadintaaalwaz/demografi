@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Carbon\Carbon;
 
 class Penduduk extends Model
 {
@@ -57,7 +58,15 @@ class Penduduk extends Model
      */
     public static function hitungUmur($tanggalLahir)
     {
-        return now()->diffInYears($tanggalLahir);
+        if (!$tanggalLahir) {
+            return -1;
+        }
+
+        try {
+            return Carbon::parse($tanggalLahir)->age;
+        } catch (\Exception $e) {
+            return -1;
+        }
     }
 
     /**
@@ -67,7 +76,7 @@ class Penduduk extends Model
     {
         if ($umur < 5) {
             return 'Balita';
-        } elseif ($umur > 60) {
+        } elseif ($umur >= 60) {
             return 'Lansia';
         } else {
             return 'Produktif';

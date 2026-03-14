@@ -13,24 +13,18 @@ use Illuminate\Support\Facades\Auth;
 
 class PendudukImportService
 {
-    /**
-     * Menyimpan daftar error service (opsional).
-     */
     private array $errors = [];
 
-    /**
-     * Proses import file Excel menggunakan Laravel Excel
-     */
     public function import($file, $originalFileName)
     {
         try {
+
             DB::beginTransaction();
 
-            // 1. Import Excel menggunakan Laravel Excel
+            // 1. Import Excel
             $import = new PendudukImport();
             Excel::import($import, $file);
 
-            // 2. Cek jika ada error validasi
             if (!empty($import->errors)) {
                 DB::rollBack();
                 return [
@@ -39,19 +33,24 @@ class PendudukImportService
                 ];
             }
 
-            // 3. Ambil data lama dari database
+            // 2. Ambil data lama
             $dataLama = Penduduk::all()->keyBy('nik');
 
-            // 4. Proses perbandingan data dan deteksi dinamika
+            // 3. Simpan / update data penduduk baru
+            foreach ($import->validData as $row) {
+
+                Penduduk::updateOrCreate(
+                    ['nik' => $row['nik']],
+                    $row
+                );
+            }
+
+            // 4. Proses dinamika SETELAH penduduk ada
             $this->prosesPerbandinganData($dataLama, $import->validData);
 
-            // 5. Replace data penduduk dengan data baru
-            Penduduk::truncate(); // Hapus semua data lama
-            Penduduk::insert($import->validData); // Insert data baru
-
-            // 6. Simpan log upload
+            // 5. Simpan log upload
             UploadLog::create([
-                'user_id' => Auth::id(),
+                'user_id' => Auth::user()->id,
                 'nama_file' => $originalFileName,
                 'total_record' => count($import->validData),
                 'uploaded_at' => now(),
@@ -66,7 +65,9 @@ class PendudukImportService
             ];
 
         } catch (\Exception $e) {
+
             DB::rollBack();
+
             return [
                 'success' => false,
                 'errors' => [['message' => 'Error: ' . $e->getMessage()]],
@@ -75,32 +76,34 @@ class PendudukImportService
     }
 
     /**
-     * Proses perbandingan data lama vs baru dan deteksi dinamika
+     * Deteksi dinamika penduduk
      */
     private function prosesPerbandinganData($dataLama, $dataBaru)
     {
+
         $nikBaru = collect($dataBaru)->pluck('nik')->toArray();
         $nikLama = $dataLama->keys()->toArray();
 
-        // 1. Deteksi NIK baru (Kelahiran / Migrasi Masuk)
+        // 1. NIK baru
         $nikBaruMasuk = array_diff($nikBaru, $nikLama);
+
         foreach ($nikBaruMasuk as $nik) {
+
             $penduduk = collect($dataBaru)->firstWhere('nik', $nik);
-            
-            // Tentukan apakah kelahiran atau migrasi masuk berdasarkan umur
+
             $umur = $penduduk['umur'];
+
             $jenisDinamika = ($umur < 1) ? 'Kelahiran' : 'Migrasi Masuk';
-            
+
             DinamikaPenduduk::create([
                 'nik' => $nik,
                 'jenis_dinamika' => $jenisDinamika,
-                'tanggal_peristiwa' => now()->format('Y-m-d'),
+                'tanggal_peristiwa' => now(),
                 'keterangan' => "Terdeteksi dari upload data pada " . now()->format('d-m-Y H:i'),
             ]);
 
-            // Log aktivitas
             AktivitasLog::create([
-                'user_id' => Auth::id(),
+                'user_id' => Auth::user()->id,
                 'aksi' => 'INSERT',
                 'nik' => $nik,
                 'field_diubah' => 'Data Baru',
@@ -110,24 +113,22 @@ class PendudukImportService
             ]);
         }
 
-        // 2. Deteksi NIK hilang (Kematian / Migrasi Keluar)
+        // 2. NIK hilang
         $nikHilang = array_diff($nikLama, $nikBaru);
+
         foreach ($nikHilang as $nik) {
+
             $penduduk = $dataLama[$nik];
-            
-            // Default ke Migrasi Keluar
-            $jenisDinamika = 'Migrasi Keluar';
-            
+
             DinamikaPenduduk::create([
                 'nik' => $nik,
-                'jenis_dinamika' => $jenisDinamika,
-                'tanggal_peristiwa' => now()->format('Y-m-d'),
-                'keterangan' => "NIK tidak ditemukan dalam upload data terbaru pada " . now()->format('d-m-Y H:i'),
+                'jenis_dinamika' => 'Migrasi Keluar',
+                'tanggal_peristiwa' => now(),
+                'keterangan' => "NIK tidak ditemukan dalam upload data terbaru",
             ]);
 
-            // Log aktivitas
             AktivitasLog::create([
-                'user_id' => Auth::id(),
+                'user_id' => Auth::user()->id,
                 'aksi' => 'DELETE',
                 'nik' => $nik,
                 'field_diubah' => 'Data Dihapus',
@@ -137,42 +138,33 @@ class PendudukImportService
             ]);
         }
 
-        // 3. Deteksi perubahan data pada NIK yang sama
+        // 3. Perubahan data
         $nikSama = array_intersect($nikBaru, $nikLama);
+
         foreach ($nikSama as $nik) {
+
             $old = $dataLama[$nik];
             $new = collect($dataBaru)->firstWhere('nik', $nik);
 
-            $changes = [];
-            
-            // Bandingkan field-field penting
             $fieldsToCheck = [
-                'nama_lengkap' => 'Nama',
-                'alamat' => 'Alamat',
-                'id_dusun' => 'Dusun',
-                'pekerjaan' => 'Pekerjaan',
-                'pendidikan' => 'Pendidikan',
+                'nama_lengkap',
+                'alamat',
+                'id_dusun',
+                'pekerjaan',
+                'pendidikan',
             ];
 
-            foreach ($fieldsToCheck as $field => $label) {
-                if ($old->$field != $new[$field]) {
-                    $changes[$label] = [
-                        'old' => $old->$field,
-                        'new' => $new[$field],
-                    ];
-                }
-            }
+            foreach ($fieldsToCheck as $field) {
 
-            // Jika ada perubahan, log aktivitas
-            if (!empty($changes)) {
-                foreach ($changes as $field => $change) {
+                if ($old->$field != $new[$field]) {
+
                     AktivitasLog::create([
-                        'user_id' => Auth::id(),
+                        'user_id' => Auth::user()->id,
                         'aksi' => 'UPDATE',
                         'nik' => $nik,
                         'field_diubah' => $field,
-                        'nilai_lama' => $change['old'],
-                        'nilai_baru' => $change['new'],
+                        'nilai_lama' => $old->$field,
+                        'nilai_baru' => $new[$field],
                         'waktu' => now(),
                     ]);
                 }
@@ -180,9 +172,6 @@ class PendudukImportService
         }
     }
 
-    /**
-     * Get errors
-     */
     public function getErrors()
     {
         return $this->errors;

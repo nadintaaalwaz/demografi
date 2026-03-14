@@ -27,9 +27,9 @@ class PendudukImport implements ToCollection, WithHeadingRow
      */
     private function loadDusunMap()
     {
-        $wilayah = Wilayah::all();
+        $wilayah = Wilayah::where('tipe','dusun')->get();
         foreach ($wilayah as $w) {
-            $key = strtolower(trim($w->nama_dusun));
+            $key = strtolower(trim($w->nama));
             $this->dusunMap[$key] = $w->id;
         }
     }
@@ -182,38 +182,27 @@ class PendudukImport implements ToCollection, WithHeadingRow
      */
     private function parseTanggal($tanggal)
     {
-        if (empty($tanggal)) {
+        if (!$tanggal) {
             return null;
         }
 
         try {
-            // Jika sudah Carbon instance
+
+            // jika sudah Carbon
             if ($tanggal instanceof Carbon) {
                 return $tanggal;
             }
 
-            // Coba parse sebagai Excel date number
+            // jika numeric (excel date)
             if (is_numeric($tanggal)) {
-                return Carbon::instance(\PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($tanggal));
+                return Carbon::instance(
+                    \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($tanggal)
+                );
             }
 
-            // Coba berbagai format string
-            $formats = ['d-m-Y', 'd/m/Y', 'Y-m-d', 'd-M-Y', 'd/M/Y', 'm/d/Y', 'Y/m/d'];
-            
-            foreach ($formats as $format) {
-                try {
-                    $date = Carbon::createFromFormat($format, trim($tanggal));
-                    if ($date) {
-                        return $date;
-                    }
-                } catch (\Exception $e) {
-                    continue;
-                }
-            }
-
-            // Fallback ke parser otomatis
+            // fallback parser Carbon
             return Carbon::parse($tanggal);
-            
+
         } catch (\Exception $e) {
             return null;
         }
