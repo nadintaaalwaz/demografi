@@ -132,6 +132,59 @@
         margin-bottom: 40px;
     }
 
+    .map-topbar {
+        margin-top: 8px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 10px;
+    }
+
+    .map-stat {
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 10px 12px;
+        background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+    }
+
+    .map-stat small {
+        display: block;
+        color: #6b7280;
+        font-size: 11px;
+        margin-bottom: 4px;
+    }
+
+    .map-stat strong {
+        color: #0C342C;
+        font-size: 16px;
+        font-weight: 700;
+    }
+
+    .map-legend {
+        margin-top: 10px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        font-size: 12px;
+        color: #4b5563;
+    }
+
+    .map-legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .legend-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+
+    .legend-dot.primary {
+        background: #0ea5e9;
+    }
+
     #map {
         height: 500px;
         border-radius: 12px;
@@ -328,6 +381,23 @@
         <h2 class="chart-title">Peta Sebaran Penduduk Per Dusun</h2>
         <i class="fas fa-expand chart-menu"></i>
     </div>
+    <div class="map-topbar">
+        <div class="map-stat">
+            <small>Luas Desa Sebalor (akumulasi dusun)</small>
+            <strong>{{ number_format($totalLuasDusun ?? 0, 2) }} Ha</strong>
+        </div>
+        <div class="map-stat">
+            <small>Jumlah Dusun</small>
+            <strong>{{ count($dusunMapData ?? []) }}</strong>
+        </div>
+        <div class="map-stat">
+            <small>Total Penduduk Terpetakan</small>
+            <strong>{{ number_format($totalPendudukTerpetakan ?? 0) }}</strong>
+        </div>
+    </div>
+    <div class="map-legend">
+        <span><i class="legend-dot primary"></i>Lingkaran biru: total penduduk per dusun</span>
+    </div>
     <div id="map"></div>
 </div>
 
@@ -400,6 +470,25 @@ const chartColors = {
     info: '#3b82f6',
 };
 
+const ageLabels = @json($ageLabels);
+const ageValues = @json($ageValues);
+const educationLabels = @json($educationLabels);
+const educationValues = @json($educationValues);
+const occupationLabels = @json($occupationLabels);
+const occupationValues = @json($occupationValues);
+const dusunData = @json($dusunMapData);
+
+const palette = [
+    chartColors.primary,
+    chartColors.success,
+    chartColors.info,
+    chartColors.warning,
+    '#6366f1',
+    '#8b5cf6',
+    '#14b8a6',
+    '#ec4899',
+];
+
 // Gender Distribution Chart
 const genderCtx = document.getElementById('genderChart').getContext('2d');
 new Chart(genderCtx, {
@@ -427,10 +516,10 @@ const ageCtx = document.getElementById('ageChart').getContext('2d');
 new Chart(ageCtx, {
     type: 'bar',
     data: {
-        labels: ['0-5', '6-12', '13-17', '18-60', '>60'],
+        labels: ageLabels,
         datasets: [{
             label: 'Jumlah Penduduk',
-            data: [{{ $totalBalita ?? 0 }}, 150, 120, {{ $totalProduktif ?? 0 }}, {{ $totalLansia ?? 0 }}],
+            data: ageValues,
             backgroundColor: chartColors.primary,
             borderRadius: 8
         }]
@@ -455,18 +544,11 @@ const educationCtx = document.getElementById('educationChart').getContext('2d');
 new Chart(educationCtx, {
     type: 'bar',
     data: {
-        labels: ['SD', 'SMP', 'SMA', 'D3', 'S1', 'S2'],
+        labels: educationLabels,
         datasets: [{
             label: 'Jumlah',
-            data: [200, 150, 180, 50, 80, 20],
-            backgroundColor: [
-                chartColors.primary,
-                chartColors.success,
-                chartColors.info,
-                chartColors.warning,
-                chartColors.secondary,
-                '#6366f1'
-            ],
+            data: educationValues,
+            backgroundColor: educationLabels.map((_, index) => palette[index % palette.length]),
             borderRadius: 8
         }]
     },
@@ -490,17 +572,10 @@ const occupationCtx = document.getElementById('occupationChart').getContext('2d'
 new Chart(occupationCtx, {
     type: 'doughnut',
     data: {
-        labels: ['Petani', 'PNS', 'Wiraswasta', 'Buruh', 'Guru', 'Lainnya'],
+        labels: occupationLabels,
         datasets: [{
-            data: [250, 80, 120, 150, 60, 100],
-            backgroundColor: [
-                chartColors.primary,
-                chartColors.success,
-                chartColors.info,
-                chartColors.warning,
-                '#6366f1',
-                '#8b5cf6'
-            ],
+            data: occupationValues,
+            backgroundColor: occupationLabels.map((_, index) => palette[index % palette.length]),
             borderWidth: 0
         }]
     },
@@ -521,23 +596,43 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap contributors'
 }).addTo(map);
 
-// Sample markers for dusun
-const dusunData = [
-    { name: 'Dusun Krajan', lat: -7.50, lng: 110.50, penduduk: 500 },
-    { name: 'Dusun Jati', lat: -7.51, lng: 110.51, penduduk: 450 },
-    { name: 'Dusun Mawar', lat: -7.49, lng: 110.49, penduduk: 400 },
-];
+const bounds = [];
+const baseMarkerStyle = {
+    color: '#0284c7',
+    weight: 2,
+    fillColor: '#38bdf8',
+    fillOpacity: 0.35,
+};
 
 dusunData.forEach(dusun => {
-    const marker = L.marker([dusun.lat, dusun.lng]).addTo(map);
+    const lat = Number(dusun.lat);
+    const lng = Number(dusun.lng);
+
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+        return;
+    }
+
+    bounds.push([lat, lng]);
+
+    const radius = Math.max(8, Math.min(26, 8 + Math.sqrt(Number(dusun.total_penduduk || 0))));
+    const marker = L.circleMarker([lat, lng], {
+        ...baseMarkerStyle,
+        radius,
+    }).addTo(map);
     marker.bindPopup(`
-        <div style="font-family: 'Segoe UI', sans-serif;">
-            <h3 style="margin: 0 0 10px 0; color: #0C342C;">${dusun.name}</h3>
-            <p style="margin: 5px 0;"><strong>Total Penduduk:</strong> ${dusun.penduduk}</p>
-            <p style="margin: 5px 0;"><strong>Laki-laki:</strong> ${Math.floor(dusun.penduduk * 0.52)}</p>
-            <p style="margin: 5px 0;"><strong>Perempuan:</strong> ${Math.floor(dusun.penduduk * 0.48)}</p>
+        <div style="font-family: 'Segoe UI', sans-serif; min-width: 200px;">
+            <h3 style="margin: 0 0 10px 0; color: #0C342C; font-size: 16px;">${dusun.name}</h3>
+            <p style="margin: 5px 0;"><strong>Total Penduduk:</strong> ${dusun.total_penduduk}</p>
+            <p style="margin: 5px 0;"><strong>Laki-laki:</strong> ${dusun.total_laki_laki}</p>
+            <p style="margin: 5px 0;"><strong>Perempuan:</strong> ${dusun.total_perempuan}</p>
         </div>
     `);
 });
+
+if (bounds.length === 1) {
+    map.setView(bounds[0], 15);
+} else if (bounds.length > 1) {
+    map.fitBounds(bounds, { padding: [30, 30] });
+}
 </script>
 @endpush

@@ -86,6 +86,34 @@ Manajemen Wilayah
         border-bottom: 2px solid #e5e7eb;
     }
 
+    .wilayah-summary {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+        padding: 14px 18px;
+        border-bottom: 1px solid #eef2f7;
+        background: #fcfdfd;
+    }
+
+    .summary-item {
+        background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 10px 12px;
+    }
+
+    .summary-item small {
+        display: block;
+        color: #6b7280;
+        font-size: 11px;
+        margin-bottom: 3px;
+    }
+
+    .summary-item strong {
+        color: #0C342C;
+        font-size: 16px;
+    }
+
     .filter-tab {
         flex: 1;
         padding: 14px 20px;
@@ -276,6 +304,38 @@ Manajemen Wilayah
         text-align: center;
     }
 
+    .map-legend {
+        border-top: 1px solid #eef2f7;
+        padding: 10px 15px;
+        font-size: 12px;
+        color: #4b5563;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        background: #fff;
+    }
+
+    .map-legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .legend-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+
+    .legend-dot.dusun {
+        background: #E3EF26;
+    }
+
+    .legend-dot.rt {
+        background: #10b981;
+    }
+
     .empty-state {
         padding: 60px 25px;
         text-align: center;
@@ -402,8 +462,18 @@ Manajemen Wilayah
             grid-template-columns: 1fr;
         }
 
+        .wilayah-summary {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
         .map-container {
             position: static;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .wilayah-summary {
+            grid-template-columns: 1fr;
         }
     }
 </style>
@@ -440,10 +510,29 @@ Manajemen Wilayah
 
         <!-- Filter Tabs -->
         <div class="filter-tabs">
-            <button class="filter-tab active" onclick="filterWilayah('all')">All</button>
-            <button class="filter-tab" onclick="filterWilayah('dusun')">Dusun</button>
-            <button class="filter-tab" onclick="filterWilayah('rt')">RT</button>
-            <button class="filter-tab" onclick="filterWilayah('rw')">RW</button>
+            <button class="filter-tab active" onclick="filterWilayah('all', this)">All</button>
+            <button class="filter-tab" onclick="filterWilayah('dusun', this)">Dusun</button>
+            <button class="filter-tab" onclick="filterWilayah('rt', this)">RT</button>
+            <button class="filter-tab" onclick="filterWilayah('rw', this)">RW</button>
+        </div>
+
+        <div class="wilayah-summary">
+            <div class="summary-item">
+                <small>Luas Desa Sebalor (akumulasi dusun)</small>
+                <strong>{{ number_format($totalLuasDusun ?? 0, 2) }} Ha</strong>
+            </div>
+            <div class="summary-item">
+                <small>Total Dusun</small>
+                <strong>{{ $wilayahCounts['dusun'] ?? 0 }}</strong>
+            </div>
+            <div class="summary-item">
+                <small>Total RW</small>
+                <strong>{{ $wilayahCounts['rw'] ?? 0 }}</strong>
+            </div>
+            <div class="summary-item">
+                <small>Total RT</small>
+                <strong>{{ $wilayahCounts['rt'] ?? 0 }}</strong>
+            </div>
         </div>
 
         <!-- Wilayah Table -->
@@ -504,8 +593,12 @@ Manajemen Wilayah
             <h3>Peta Lokasi</h3>
         </div>
         <div id="map"></div>
+        <div class="map-legend">
+            <span><i class="legend-dot dusun"></i>Dusun</span>
+            <span><i class="legend-dot rt"></i>Ukuran lingkaran = jumlah penduduk dusun</span>
+        </div>
         <div class="map-hint">
-            Klik marker untuk melihat detail wilayah
+            Peta menampilkan persebaran dusun. Klik marker untuk detail.
         </div>
     </div>
 </div>
@@ -551,23 +644,47 @@ Manajemen Wilayah
 
     // Add markers for each wilayah
     const wilayahData = @json($wilayah);
+    const dusunSummary = @json($dusunSummary ?? []);
     const markers = [];
+    const dusunLayer = L.layerGroup().addTo(map);
+
+    const dusunPendudukMap = new Map(dusunSummary.map(item => [Number(item.id), Number(item.total_penduduk || 0)]));
+    const bounds = [];
 
     wilayahData.forEach(item => {
+        if (item.tipe !== 'dusun') {
+            return;
+        }
+
         if (item.latitude && item.longitude) {
             let markerColor = '';
             if (item.tipe === 'dusun') markerColor = '#E3EF26';
             else if (item.tipe === 'rt') markerColor = '#10b981';
             else markerColor = '#3b82f6';
 
-            const customIcon = L.divIcon({
-                className: 'custom-marker',
-                html: `<div style="background-color: ${markerColor}; width: 24px; height: 24px; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"></div>`,
-                iconSize: [24, 24],
-                iconAnchor: [12, 12]
-            });
+            let marker;
+            if (item.tipe === 'dusun') {
+                const jumlah = dusunPendudukMap.get(Number(item.id)) || 0;
+                const radius = Math.max(8, Math.min(24, 8 + Math.sqrt(jumlah)));
+                marker = L.circleMarker([item.latitude, item.longitude], {
+                    radius,
+                    color: '#ca8a04',
+                    weight: 2,
+                    fillColor: markerColor,
+                    fillOpacity: 0.5,
+                });
+            } else {
+                const customIcon = L.divIcon({
+                    className: 'custom-marker',
+                    html: `<div style="background-color: ${markerColor}; width: 20px; height: 20px; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"></div>`,
+                    iconSize: [20, 20],
+                    iconAnchor: [10, 10]
+                });
+                marker = L.marker([item.latitude, item.longitude], { icon: customIcon });
+            }
 
-            const marker = L.marker([item.latitude, item.longitude], { icon: customIcon }).addTo(map);
+            marker.addTo(dusunLayer);
+            bounds.push([Number(item.latitude), Number(item.longitude)]);
             
             marker.bindPopup(`
                 <div style="font-family: 'Segoe UI', sans-serif; min-width: 180px;">
@@ -578,6 +695,7 @@ Manajemen Wilayah
                     <p style="margin: 4px 0; font-size: 12px; color: #6b7280;">
                         <strong>Luas:</strong> ${item.luas_wilayah ? item.luas_wilayah + ' Ha' : '-'}
                     </p>
+                    ${item.tipe === 'dusun' ? `<p style="margin: 4px 0; font-size: 12px; color: #6b7280;"><strong>Penduduk:</strong> ${dusunPendudukMap.get(Number(item.id)) || 0} jiwa</p>` : ''}
                     <p style="margin: 4px 0; font-size: 12px; color: #6b7280;">
                         <strong>Koordinat:</strong> ${item.latitude}, ${item.longitude}
                     </p>
@@ -588,12 +706,20 @@ Manajemen Wilayah
         }
     });
 
+    if (bounds.length === 1) {
+        map.setView(bounds[0], 15);
+    } else if (bounds.length > 1) {
+        map.fitBounds(bounds, { padding: [20, 20] });
+    }
+
     // Filter wilayah function
-    function filterWilayah(tipe) {
+    function filterWilayah(tipe, button) {
         // Update tab active state
         const tabs = document.querySelectorAll('.filter-tab');
         tabs.forEach(tab => tab.classList.remove('active'));
-        event.target.classList.add('active');
+        if (button) {
+            button.classList.add('active');
+        }
 
         // Filter table rows
         const rows = document.querySelectorAll('#wilayahTable tbody tr');
@@ -605,14 +731,7 @@ Manajemen Wilayah
             }
         });
 
-        // Filter map markers
-        markers.forEach(item => {
-            if (tipe === 'all' || item.tipe === tipe) {
-                map.addLayer(item.marker);
-            } else {
-                map.removeLayer(item.marker);
-            }
-        });
+        // Peta tetap fokus ke sebaran dusun saja
     }
 
     // Search wilayah function

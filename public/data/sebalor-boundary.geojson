@@ -1,0 +1,19 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "nama": "Desa Sebalor",
+        "kode": "35.04.17.2010",
+        "luas_ha": 300.60,
+        "koordinat_dms": "8°09'26.17\"S 111°44'47.35\"E",
+        "catatan": "Titik referensi pusat Desa Sebalor; untuk boundary polygon perlu daftar titik batas lengkap"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [111.746486, -8.157269]
+      }
+    }
+  ]
+}

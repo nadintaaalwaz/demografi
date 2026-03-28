@@ -22,7 +22,46 @@ class WilayahController extends Controller
             ->orderBy('nama', 'asc')
             ->get();
 
-        return view('kasi.wilayah.index', compact('wilayah'));
+        $dusunSummary = Wilayah::query()
+            ->from('wilayah as w')
+            ->leftJoin('penduduk as p', 'p.id_dusun', '=', 'w.id')
+            ->where('w.tipe', 'dusun')
+            ->select('w.id', 'w.nama', 'w.latitude', 'w.longitude', 'w.luas_wilayah')
+            ->selectRaw('COUNT(p.nik) as total_penduduk')
+            ->groupBy('w.id', 'w.nama', 'w.latitude', 'w.longitude', 'w.luas_wilayah')
+            ->orderBy('w.nama')
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'id' => (int) $item->id,
+                    'nama' => $item->nama,
+                    'latitude' => (float) $item->latitude,
+                    'longitude' => (float) $item->longitude,
+                    'luas_wilayah' => $item->luas_wilayah !== null ? (float) $item->luas_wilayah : null,
+                    'total_penduduk' => (int) $item->total_penduduk,
+                ];
+            })
+            ->values()
+            ->all();
+
+        $totalLuasDusun = Wilayah::query()
+            ->where('tipe', 'dusun')
+            ->whereNotNull('luas_wilayah')
+            ->sum('luas_wilayah');
+
+        $wilayahCounts = [
+            'dusun' => Wilayah::where('tipe', 'dusun')->count(),
+            'rt' => Wilayah::where('tipe', 'rt')->count(),
+            'rw' => Wilayah::where('tipe', 'rw')->count(),
+        ];
+
+        return view('kasi.wilayah.index', [
+            'wilayah' => $wilayah,
+            'dusunSummary' => $dusunSummary,
+            'totalLuasDusun' => (float) $totalLuasDusun,
+            'wilayahCounts' => $wilayahCounts,
+            'sebalorBoundaryUrl' => asset('data/sebalor-boundary.geojson'),
+        ]);
     }
 
     /**
