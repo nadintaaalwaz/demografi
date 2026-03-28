@@ -509,6 +509,12 @@
                 </a>
             </li>
             <li class="menu-item">
+                <a href="{{ route('kasi.dinamika') }}" class="menu-link {{ request()->routeIs('kasi.dinamika') ? 'active' : '' }}">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Dinamika Penduduk</span>
+                </a>
+            </li>
+            <li class="menu-item">
                 <a href="{{ route('kasi.laporan') }}" class="menu-link {{ request()->routeIs('kasi.laporan') ? 'active' : '' }}">
                     <i class="fas fa-file-alt"></i>
                     <span>Pelaporan</span>
@@ -521,12 +527,6 @@
                 <a href="{{ route('kasi.users.index') }}" class="menu-link {{ request()->routeIs('kasi.users.*') ? 'active' : '' }}">
                     <i class="fas fa-user-cog"></i>
                     <span>Manajemen User</span>
-                </a>
-            </li>
-            <li class="menu-item">
-                <a href="{{ route('kasi.settings') }}" class="menu-link {{ request()->routeIs('kasi.settings') ? 'active' : '' }}">
-                    <i class="fas fa-cog"></i>
-                    <span>Pengaturan</span>
                 </a>
             </li>
             <li class="menu-item">

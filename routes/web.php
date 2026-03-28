@@ -156,6 +156,11 @@ Route::prefix('kasi')->name('kasi.')->middleware(['auth', 'role:kasi'])->group(f
     Route::get('/wilayah/{id}/edit', [WilayahController::class, 'edit'])->name('wilayah.edit');
     Route::put('/wilayah/{id}', [WilayahController::class, 'update'])->name('wilayah.update');
     Route::delete('/wilayah/{id}', [WilayahController::class, 'destroy'])->name('wilayah.destroy');
+
+    // Dinamika Penduduk (Monitoring)
+    Route::get('/dinamika-penduduk', function () {
+        return view('kasi.dinamika-penduduk');
+    })->name('dinamika');
     
     // Laporan
     Route::get('/laporan', function () {
