@@ -9,17 +9,25 @@ Dashboard {{ Auth::user()->dusun_name ?? "Dusun" }}
 @push('styles')
 <style>
     .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 20px;
-        margin-bottom: 40px;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: stretch;
+        gap: 16px;
+        margin-bottom: 28px;
     }
 
     .stat-card {
-        background: #fff;
-        padding: 25px;
+        background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+        padding: 20px;
+        width: 100%;
+        max-width: 286px;
+        min-height: 220px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
         border-radius: 16px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 8px 22px rgba(12, 52, 44, 0.08);
         text-align: center;
         transition: all 0.3s ease;
         border-bottom: 4px solid transparent;
@@ -88,13 +96,13 @@ Dashboard {{ Auth::user()->dusun_name ?? "Dusun" }}
     .info-banner {
         background: linear-gradient(135deg, #076653, #0C342C);
         color: #fff;
-        padding: 30px;
+        padding: 24px;
         border-radius: 16px;
-        margin-bottom: 40px;
+        margin-bottom: 28px;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        box-shadow: 0 4px 15px rgba(7, 102, 83, 0.3);
+        box-shadow: 0 10px 28px rgba(7, 102, 83, 0.34);
     }
 
     .info-banner-content h2 {
@@ -114,16 +122,22 @@ Dashboard {{ Auth::user()->dusun_name ?? "Dusun" }}
 
     .charts-row {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
-        gap: 25px;
-        margin-bottom: 40px;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
     }
 
     .chart-card {
         background: #fff;
-        padding: 25px;
+        padding: 16px;
         border-radius: 16px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+        border: 1px solid #edf2f7;
+    }
+
+    .chart-card canvas {
+        width: 100% !important;
+        max-height: 170px !important;
     }
 
     .chart-header {
@@ -143,10 +157,11 @@ Dashboard {{ Auth::user()->dusun_name ?? "Dusun" }}
 
     .map-container {
         background: #fff;
-        padding: 25px;
+        padding: 18px;
         border-radius: 16px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-        margin-bottom: 40px;
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+        margin-bottom: 24px;
+        border: 1px solid #edf2f7;
     }
 
     #dusunMap {
@@ -157,9 +172,10 @@ Dashboard {{ Auth::user()->dusun_name ?? "Dusun" }}
 
     .dinamika-section {
         background: #fff;
-        padding: 25px;
+        padding: 18px;
         border-radius: 16px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+        border: 1px solid #edf2f7;
     }
 
     .dinamika-grid {
@@ -215,11 +231,56 @@ Dashboard {{ Auth::user()->dusun_name ?? "Dusun" }}
         color: #6b7280;
     }
 
+    .dusun-total-section {
+        background: #fff;
+        padding: 18px;
+        border-radius: 16px;
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+        margin-bottom: 24px;
+        border: 1px solid #edf2f7;
+    }
+
+    .dusun-total-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 14px;
+    }
+
+    .dusun-total-table th,
+    .dusun-total-table td {
+        text-align: left;
+        padding: 12px 14px;
+        border-bottom: 1px solid #e5e7eb;
+        font-size: 14px;
+    }
+
+    .dusun-total-table th {
+        color: #374151;
+        font-weight: 700;
+        background: #f9fafb;
+    }
+
+    .highlight-row {
+        background: #ecfdf5;
+    }
+
+    .text-right {
+        text-align: right;
+    }
+
     @media (max-width: 768px) {
-        .stats-grid,
         .charts-row,
         .dinamika-grid {
             grid-template-columns: 1fr;
+        }
+
+        .stats-grid {
+            justify-content: stretch;
+        }
+
+        .stat-card {
+            max-width: 100%;
+            min-height: auto;
         }
 
         .info-banner {
@@ -252,33 +313,41 @@ Dashboard {{ Auth::user()->dusun_name ?? "Dusun" }}
         <div class="stat-icon primary">
             <i class="fas fa-users"></i>
         </div>
-        <h3>{{ number_format($totalPenduduk ?? 450) }}</h3>
+        <h3>{{ number_format($totalPenduduk) }}</h3>
         <p>Total Penduduk</p>
+    </div>
+
+    <div class="stat-card primary">
+        <div class="stat-icon primary">
+            <i class="fas fa-home"></i>
+        </div>
+        <h3>{{ number_format($totalKK) }}</h3>
+        <p>Total Kepala Keluarga</p>
     </div>
 
     <div class="stat-card success">
         <div class="stat-icon success">
             <i class="fas fa-male"></i>
         </div>
-        <h3>{{ number_format($totalLakiLaki ?? 234) }}</h3>
+        <h3>{{ number_format($totalLakiLaki) }}</h3>
         <p>Laki-laki</p>
-        <span class="percentage">52%</span>
+        <span class="percentage">{{ $totalPenduduk > 0 ? round(($totalLakiLaki / $totalPenduduk) * 100) : 0 }}%</span>
     </div>
 
     <div class="stat-card warning">
         <div class="stat-icon warning">
             <i class="fas fa-female"></i>
         </div>
-        <h3>{{ number_format($totalPerempuan ?? 216) }}</h3>
+        <h3>{{ number_format($totalPerempuan) }}</h3>
         <p>Perempuan</p>
-        <span class="percentage">48%</span>
+        <span class="percentage">{{ $totalPenduduk > 0 ? round(($totalPerempuan / $totalPenduduk) * 100) : 0 }}%</span>
     </div>
 
     <div class="stat-card primary">
         <div class="stat-icon primary">
             <i class="fas fa-child"></i>
         </div>
-        <h3>{{ number_format($totalBalita ?? 45) }}</h3>
+        <h3>{{ number_format($totalBalita) }}</h3>
         <p>Balita (0-5 Tahun)</p>
     </div>
 
@@ -286,7 +355,7 @@ Dashboard {{ Auth::user()->dusun_name ?? "Dusun" }}
         <div class="stat-icon success">
             <i class="fas fa-user-friends"></i>
         </div>
-        <h3>{{ number_format($totalProduktif ?? 320) }}</h3>
+        <h3>{{ number_format($totalProduktif) }}</h3>
         <p>Usia Produktif</p>
     </div>
 
@@ -294,7 +363,7 @@ Dashboard {{ Auth::user()->dusun_name ?? "Dusun" }}
         <div class="stat-icon warning">
             <i class="fas fa-user-clock"></i>
         </div>
-        <h3>{{ number_format($totalLansia ?? 85) }}</h3>
+        <h3>{{ number_format($totalLansia) }}</h3>
         <p>Lansia (>60 Tahun)</p>
     </div>
 </div>
@@ -342,6 +411,36 @@ Dashboard {{ Auth::user()->dusun_name ?? "Dusun" }}
     <div id="dusunMap"></div>
 </div>
 
+<!-- Total Penduduk per Dusun -->
+<div class="dusun-total-section">
+    <div class="chart-header">
+        <h2 class="chart-title">Total Penduduk per Dusun</h2>
+    </div>
+
+    <table class="dusun-total-table">
+        <thead>
+            <tr>
+                <th style="width: 60px;">No</th>
+                <th>Nama Dusun</th>
+                <th class="text-right">Total Penduduk Aktif</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse($totalPerDusun as $index => $item)
+                <tr class="{{ (int) $item->id === (int) (Auth::user()->id_dusun ?? 0) ? 'highlight-row' : '' }}">
+                    <td>{{ $index + 1 }}</td>
+                    <td>{{ $item->nama }}</td>
+                    <td class="text-right">{{ number_format($item->total_penduduk) }}</td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="3">Belum ada data dusun.</td>
+                </tr>
+            @endforelse
+        </tbody>
+    </table>
+</div>
+
 <!-- Dinamika Penduduk -->
 <div class="dinamika-section">
     <div class="chart-header">
@@ -351,25 +450,25 @@ Dashboard {{ Auth::user()->dusun_name ?? "Dusun" }}
     <div class="dinamika-grid">
         <div class="dinamika-card birth">
             <i class="fas fa-baby"></i>
-            <h4>{{ $kelahiran ?? 3 }}</h4>
+            <h4>{{ $kelahiran }}</h4>
             <p>Kelahiran</p>
         </div>
 
         <div class="dinamika-card death">
             <i class="fas fa-cross"></i>
-            <h4>{{ $kematian ?? 1 }}</h4>
+            <h4>{{ $kematian }}</h4>
             <p>Kematian</p>
         </div>
 
         <div class="dinamika-card in">
             <i class="fas fa-sign-in-alt"></i>
-            <h4>{{ $migrasiMasuk ?? 2 }}</h4>
+            <h4>{{ $migrasiMasuk }}</h4>
             <p>Migrasi Masuk</p>
         </div>
 
         <div class="dinamika-card out">
             <i class="fas fa-sign-out-alt"></i>
-            <h4>{{ $migrasiKeluar ?? 1 }}</h4>
+            <h4>{{ $migrasiKeluar }}</h4>
             <p>Migrasi Keluar</p>
         </div>
     </div>
@@ -397,7 +496,7 @@ new Chart(genderCtx, {
     data: {
         labels: ['Laki-laki', 'Perempuan'],
         datasets: [{
-            data: [234, 216],
+            data: @json([(int) $totalLakiLaki, (int) $totalPerempuan]),
             backgroundColor: [chartColors.primary, chartColors.warning],
             borderWidth: 0
         }]
@@ -417,10 +516,10 @@ const ageCtx = document.getElementById('ageChart').getContext('2d');
 new Chart(ageCtx, {
     type: 'bar',
     data: {
-        labels: ['0-5', '6-12', '13-17', '18-60', '>60'],
+        labels: @json($ageLabels),
         datasets: [{
             label: 'Jumlah',
-            data: [45, 60, 50, 210, 85],
+            data: @json($ageValues),
             backgroundColor: chartColors.primary,
             borderRadius: 8
         }]
@@ -445,10 +544,10 @@ const educationCtx = document.getElementById('educationChart').getContext('2d');
 new Chart(educationCtx, {
     type: 'bar',
     data: {
-        labels: ['SD', 'SMP', 'SMA', 'D3', 'S1'],
+        labels: @json($educationLabels),
         datasets: [{
             label: 'Jumlah',
-            data: [120, 90, 100, 30, 40],
+            data: @json($educationValues),
             backgroundColor: chartColors.primary,
             borderRadius: 8
         }]
@@ -474,9 +573,9 @@ const occupationCtx = document.getElementById('occupationChart').getContext('2d'
 new Chart(occupationCtx, {
     type: 'pie',
     data: {
-        labels: ['Petani', 'PNS', 'Wiraswasta', 'Buruh', 'Lainnya'],
+        labels: @json($occupationLabels),
         datasets: [{
-            data: [180, 50, 80, 70, 70],
+            data: @json($occupationValues),
             backgroundColor: [
                 chartColors.primary,
                 chartColors.success,
@@ -498,22 +597,25 @@ new Chart(occupationCtx, {
 });
 
 // Leaflet Map
-const dusunMap = L.map('dusunMap').setView([-7.50, 110.50], 15);
+const mapLat = {{ (float) $mapLat }};
+const mapLng = {{ (float) $mapLng }};
+
+const dusunMap = L.map('dusunMap').setView([mapLat, mapLng], 15);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap contributors'
 }).addTo(dusunMap);
 
-const marker = L.marker([-7.50, 110.50]).addTo(dusunMap);
+const marker = L.marker([mapLat, mapLng]).addTo(dusunMap);
 marker.bindPopup(`
     <div style="font-family: 'Segoe UI', sans-serif;">
-        <h3 style="margin: 0 0 10px 0; color: #0C342C;">{{ Auth::user()->dusun_name ?? 'Dusun' }}</h3>
-        <p style="margin: 5px 0;"><strong>Total Penduduk:</strong> 450</p>
-        <p style="margin: 5px 0;"><strong>Laki-laki:</strong> 234 (52%)</p>
-        <p style="margin: 5px 0;"><strong>Perempuan:</strong> 216 (48%)</p>
-        <p style="margin: 5px 0;"><strong>Balita:</strong> 45</p>
-        <p style="margin: 5px 0;"><strong>Lansia:</strong> 85</p>
-        <p style="margin: 5px 0;"><strong>Kepadatan:</strong> 150 jiwa/km²</p>
+        <h3 style="margin: 0 0 10px 0; color: #0C342C;">{{ $dusun?->nama ?? (Auth::user()->dusun_name ?? 'Dusun') }}</h3>
+        <p style="margin: 5px 0;"><strong>Total Penduduk:</strong> {{ number_format($totalPenduduk) }}</p>
+        <p style="margin: 5px 0;"><strong>Laki-laki:</strong> {{ number_format($totalLakiLaki) }} ({{ $totalPenduduk > 0 ? round(($totalLakiLaki / $totalPenduduk) * 100) : 0 }}%)</p>
+        <p style="margin: 5px 0;"><strong>Perempuan:</strong> {{ number_format($totalPerempuan) }} ({{ $totalPenduduk > 0 ? round(($totalPerempuan / $totalPenduduk) * 100) : 0 }}%)</p>
+        <p style="margin: 5px 0;"><strong>Balita:</strong> {{ number_format($totalBalita) }}</p>
+        <p style="margin: 5px 0;"><strong>Lansia:</strong> {{ number_format($totalLansia) }}</p>
+        <p style="margin: 5px 0;"><strong>Kepadatan:</strong> {{ number_format($kepadatan, 2) }} jiwa/km²</p>
     </div>
 `).openPopup();
 </script>

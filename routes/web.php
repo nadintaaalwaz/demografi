@@ -9,6 +9,7 @@ use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\WilayahController;
 use App\Http\Controllers\PendudukController;
 use App\Models\Penduduk;
+use App\Models\User;
 use App\Models\Wilayah;
 
 /*
@@ -19,20 +20,136 @@ use App\Models\Wilayah;
 
 // ==================== PUBLIC ROUTES ====================
 // Landing page untuk masyarakat umum (Read-only, tanpa login)
-Route::get('/', function () {
-    return view('masyarakat.beranda');
+$buildPublicDashboardData = function () {
+    $pendudukAktif = Penduduk::query()->where('status', 'Aktif');
+
+    $totalPenduduk = (clone $pendudukAktif)->count();
+    $totalKK = (clone $pendudukAktif)->distinct('nomor_kk')->count('nomor_kk');
+    $totalLakiLaki = (clone $pendudukAktif)->where('jenis_kelamin', 'L')->count();
+    $totalPerempuan = (clone $pendudukAktif)->where('jenis_kelamin', 'P')->count();
+    $totalBalita = (clone $pendudukAktif)->where('kategori_usia', 'Balita')->count();
+    $totalProduktif = (clone $pendudukAktif)->where('kategori_usia', 'Produktif')->count();
+    $totalLansia = (clone $pendudukAktif)->where('kategori_usia', 'Lansia')->count();
+
+    $ageRaw = (clone $pendudukAktif)
+        ->selectRaw('SUM(CASE WHEN umur BETWEEN 0 AND 5 THEN 1 ELSE 0 END) as usia_0_5')
+        ->selectRaw('SUM(CASE WHEN umur BETWEEN 6 AND 12 THEN 1 ELSE 0 END) as usia_6_12')
+        ->selectRaw('SUM(CASE WHEN umur BETWEEN 13 AND 17 THEN 1 ELSE 0 END) as usia_13_17')
+        ->selectRaw('SUM(CASE WHEN umur BETWEEN 18 AND 25 THEN 1 ELSE 0 END) as usia_18_25')
+        ->selectRaw('SUM(CASE WHEN umur BETWEEN 26 AND 40 THEN 1 ELSE 0 END) as usia_26_40')
+        ->selectRaw('SUM(CASE WHEN umur BETWEEN 41 AND 60 THEN 1 ELSE 0 END) as usia_41_60')
+        ->selectRaw('SUM(CASE WHEN umur > 60 THEN 1 ELSE 0 END) as usia_60_plus')
+        ->first();
+
+    $ageLabels = ['0-5', '6-12', '13-17', '18-25', '26-40', '41-60', '>60'];
+    $ageValues = [
+        (int) ($ageRaw->usia_0_5 ?? 0),
+        (int) ($ageRaw->usia_6_12 ?? 0),
+        (int) ($ageRaw->usia_13_17 ?? 0),
+        (int) ($ageRaw->usia_18_25 ?? 0),
+        (int) ($ageRaw->usia_26_40 ?? 0),
+        (int) ($ageRaw->usia_41_60 ?? 0),
+        (int) ($ageRaw->usia_60_plus ?? 0),
+    ];
+
+    $educationRows = (clone $pendudukAktif)
+        ->selectRaw("COALESCE(NULLIF(TRIM(pendidikan), ''), 'Tidak diketahui') as label")
+        ->selectRaw('COUNT(*) as total')
+        ->groupBy('label')
+        ->orderByDesc('total')
+        ->limit(7)
+        ->get();
+
+    $educationLabels = $educationRows->pluck('label')->values()->all();
+    $educationValues = $educationRows->pluck('total')->map(fn ($value) => (int) $value)->values()->all();
+
+    if (empty($educationLabels)) {
+        $educationLabels = ['Belum ada data'];
+        $educationValues = [0];
+    }
+
+    $dusunRows = Wilayah::query()
+        ->from('wilayah as w')
+        ->leftJoin('penduduk as p', function ($join) {
+            $join->on('p.id_dusun', '=', 'w.id')
+                ->where('p.status', '=', 'Aktif');
+        })
+        ->where('w.tipe', 'dusun')
+        ->select('w.id', 'w.nama', 'w.latitude', 'w.longitude', 'w.luas_wilayah')
+        ->selectRaw('COUNT(p.nik) as total_penduduk')
+        ->groupBy('w.id', 'w.nama', 'w.latitude', 'w.longitude', 'w.luas_wilayah')
+        ->orderBy('w.nama')
+        ->get();
+
+    $dusunMapData = $dusunRows
+        ->map(function ($row) {
+            return [
+                'id' => (int) $row->id,
+                'name' => $row->nama,
+                'lat' => $row->latitude !== null ? (float) $row->latitude : null,
+                'lng' => $row->longitude !== null ? (float) $row->longitude : null,
+                'total_penduduk' => (int) $row->total_penduduk,
+            ];
+        })
+        ->values()
+        ->all();
+
+    $coordinatedDusun = collect($dusunMapData)
+        ->filter(fn ($dusun) => $dusun['lat'] !== null && $dusun['lng'] !== null)
+        ->values();
+
+    $mapCenterLat = $coordinatedDusun->isNotEmpty()
+        ? (float) $coordinatedDusun->avg('lat')
+        : -7.50;
+
+    $mapCenterLng = $coordinatedDusun->isNotEmpty()
+        ? (float) $coordinatedDusun->avg('lng')
+        : 110.50;
+
+    $totalDusun = Wilayah::query()->where('tipe', 'dusun')->count();
+    $totalLuasDusun = (float) Wilayah::query()
+        ->where('tipe', 'dusun')
+        ->whereNotNull('luas_wilayah')
+        ->sum('luas_wilayah');
+
+    $kepadatan = $totalLuasDusun > 0
+        ? round($totalPenduduk / $totalLuasDusun, 2)
+        : 0;
+
+    return [
+        'totalPenduduk' => $totalPenduduk,
+        'totalKK' => $totalKK,
+        'totalLakiLaki' => $totalLakiLaki,
+        'totalPerempuan' => $totalPerempuan,
+        'totalBalita' => $totalBalita,
+        'totalProduktif' => $totalProduktif,
+        'totalLansia' => $totalLansia,
+        'ageLabels' => $ageLabels,
+        'ageValues' => $ageValues,
+        'educationLabels' => $educationLabels,
+        'educationValues' => $educationValues,
+        'dusunMapData' => $dusunMapData,
+        'mapCenterLat' => $mapCenterLat,
+        'mapCenterLng' => $mapCenterLng,
+        'totalDusun' => $totalDusun,
+        'kepadatan' => $kepadatan,
+    ];
+};
+
+Route::get('/', function () use ($buildPublicDashboardData) {
+    return view('masyarakat.beranda', $buildPublicDashboardData());
 })->name('public.home');
 
 Route::get('/profil-desa', function () {
     return view('masyarakat.profil');
 })->name('public.profil');
 
-Route::get('/statistik', function () {
-    return view('masyarakat.statistik');
+Route::get('/statistik', function () use ($buildPublicDashboardData) {
+    return view('masyarakat.beranda', $buildPublicDashboardData());
 })->name('public.statistik');
 
-Route::get('/peta-wilayah', function () {
-    return view('masyarakat.peta');
+Route::get('/peta-wilayah', function () use ($buildPublicDashboardData) {
+    return view('masyarakat.beranda', $buildPublicDashboardData());
 })->name('public.peta');
 
 Route::get('/kontak', function () {
@@ -403,17 +520,171 @@ Route::prefix('kasun')->name('kasun.')->middleware(['auth', 'role:kasun'])->grou
     
     // Dashboard Kasun
     Route::get('/dashboard', function () {
+        $authUser = Auth::user();
+        $idDusun = $authUser->id_dusun;
+
+        $dusun = null;
+        if ($idDusun) {
+            $dusun = Wilayah::query()
+                ->where('tipe', 'dusun')
+                ->find($idDusun);
+        }
+
+        $pendudukDusunQuery = Penduduk::query()
+            ->where('status', 'Aktif')
+            ->when(
+                $idDusun,
+                fn ($query) => $query->where('id_dusun', $idDusun),
+                fn ($query) => $query->whereRaw('1 = 0')
+            );
+
+        $totalPenduduk = (clone $pendudukDusunQuery)->count();
+        $totalLakiLaki = (clone $pendudukDusunQuery)->where('jenis_kelamin', 'L')->count();
+        $totalPerempuan = (clone $pendudukDusunQuery)->where('jenis_kelamin', 'P')->count();
+        $totalKK = (clone $pendudukDusunQuery)->distinct('nomor_kk')->count('nomor_kk');
+
+        $totalBalita = (clone $pendudukDusunQuery)->where('kategori_usia', 'Balita')->count();
+        $totalProduktif = (clone $pendudukDusunQuery)->where('kategori_usia', 'Produktif')->count();
+        $totalLansia = (clone $pendudukDusunQuery)->where('kategori_usia', 'Lansia')->count();
+
+        $ageRaw = (clone $pendudukDusunQuery)
+            ->selectRaw('SUM(CASE WHEN umur BETWEEN 0 AND 5 THEN 1 ELSE 0 END) as usia_0_5')
+            ->selectRaw('SUM(CASE WHEN umur BETWEEN 6 AND 12 THEN 1 ELSE 0 END) as usia_6_12')
+            ->selectRaw('SUM(CASE WHEN umur BETWEEN 13 AND 17 THEN 1 ELSE 0 END) as usia_13_17')
+            ->selectRaw('SUM(CASE WHEN umur BETWEEN 18 AND 60 THEN 1 ELSE 0 END) as usia_18_60')
+            ->selectRaw('SUM(CASE WHEN umur > 60 THEN 1 ELSE 0 END) as usia_60_plus')
+            ->first();
+
+        $ageLabels = ['0-5', '6-12', '13-17', '18-60', '>60'];
+        $ageValues = [
+            (int) ($ageRaw->usia_0_5 ?? 0),
+            (int) ($ageRaw->usia_6_12 ?? 0),
+            (int) ($ageRaw->usia_13_17 ?? 0),
+            (int) ($ageRaw->usia_18_60 ?? 0),
+            (int) ($ageRaw->usia_60_plus ?? 0),
+        ];
+
+        $educationRows = (clone $pendudukDusunQuery)
+            ->selectRaw("COALESCE(NULLIF(TRIM(pendidikan), ''), 'Tidak diketahui') as label")
+            ->selectRaw('COUNT(*) as total')
+            ->groupBy('label')
+            ->orderByDesc('total')
+            ->limit(6)
+            ->get();
+
+        $educationLabels = $educationRows->pluck('label')->values()->all();
+        $educationValues = $educationRows->pluck('total')->map(fn ($value) => (int) $value)->values()->all();
+
+        if (empty($educationLabels)) {
+            $educationLabels = ['Belum ada data'];
+            $educationValues = [0];
+        }
+
+        $occupationRows = (clone $pendudukDusunQuery)
+            ->selectRaw("COALESCE(NULLIF(TRIM(pekerjaan), ''), 'Tidak diketahui') as label")
+            ->selectRaw('COUNT(*) as total')
+            ->groupBy('label')
+            ->orderByDesc('total')
+            ->get();
+
+        $topOccupation = $occupationRows->take(5)->values();
+        $otherOccupationTotal = (int) $occupationRows->slice(5)->sum('total');
+
+        $occupationLabels = $topOccupation->pluck('label')->values()->all();
+        $occupationValues = $topOccupation->pluck('total')->map(fn ($value) => (int) $value)->values()->all();
+
+        if ($otherOccupationTotal > 0) {
+            $occupationLabels[] = 'Lainnya';
+            $occupationValues[] = $otherOccupationTotal;
+        }
+
+        if (empty($occupationLabels)) {
+            $occupationLabels = ['Belum ada data'];
+            $occupationValues = [0];
+        }
+
+        $trendRows = (clone $pendudukDusunQuery)
+            ->where('created_at', '>=', now()->subMonths(5)->startOfMonth())
+            ->selectRaw("DATE_FORMAT(created_at, '%Y-%m') as period")
+            ->selectRaw('COUNT(*) as total')
+            ->groupBy('period')
+            ->orderBy('period')
+            ->get()
+            ->keyBy('period');
+
+        $trendLabels = [];
+        $trendValues = [];
+
+        for ($i = 5; $i >= 0; $i--) {
+            $month = now()->subMonths($i);
+            $period = $month->format('Y-m');
+            $trendLabels[] = $month->translatedFormat('M');
+            $trendValues[] = (int) ($trendRows[$period]->total ?? 0);
+        }
+
+        $dinamikaRows = DB::table('dinamika_penduduk as dp')
+            ->join('penduduk as p', 'p.nik', '=', 'dp.nik')
+            ->whereMonth('dp.tanggal_peristiwa', now()->month)
+            ->whereYear('dp.tanggal_peristiwa', now()->year)
+            ->when(
+                $idDusun,
+                fn ($query) => $query->where('p.id_dusun', $idDusun),
+                fn ($query) => $query->whereRaw('1 = 0')
+            )
+            ->select('dp.jenis_dinamika')
+            ->selectRaw('COUNT(*) as total')
+            ->groupBy('dp.jenis_dinamika')
+            ->pluck('total', 'jenis_dinamika');
+
+        $kelahiran = (int) ($dinamikaRows['Kelahiran'] ?? 0);
+        $kematian = (int) ($dinamikaRows['Kematian'] ?? 0);
+        $migrasiMasuk = (int) ($dinamikaRows['Migrasi Masuk'] ?? 0);
+        $migrasiKeluar = (int) ($dinamikaRows['Migrasi Keluar'] ?? 0);
+
+        $totalPerDusun = Wilayah::query()
+            ->from('wilayah as w')
+            ->leftJoin('penduduk as p', function ($join) {
+                $join->on('p.id_dusun', '=', 'w.id')
+                    ->where('p.status', '=', 'Aktif');
+            })
+            ->where('w.tipe', 'dusun')
+            ->select('w.id', 'w.nama')
+            ->selectRaw('COUNT(p.nik) as total_penduduk')
+            ->groupBy('w.id', 'w.nama')
+            ->orderBy('w.nama')
+            ->get();
+
+        $latitude = $dusun?->latitude ? (float) $dusun->latitude : -7.5;
+        $longitude = $dusun?->longitude ? (float) $dusun->longitude : 110.5;
+        $kepadatan = ($dusun && (float) $dusun->luas_wilayah > 0)
+            ? round($totalPenduduk / (float) $dusun->luas_wilayah, 2)
+            : 0;
+
         return view('kasun.dashboard', [
-            'totalPenduduk' => 450,
-            'totalLakiLaki' => 234,
-            'totalPerempuan' => 216,
-            'totalBalita' => 45,
-            'totalProduktif' => 320,
-            'totalLansia' => 85,
-            'kelahiran' => 3,
-            'kematian' => 1,
-            'migrasiMasuk' => 2,
-            'migrasiKeluar' => 1,
+            'dusun' => $dusun,
+            'totalPenduduk' => $totalPenduduk,
+            'totalLakiLaki' => $totalLakiLaki,
+            'totalPerempuan' => $totalPerempuan,
+            'totalKK' => $totalKK,
+            'totalBalita' => $totalBalita,
+            'totalProduktif' => $totalProduktif,
+            'totalLansia' => $totalLansia,
+            'kelahiran' => $kelahiran,
+            'kematian' => $kematian,
+            'migrasiMasuk' => $migrasiMasuk,
+            'migrasiKeluar' => $migrasiKeluar,
+            'ageLabels' => $ageLabels,
+            'ageValues' => $ageValues,
+            'educationLabels' => $educationLabels,
+            'educationValues' => $educationValues,
+            'occupationLabels' => $occupationLabels,
+            'occupationValues' => $occupationValues,
+            'trendLabels' => $trendLabels,
+            'trendValues' => $trendValues,
+            'totalPerDusun' => $totalPerDusun,
+            'mapLat' => $latitude,
+            'mapLng' => $longitude,
+            'kepadatan' => $kepadatan,
         ]);
     })->name('dashboard');
     
@@ -429,6 +700,8 @@ Route::prefix('kasun')->name('kasun.')->middleware(['auth', 'role:kasun'])->grou
     
     // Profile
     Route::get('/profile', function () {
-        return view('kasun.profile');
+        $user = User::with('dusun')->find(Auth::id()) ?? Auth::user();
+
+        return view('kasun.profile', compact('user'));
     })->name('profile');
 });

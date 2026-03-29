@@ -452,18 +452,6 @@
                     <span>Dashboard</span>
                 </a>
             </li>
-            <li class="menu-item">
-                <a href="{{ route('kasun.statistik') }}" class="menu-link {{ request()->routeIs('kasun.statistik') ? 'active' : '' }}">
-                    <i class="fas fa-chart-pie"></i>
-                    <span>Statistik Dusun</span>
-                </a>
-            </li>
-            <li class="menu-item">
-                <a href="{{ route('kasun.peta') }}" class="menu-link {{ request()->routeIs('kasun.peta') ? 'active' : '' }}">
-                    <i class="fas fa-map"></i>
-                    <span>Peta Dusun</span>
-                </a>
-            </li>
             
             <div class="menu-divider"></div>
             

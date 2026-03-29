@@ -381,7 +381,7 @@
             <div class="stat-icon">
                 <i class="fas fa-users"></i>
             </div>
-            <div class="stat-number">2,590</div>
+            <div class="stat-number">{{ number_format($totalPenduduk ?? 0) }}</div>
             <div class="stat-label">Total Penduduk</div>
         </div>
 
@@ -389,7 +389,7 @@
             <div class="stat-icon">
                 <i class="fas fa-home"></i>
             </div>
-            <div class="stat-number">842</div>
+            <div class="stat-number">{{ number_format($totalKK ?? 0) }}</div>
             <div class="stat-label">Kepala Keluarga</div>
         </div>
 
@@ -397,7 +397,7 @@
             <div class="stat-icon">
                 <i class="fas fa-male"></i>
             </div>
-            <div class="stat-number">1,250</div>
+            <div class="stat-number">{{ number_format($totalLakiLaki ?? 0) }}</div>
             <div class="stat-label">Laki-laki</div>
         </div>
 
@@ -405,7 +405,7 @@
             <div class="stat-icon">
                 <i class="fas fa-female"></i>
             </div>
-            <div class="stat-number">1,340</div>
+            <div class="stat-number">{{ number_format($totalPerempuan ?? 0) }}</div>
             <div class="stat-label">Perempuan</div>
         </div>
     </div>
@@ -464,26 +464,17 @@
 
     <div class="map-container-wrapper">
         <div class="dusun-list">
-            <div class="dusun-item" data-lat="-7.50" data-lng="110.50">
-                <span class="dusun-name"><i class="fas fa-map-marker-alt" style="margin-right: 8px; color: #E3EF26;"></i>Dusun Mawar</span>
-                <span class="dusun-count">520 jiwa</span>
-            </div>
-            <div class="dusun-item" data-lat="-7.51" data-lng="110.51">
-                <span class="dusun-name"><i class="fas fa-map-marker-alt" style="margin-right: 8px; color: #E3EF26;"></i>Dusun Melati</span>
-                <span class="dusun-count">450 jiwa</span>
-            </div>
-            <div class="dusun-item" data-lat="-7.49" data-lng="110.49">
-                <span class="dusun-name"><i class="fas fa-map-marker-alt" style="margin-right: 8px; color: #E3EF26;"></i>Dusun Anggrek</span>
-                <span class="dusun-count">380 jiwa</span>
-            </div>
-            <div class="dusun-item" data-lat="-7.50" data-lng="110.52">
-                <span class="dusun-name"><i class="fas fa-map-marker-alt" style="margin-right: 8px; color: #E3EF26;"></i>Dusun Kenanga</span>
-                <span class="dusun-count">340 jiwa</span>
-            </div>
-            <div class="dusun-item" data-lat="-7.52" data-lng="110.50">
-                <span class="dusun-name"><i class="fas fa-map-marker-alt" style="margin-right: 8px; color: #E3EF26;"></i>Dusun Dahlia</span>
-                <span class="dusun-count">290 jiwa</span>
-            </div>
+            @forelse(($dusunMapData ?? []) as $dusun)
+                <div class="dusun-item" data-lat="{{ $dusun['lat'] ?? $mapCenterLat ?? -7.50 }}" data-lng="{{ $dusun['lng'] ?? $mapCenterLng ?? 110.50 }}">
+                    <span class="dusun-name"><i class="fas fa-map-marker-alt" style="margin-right: 8px; color: #E3EF26;"></i>{{ $dusun['name'] }}</span>
+                    <span class="dusun-count">{{ number_format($dusun['total_penduduk']) }} jiwa</span>
+                </div>
+            @empty
+                <div class="dusun-item" data-lat="{{ $mapCenterLat ?? -7.50 }}" data-lng="{{ $mapCenterLng ?? 110.50 }}">
+                    <span class="dusun-name"><i class="fas fa-map-marker-alt" style="margin-right: 8px; color: #E3EF26;"></i>Belum ada data dusun</span>
+                    <span class="dusun-count">0 jiwa</span>
+                </div>
+            @endforelse
         </div>
         <div class="map-display">
             <div id="publicMap"></div>
@@ -513,7 +504,7 @@ new Chart(genderCtx, {
     data: {
         labels: ['Laki-laki', 'Perempuan'],
         datasets: [{
-            data: [1250, 1340],
+            data: @json([(int) ($totalLakiLaki ?? 0), (int) ($totalPerempuan ?? 0)]),
             backgroundColor: [chartColors.primary, chartColors.warning],
             borderWidth: 4,
             borderColor: '#fff'
@@ -539,10 +530,10 @@ const ageCtx = document.getElementById('ageChart').getContext('2d');
 new Chart(ageCtx, {
     type: 'bar',
     data: {
-        labels: ['0-5', '6-12', '13-17', '18-25', '26-40', '41-60', '>60'],
+        labels: @json($ageLabels ?? []),
         datasets: [{
             label: 'Jumlah',
-            data: [180, 250, 220, 380, 620, 540, 400],
+            data: @json($ageValues ?? []),
             backgroundColor: chartColors.accent,
             borderRadius: 8
         }]
@@ -560,10 +551,10 @@ const educationCtx = document.getElementById('educationChart').getContext('2d');
 new Chart(educationCtx, {
     type: 'bar',
     data: {
-        labels: ['Tidak Sekolah', 'SD', 'SMP', 'SMA/SMK', 'D3', 'S1', 'S2/S3'],
+        labels: @json($educationLabels ?? []),
         datasets: [{
             label: 'Jumlah',
-            data: [120, 480, 420, 550, 180, 260, 80],
+            data: @json($educationValues ?? []),
             backgroundColor: '#10b981',
             borderRadius: 8
         }]
@@ -577,27 +568,25 @@ new Chart(educationCtx, {
 });
 
 // Leaflet Map
-const publicMap = L.map('publicMap').setView([-7.50, 110.50], 13);
+const publicMap = L.map('publicMap').setView([{{ (float) ($mapCenterLat ?? -7.50) }}, {{ (float) ($mapCenterLng ?? 110.50) }}], 13);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap contributors'
 }).addTo(publicMap);
 
 // Dusun markers
-const dusunData = [
-    { name: 'Dusun Mawar', lat: -7.50, lng: 110.50, penduduk: 520 },
-    { name: 'Dusun Melati', lat: -7.51, lng: 110.51, penduduk: 450 },
-    { name: 'Dusun Anggrek', lat: -7.49, lng: 110.49, penduduk: 380 },
-    { name: 'Dusun Kenanga', lat: -7.50, lng: 110.52, penduduk: 340 },
-    { name: 'Dusun Dahlia', lat: -7.52, lng: 110.50, penduduk: 290 },
-];
+const dusunData = @json($dusunMapData ?? []);
 
 dusunData.forEach(dusun => {
+    if (dusun.lat === null || dusun.lng === null) {
+        return;
+    }
+
     const marker = L.marker([dusun.lat, dusun.lng]).addTo(publicMap);
     marker.bindPopup(`
         <div style="font-family: 'Inter', sans-serif; min-width: 180px;">
             <h3 style="margin: 0 0 10px 0; color: #0C342C; font-size: 15px; font-weight: 700;">${dusun.name}</h3>
-            <p style="margin: 5px 0; font-size: 13px;"><strong>Total Penduduk:</strong> ${dusun.penduduk} jiwa</p>
+            <p style="margin: 5px 0; font-size: 13px;"><strong>Total Penduduk:</strong> ${dusun.total_penduduk} jiwa</p>
         </div>
     `);
 });
