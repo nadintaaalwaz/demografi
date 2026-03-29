@@ -502,14 +502,37 @@ Tambah Wilayah Baru
         }
     }
 
+    // Default center: Desa Sebalor
+    const SEBALOR_CENTER = [-8.157269, 111.746486];
+    const SEBALOR_BOUNDS = [
+        [-8.190000, 111.700000],
+        [-8.120000, 111.790000]
+    ];
+
     // Initialize map
-    const map = L.map('mapPreview').setView([-7.50, 110.50], 13);
+    const map = L.map('mapPreview', {
+        minZoom: 12,
+        maxZoom: 19,
+    }).setView(SEBALOR_CENTER, 15);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors'
     }).addTo(map);
 
+    map.setMaxBounds(SEBALOR_BOUNDS);
+    map.fitBounds(SEBALOR_BOUNDS, { padding: [10, 10] });
+
     let marker = null;
+
+    // Jika ada old input (validasi gagal), tampilkan marker lama
+    const oldLat = document.getElementById('latitude').value;
+    const oldLng = document.getElementById('longitude').value;
+
+    if (oldLat && oldLng) {
+        marker = L.marker([oldLat, oldLng]).addTo(map);
+        marker.bindPopup(`<b>Lokasi Sebelumnya</b><br>Lat: ${oldLat}<br>Lng: ${oldLng}`).openPopup();
+        map.setView([Number(oldLat), Number(oldLng)], 16);
+    }
 
     // Handle map click
     map.on('click', function(e) {

@@ -22,6 +22,24 @@ class WilayahController extends Controller
             ->orderBy('nama', 'asc')
             ->get();
 
+        $rtByRw = Wilayah::query()
+            ->where('tipe', 'rt')
+            ->whereNotNull('nomor_rw')
+            ->whereNotNull('nomor_rt')
+            ->orderBy('nomor_rw')
+            ->orderBy('nomor_rt')
+            ->get(['nomor_rw', 'nomor_rt'])
+            ->groupBy('nomor_rw')
+            ->map(function ($rows) {
+                return $rows->pluck('nomor_rt')
+                    ->map(fn ($value) => (int) $value)
+                    ->unique()
+                    ->sort()
+                    ->values()
+                    ->all();
+            })
+            ->toArray();
+
         $dusunSummary = Wilayah::query()
             ->from('wilayah as w')
             ->leftJoin('penduduk as p', 'p.id_dusun', '=', 'w.id')
@@ -57,6 +75,7 @@ class WilayahController extends Controller
 
         return view('kasi.wilayah.index', [
             'wilayah' => $wilayah,
+            'rtByRw' => $rtByRw,
             'dusunSummary' => $dusunSummary,
             'totalLuasDusun' => (float) $totalLuasDusun,
             'wilayahCounts' => $wilayahCounts,

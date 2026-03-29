@@ -504,20 +504,48 @@ Edit Data Wilayah
         }
     }
 
+    // Default center: Desa Sebalor
+    const SEBALOR_CENTER = [-8.157269, 111.746486];
+    const SEBALOR_BOUNDS = [
+        [-8.190000, 111.700000],
+        [-8.120000, 111.790000]
+    ];
+
     // Get existing coordinates
-    const existingLat = {{ $wilayah->latitude ?? -7.50 }};
-    const existingLng = {{ $wilayah->longitude ?? 110.50 }};
+    const existingLat = Number({{ $wilayah->latitude ?? -8.157269 }});
+    const existingLng = Number({{ $wilayah->longitude ?? 111.746486 }});
+
+    const isInSebalorArea =
+        existingLat >= SEBALOR_BOUNDS[0][0] &&
+        existingLat <= SEBALOR_BOUNDS[1][0] &&
+        existingLng >= SEBALOR_BOUNDS[0][1] &&
+        existingLng <= SEBALOR_BOUNDS[1][1];
+
+    const initialCenter = isInSebalorArea ? [existingLat, existingLng] : SEBALOR_CENTER;
+    const initialZoom = isInSebalorArea ? 15 : 14;
 
     // Initialize map
-    const map = L.map('mapPreview').setView([existingLat, existingLng], 15);
+    const map = L.map('mapPreview', {
+        minZoom: 12,
+        maxZoom: 19,
+    }).setView(initialCenter, initialZoom);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors'
     }).addTo(map);
 
-    // Add existing marker
-    let marker = L.marker([existingLat, existingLng]).addTo(map);
-    marker.bindPopup(`<b>Lokasi Saat Ini</b><br>Lat: ${existingLat}<br>Lng: ${existingLng}`).openPopup();
+    map.setMaxBounds(SEBALOR_BOUNDS);
+
+    if (!isInSebalorArea) {
+        map.fitBounds(SEBALOR_BOUNDS, { padding: [10, 10] });
+    }
+
+    // Add existing marker jika masih dalam area Sebalor
+    let marker = null;
+    if (isInSebalorArea) {
+        marker = L.marker([existingLat, existingLng]).addTo(map);
+        marker.bindPopup(`<b>Lokasi Saat Ini</b><br>Lat: ${existingLat}<br>Lng: ${existingLng}`).openPopup();
+    }
 
     // Handle map click
     map.on('click', function(e) {

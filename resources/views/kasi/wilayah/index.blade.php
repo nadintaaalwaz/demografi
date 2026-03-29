@@ -204,6 +204,23 @@ Manajemen Wilayah
         color: #0C342C;
     }
 
+    .wilayah-sub {
+        margin-top: 4px;
+        font-size: 11px;
+        color: #6b7280;
+    }
+
+    .relation-text {
+        font-size: 12px;
+        color: #374151;
+        line-height: 1.4;
+    }
+
+    .relation-empty {
+        color: #9ca3af;
+        font-size: 12px;
+    }
+
     .badge {
         display: inline-block;
         padding: 4px 12px;
@@ -543,6 +560,7 @@ Manajemen Wilayah
                         <tr>
                             <th>Nama Wilayah</th>
                             <th>Tipe</th>
+                            <th>Relasi RT/RW</th>
                             <th>Luas (Ha)</th>
                             <th>Koordinat</th>
                             <th>Aksi</th>
@@ -554,11 +572,37 @@ Manajemen Wilayah
                                 <td>
                                     <div class="wilayah-name">
                                         <div class="wilayah-dot {{ $item->tipe === 'dusun' ? 'yellow' : ($item->tipe === 'rt' ? 'green' : 'blue') }}"></div>
-                                        <span>{{ $item->nama }}</span>
+                                        <div>
+                                            <span>{{ $item->nama }}</span>
+                                            @if($item->tipe === 'rt' && $item->nomor_rt)
+                                                <div class="wilayah-sub">RT {{ $item->nomor_rt }} - RW {{ $item->nomor_rw ?? '-' }}</div>
+                                            @elseif($item->tipe === 'rw' && $item->nomor_rw)
+                                                <div class="wilayah-sub">RW {{ $item->nomor_rw }}</div>
+                                            @endif
+                                        </div>
                                     </div>
                                 </td>
                                 <td>
                                     <span class="badge badge-{{ $item->tipe }}">{{ ucfirst($item->tipe) }}</span>
+                                </td>
+                                <td>
+                                    @if($item->tipe === 'rt')
+                                        <span class="relation-text">RT {{ $item->nomor_rt ?? '-' }} berada di RW {{ $item->nomor_rw ?? '-' }}</span>
+                                    @elseif($item->tipe === 'rw')
+                                        @php
+                                            $daftarRt = $rtByRw[$item->nomor_rw] ?? [];
+                                        @endphp
+
+                                        @if(count($daftarRt) > 0)
+                                            <span class="relation-text">
+                                                RW {{ $item->nomor_rw }} memiliki RT: {{ collect($daftarRt)->map(fn ($rt) => 'RT ' . $rt)->implode(', ') }}
+                                            </span>
+                                        @else
+                                            <span class="relation-empty">Belum ada RT di RW ini</span>
+                                        @endif
+                                    @else
+                                        <span class="relation-empty">-</span>
+                                    @endif
                                 </td>
                                 <td>{{ $item->luas_wilayah ? number_format($item->luas_wilayah, 2) . ' Ha' : '-' }}</td>
                                 <td><small>{{ $item->latitude }}, {{ $item->longitude }}</small></td>
