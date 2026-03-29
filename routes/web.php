@@ -136,12 +136,36 @@ $buildPublicDashboardData = function () {
     ];
 };
 
+$buildPublicProfileData = function () {
+    $totalDusun = Wilayah::query()->where('tipe', 'dusun')->count();
+    $totalRw = Wilayah::query()->where('tipe', 'rw')->count();
+    $totalRt = Wilayah::query()->where('tipe', 'rt')->count();
+
+    $totalLuasDusunKm2 = (float) Wilayah::query()
+        ->where('tipe', 'dusun')
+        ->whereNotNull('luas_wilayah')
+        ->sum('luas_wilayah');
+
+    // Ditampilkan dalam satuan hektar agar konsisten dengan teks pada blade profil
+    $totalWilayahHa = round($totalLuasDusunKm2 * 100, 1);
+
+    $totalPenduduk = Penduduk::query()->where('status', 'Aktif')->count();
+
+    return [
+        'totalWilayahHa' => $totalWilayahHa,
+        'totalDusun' => $totalDusun,
+        'totalRw' => $totalRw,
+        'totalRt' => $totalRt,
+        'totalPenduduk' => $totalPenduduk,
+    ];
+};
+
 Route::get('/', function () use ($buildPublicDashboardData) {
     return view('masyarakat.beranda', $buildPublicDashboardData());
 })->name('public.home');
 
-Route::get('/profil-desa', function () {
-    return view('masyarakat.profil');
+Route::get('/profil-desa', function () use ($buildPublicProfileData) {
+    return view('masyarakat.profil', $buildPublicProfileData());
 })->name('public.profil');
 
 Route::get('/statistik', function () use ($buildPublicDashboardData) {

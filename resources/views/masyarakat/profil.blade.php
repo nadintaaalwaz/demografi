@@ -422,7 +422,7 @@
                 <i class="fas fa-map"></i>
             </div>
             <div class="stat-card-content">
-                <div class="stat-value">450.5 <small style="font-size: 16px;">ha</small></div>
+                <div class="stat-value">{{ number_format($totalWilayahHa ?? 0, 1) }} <small style="font-size: 16px;">ha</small></div>
                 <div class="stat-label">Total Wilayah</div>
             </div>
         </div>
@@ -432,7 +432,7 @@
                 <i class="fas fa-home"></i>
             </div>
             <div class="stat-card-content">
-                <div class="stat-value">5 <small style="font-size: 16px;">Dusun</small></div>
+                <div class="stat-value">{{ number_format($totalDusun ?? 0) }} <small style="font-size: 16px;">Dusun</small></div>
                 <div class="stat-label">Jumlah Dusun</div>
             </div>
         </div>
@@ -442,7 +442,7 @@
                 <i class="fas fa-location-arrow"></i>
             </div>
             <div class="stat-card-content">
-                <div class="stat-value">12 <small style="font-size: 16px;">RW</small></div>
+                <div class="stat-value">{{ number_format($totalRw ?? 0) }} <small style="font-size: 16px;">RW</small></div>
                 <div class="stat-label">Jumlah RW</div>
             </div>
         </div>
@@ -452,7 +452,7 @@
                 <i class="fas fa-building"></i>
             </div>
             <div class="stat-card-content">
-                <div class="stat-value">36 <small style="font-size: 16px;">RT</small></div>
+                <div class="stat-value">{{ number_format($totalRt ?? 0) }} <small style="font-size: 16px;">RT</small></div>
                 <div class="stat-label">Jumlah RT</div>
             </div>
         </div>
