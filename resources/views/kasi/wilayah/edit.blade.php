@@ -351,7 +351,7 @@ Edit Data Wilayah
                                 min="1"
                             >
                         </div>
-                        <small class="form-text">Hanya diisi jika tipe wilayah adalah RW</small>
+                        <small class="form-text">Wajib diisi jika tipe wilayah adalah RW atau RT</small>
                         @error('nomor_rw')
                             <span class="error-message">
                                 <i class="fas fa-exclamation-circle"></i>
@@ -474,6 +474,8 @@ Edit Data Wilayah
         const tipeRadios = document.getElementsByName('tipe');
         const fieldNomorRt = document.getElementById('field_nomor_rt');
         const fieldNomorRw = document.getElementById('field_nomor_rw');
+        const inputNomorRt = document.getElementById('nomor_rt');
+        const inputNomorRw = document.getElementById('nomor_rw');
         
         let selectedTipe = '';
         for (const radio of tipeRadios) {
@@ -486,13 +488,19 @@ Edit Data Wilayah
         // Show/hide fields based on selection
         if (selectedTipe === 'rt') {
             fieldNomorRt.classList.add('show');
-            fieldNomorRw.classList.remove('show');
+            fieldNomorRw.classList.add('show');
+            inputNomorRt.required = true;
+            inputNomorRw.required = true;
         } else if (selectedTipe === 'rw') {
             fieldNomorRw.classList.add('show');
             fieldNomorRt.classList.remove('show');
+            inputNomorRw.required = true;
+            inputNomorRt.required = false;
         } else {
             fieldNomorRt.classList.remove('show');
             fieldNomorRw.classList.remove('show');
+            inputNomorRt.required = false;
+            inputNomorRw.required = false;
         }
     }
 

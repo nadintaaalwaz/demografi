@@ -88,12 +88,57 @@ class WilayahController extends Controller
         $validated = $request->validate([
             'nama' => 'required|string|max:255',
             'tipe' => 'required|in:dusun,rt,rw',
-            'nomor_rt' => 'nullable|integer|min:1',
-            'nomor_rw' => 'nullable|integer|min:1',
+            'nomor_rt' => 'nullable|integer|min:1|required_if:tipe,rt',
+            'nomor_rw' => 'nullable|integer|min:1|required_if:tipe,rt,rw',
             'luas_wilayah' => 'nullable|numeric|min:0.01',
             'latitude' => 'required|numeric|between:-90,90',
             'longitude' => 'required|numeric|between:-180,180',
         ]);
+
+        if ($validated['tipe'] === 'rw') {
+            $existsRw = Wilayah::query()
+                ->where('tipe', 'rw')
+                ->where('nomor_rw', $validated['nomor_rw'])
+                ->exists();
+
+            if ($existsRw) {
+                return redirect()->back()
+                    ->withErrors(['nomor_rw' => 'Nomor RW sudah ada.'])
+                    ->withInput();
+            }
+
+            $validated['nomor_rt'] = null;
+        }
+
+        if ($validated['tipe'] === 'rt') {
+            $rwExists = Wilayah::query()
+                ->where('tipe', 'rw')
+                ->where('nomor_rw', $validated['nomor_rw'])
+                ->exists();
+
+            if (!$rwExists) {
+                return redirect()->back()
+                    ->withErrors(['nomor_rw' => 'Nomor RW belum terdaftar. Tambahkan data RW terlebih dahulu.'])
+                    ->withInput();
+            }
+
+            $duplicateRtInRw = Wilayah::query()
+                ->where('tipe', 'rt')
+                ->where('nomor_rw', $validated['nomor_rw'])
+                ->where('nomor_rt', $validated['nomor_rt'])
+                ->exists();
+
+            if ($duplicateRtInRw) {
+                return redirect()->back()
+                    ->withErrors(['nomor_rt' => 'Nomor RT tersebut sudah ada di RW yang dipilih.'])
+                    ->withInput();
+            }
+        }
+
+        if ($validated['tipe'] === 'dusun') {
+            $validated['nomor_rt'] = null;
+            $validated['nomor_rw'] = null;
+        }
 
         Wilayah::create($validated);
 
@@ -129,12 +174,59 @@ class WilayahController extends Controller
         $validated = $request->validate([
             'nama' => 'required|string|max:255',
             'tipe' => 'required|in:dusun,rt,rw',
-            'nomor_rt' => 'nullable|integer|min:1',
-            'nomor_rw' => 'nullable|integer|min:1',
+            'nomor_rt' => 'nullable|integer|min:1|required_if:tipe,rt',
+            'nomor_rw' => 'nullable|integer|min:1|required_if:tipe,rt,rw',
             'luas_wilayah' => 'nullable|numeric|min:0.01',
             'latitude' => 'required|numeric|between:-90,90',
             'longitude' => 'required|numeric|between:-180,180',
         ]);
+
+        if ($validated['tipe'] === 'rw') {
+            $existsRw = Wilayah::query()
+                ->where('tipe', 'rw')
+                ->where('nomor_rw', $validated['nomor_rw'])
+                ->where('id', '!=', $wilayah->id)
+                ->exists();
+
+            if ($existsRw) {
+                return redirect()->back()
+                    ->withErrors(['nomor_rw' => 'Nomor RW sudah ada.'])
+                    ->withInput();
+            }
+
+            $validated['nomor_rt'] = null;
+        }
+
+        if ($validated['tipe'] === 'rt') {
+            $rwExists = Wilayah::query()
+                ->where('tipe', 'rw')
+                ->where('nomor_rw', $validated['nomor_rw'])
+                ->exists();
+
+            if (!$rwExists) {
+                return redirect()->back()
+                    ->withErrors(['nomor_rw' => 'Nomor RW belum terdaftar. Tambahkan data RW terlebih dahulu.'])
+                    ->withInput();
+            }
+
+            $duplicateRtInRw = Wilayah::query()
+                ->where('tipe', 'rt')
+                ->where('nomor_rw', $validated['nomor_rw'])
+                ->where('nomor_rt', $validated['nomor_rt'])
+                ->where('id', '!=', $wilayah->id)
+                ->exists();
+
+            if ($duplicateRtInRw) {
+                return redirect()->back()
+                    ->withErrors(['nomor_rt' => 'Nomor RT tersebut sudah ada di RW yang dipilih.'])
+                    ->withInput();
+            }
+        }
+
+        if ($validated['tipe'] === 'dusun') {
+            $validated['nomor_rt'] = null;
+            $validated['nomor_rw'] = null;
+        }
 
         $wilayah->update($validated);
 

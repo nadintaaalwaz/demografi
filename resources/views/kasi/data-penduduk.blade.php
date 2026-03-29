@@ -127,7 +127,7 @@
                                 {{ $p->kategori_usia }}
                             </span>
                         </td>
-                        <td>{{ $p->dusun->nama_dusun ?? '-' }}</td>
+                        <td>{{ $p->dusun->nama ?? '-' }}</td>
                         <td>{{ $p->pekerjaan ?? '-' }}</td>
                         <td>
                             <span class="badge badge-{{ $p->status == 'Aktif' ? 'success' : 'danger' }}">
