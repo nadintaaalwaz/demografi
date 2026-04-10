@@ -231,6 +231,7 @@
     .map-section {
         background: #0C342C;
         padding: 80px 40px;
+        scroll-margin-top: 110px;
     }
 
     .map-section .section-title,
@@ -359,8 +360,8 @@
 <section class="hero-section">
     <div class="hero-badge">Selamat Datang di Portal Kami</div>
     <h1 class="hero-title">
-        Transparansi Data<br>
-        <span class="highlight">Kependudukan Desa</span>
+        Informasi Data Demografi<br>
+        <span class="highlight">Kependudukan Desa Sebalor</span>
     </h1>
     <p class="hero-subtitle">
         Platform informasi profil yang menghadirkan data demografi, statistik perkembangan, dan 
@@ -455,7 +456,7 @@
 </section>
 
 <!-- Map Section -->
-<section class="map-section">
+<section class="map-section" id="peta-wilayah">
     <div class="section-header">
         <span class="map-badge">GEOSPASIAL</span>
         <h2 class="section-title">Peta Wilayah Desa</h2>
