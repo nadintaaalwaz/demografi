@@ -221,6 +221,7 @@ Manajemen Wilayah
         font-size: 12px;
     }
 
+
     .badge {
         display: inline-block;
         padding: 4px 12px;
@@ -555,6 +556,15 @@ Manajemen Wilayah
         <!-- Wilayah Table -->
         <div id="wilayahTableContainer">
             @if($wilayah->count() > 0)
+                @php
+                    $dusunById = $wilayah->where('tipe', 'dusun')->keyBy('id');
+                    $rwTemplate = [
+                        1 => [1, 2, 3, 4],
+                        2 => [1, 2, 3, 4, 5],
+                        3 => [1, 2, 3, 4, 5],
+                        4 => [1, 2, 3, 4, 5],
+                    ];
+                @endphp
                 <table class="wilayah-table" id="wilayahTable">
                     <thead>
                         <tr>
@@ -590,7 +600,7 @@ Manajemen Wilayah
                                         <span class="relation-text">RT {{ $item->nomor_rt ?? '-' }} berada di RW {{ $item->nomor_rw ?? '-' }}</span>
                                     @elseif($item->tipe === 'rw')
                                         @php
-                                            $daftarRt = $rtByRw[$item->nomor_rw] ?? [];
+                                            $daftarRt = $rwTemplate[(int) $item->nomor_rw] ?? ($rtByRw[$item->nomor_rw] ?? []);
                                         @endphp
 
                                         @if(count($daftarRt) > 0)
@@ -599,6 +609,17 @@ Manajemen Wilayah
                                             </span>
                                         @else
                                             <span class="relation-empty">Belum ada RT di RW ini</span>
+                                        @endif
+                                    @elseif($item->tipe === 'dusun')
+                                        @php
+                                            $namaDusun = strtolower(trim($item->nama));
+                                        @endphp
+                                        @if(str_contains($namaDusun, 'sebalor'))
+                                            <span class="relation-text">Dusun Sebalor memiliki RW: RW 2, RW 3, RW 4</span>
+                                        @elseif(str_contains($namaDusun, 'sirah kandang'))
+                                            <span class="relation-text">Dusun Sirah Kandang memiliki RW: RW 1</span>
+                                        @else
+                                            <span class="relation-empty">-</span>
                                         @endif
                                     @else
                                         <span class="relation-empty">-</span>

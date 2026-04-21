@@ -31,6 +31,36 @@ class Wilayah extends Model
     }
 
     /**
+     * Relasi parent dusun untuk data RW/RT
+     */
+    public function dusun()
+    {
+        return $this->belongsTo(Wilayah::class, 'id_dusun')
+            ->where('tipe', 'dusun');
+    }
+
+    /**
+     * Relasi RW yang dimiliki dusun
+     */
+    public function rws()
+    {
+        return $this->hasMany(Wilayah::class, 'id_dusun')
+            ->where('tipe', 'rw')
+            ->orderBy('nomor_rw');
+    }
+
+    /**
+     * Relasi RT yang dimiliki dusun
+     */
+    public function rts()
+    {
+        return $this->hasMany(Wilayah::class, 'id_dusun')
+            ->where('tipe', 'rt')
+            ->orderBy('nomor_rw')
+            ->orderBy('nomor_rt');
+    }
+
+    /**
      * Get jumlah penduduk di wilayah ini
      */
     public function getJumlahPendudukAttribute()
