@@ -299,7 +299,7 @@
         <p>Untuk upload data penduduk, pastikan file Excel Anda memenuhi kriteria berikut:</p>
         <ul class="info-list">
             <li>Format file harus .xlsx (Excel 2007 atau lebih baru)</li>
-            <li>Kolom wajib: NIK, Nama Lengkap, Jenis Kelamin, Tanggal Lahir, Dusun</li>
+            <li>Kolom wajib: nomor_kartu_keluarga, nik, nama_lengkap, jenis_kelamin, tempat_lahir, tanggal_lahir, status_keluarga, status_perkawinan, pendidikan, pekerjaan, dusun, rw, rt, alamat, status, tanggal_status</li>
             <li>NIK harus 16 digit dan unik (tidak boleh duplikat)</li>
             <li>Jenis Kelamin harus L atau P</li>
             <li>Tanggal Lahir format: DD-MM-YYYY atau DD/MM/YYYY</li>

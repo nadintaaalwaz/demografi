@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('file_path');
             $table->unsignedBigInteger('dibuat_oleh');
             $table->timestamps();
+            $table->string('nama_file')->nullable();
 
             // Foreign key
             $table->foreign('dibuat_oleh')->references('id')->on('users')->onDelete('cascade');

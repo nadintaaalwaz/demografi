@@ -20,6 +20,7 @@ return new class extends Migration
             $table->text('nilai_lama')->nullable();
             $table->text('nilai_baru')->nullable();
             $table->timestamp('waktu')->useCurrent();
+            $table->string('tabel')->nullable();
 
             // Foreign key
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');

@@ -6,7 +6,6 @@ use App\Services\PendudukImportService;
 use App\Models\Penduduk;
 use App\Models\Wilayah;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class PendudukController extends Controller
 {
@@ -48,10 +47,26 @@ class PendudukController extends Controller
         $result = $this->importService->import($file, $originalFileName);
 
         if ($result['success']) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Import data penduduk berhasil',
+                    'total_record' => $result['total_record'] ?? 0,
+                ]);
+            }
+
             return redirect()
                 ->route('kasi.upload.form')
                 ->with('success', "Data berhasil diimport! Total {$result['total_record']} record.");
         } else {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Import data penduduk gagal',
+                    'errors' => $result['errors'] ?? [],
+                ], 422);
+            }
+
             return redirect()
                 ->route('kasi.upload.form')
                 ->with('import_errors', $result['errors'])
@@ -59,6 +74,13 @@ class PendudukController extends Controller
         }
 
     } catch (\Exception $e) {
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat import data',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
 
         return redirect()
             ->route('kasi.upload.form')
@@ -90,7 +112,7 @@ class PendudukController extends Controller
             $pendudukQuery->where(function ($query) use ($search) {
                 $query->where('nik', 'like', "%{$search}%")
                     ->orWhere('nama_lengkap', 'like', "%{$search}%")
-                    ->orWhere('nomor_kk', 'like', "%{$search}%")
+                    ->orWhere('nomor_kartu_keluarga', 'like', "%{$search}%")
                     ->orWhere('pekerjaan', 'like', "%{$search}%")
                     ->orWhere('alamat', 'like', "%{$search}%")
                     ->orWhereHas('dusun', function ($dusunQuery) use ($search) {
@@ -104,7 +126,13 @@ class PendudukController extends Controller
         }
 
         if (in_array($kategoriUsia, ['Balita', 'Produktif', 'Lansia'], true)) {
-            $pendudukQuery->where('kategori_usia', $kategoriUsia);
+            if ($kategoriUsia === 'Balita') {
+                $pendudukQuery->whereRaw('TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) < 5');
+            } elseif ($kategoriUsia === 'Lansia') {
+                $pendudukQuery->whereRaw('TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) >= 60');
+            } else {
+                $pendudukQuery->whereRaw('TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 5 AND 59');
+            }
         }
 
         if (in_array($status, ['Aktif', 'Meninggal', 'Keluar'], true)) {
@@ -133,7 +161,7 @@ class PendudukController extends Controller
      */
     public function show($nik)
     {
-        $penduduk = Penduduk::with(['dusun', 'dinamika'])
+        $penduduk = Penduduk::with('dusun')
             ->findOrFail($nik);
 
         return view('kasi.detail-penduduk', compact('penduduk'));

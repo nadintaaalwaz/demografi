@@ -263,8 +263,8 @@
                 <ul>
                     <li>File harus berformat Excel (.xlsx atau .xls)</li>
                     <li>Ukuran file maksimal 10 MB</li>
-                    <li><strong>Header kolom wajib (baris pertama):</strong> nik, nama_lengkap, jenis_kelamin, tanggal_lahir, alamat, dusun, pendidikan, pekerjaan, nomor_kartu_keluarga</li>
-                    <li>Format NIK dan Nomor KK: 16 digit angka</li>
+                    <li><strong>Header kolom wajib (baris pertama):</strong> nomor_kartu_keluarga, nik, nama_lengkap, jenis_kelamin, tempat_lahir, tanggal_lahir, status_keluarga, status_perkawinan, pendidikan, pekerjaan, dusun, rw, rt, alamat, status, tanggal_status</li>
+                    <li>Format NIK dan nomor_kartu_keluarga: 16 digit angka</li>
                     <li>Jenis Kelamin: L atau P</li>
                     <li>Format Tanggal Lahir: DD-MM-YYYY, DD/MM/YYYY, atau format Excel date</li>
                     <li>Nama Dusun harus sesuai dengan data di database wilayah</li>

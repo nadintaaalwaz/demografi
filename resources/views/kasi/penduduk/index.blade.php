@@ -279,9 +279,9 @@
                     <th>No</th>
                     <th>NIK</th>
                     <th>Nama Lengkap</th>
-                    <th>JK</th>
-                    <th>Tgl Lahir</th>
-                    <th>Usia</th>
+                    <th>Jenis Kelamin</th>
+                    <th>Tanggal Lahir</th>
+                    <th>Status Keluarga</th>
                     <th>Dusun</th>
                     <th>Pendidikan</th>
                     <th>Pekerjaan</th>

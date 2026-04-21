@@ -13,19 +13,26 @@ return new class extends Migration
     {
         Schema::create('dinamika_penduduk', function (Blueprint $table) {
             $table->id();
-            $table->string('nik', 16);
-            $table->enum('jenis_dinamika', ['Kelahiran', 'Kematian', 'Migrasi Masuk', 'Migrasi Keluar']);
-            $table->date('tanggal_peristiwa');
-            $table->text('keterangan')->nullable();
+            $table->year('tahun');
+            $table->tinyInteger('bulan'); // 1–12
+
+            $table->integer('jumlah_lahir')->default(0);
+            $table->integer('jumlah_meninggal')->default(0);
+            $table->integer('jumlah_masuk')->default(0);
+            $table->integer('jumlah_keluar')->default(0);
+
+            $table->unsignedBigInteger('id_dusun')->nullable(); // opsional (kalau per dusun)
+
             $table->timestamps();
 
-            // Foreign key - nullable karena NIK bisa saja sudah tidak ada di tabel penduduk
-            $table->foreign('nik')->references('nik')->on('penduduk')->onDelete('cascade');
-            
+            // Foreign key (opsional)
+            $table->foreign('id_dusun')
+                ->references('id')
+                ->on('wilayah')
+                ->nullOnDelete();
+
             // Index
-            $table->index('nik');
-            $table->index('jenis_dinamika');
-            $table->index('tanggal_peristiwa');
+            $table->index(['tahun', 'bulan']);
         });
     }
 

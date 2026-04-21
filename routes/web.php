@@ -8,6 +8,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\WilayahController;
 use App\Http\Controllers\PendudukController;
+use App\Http\Controllers\DinamikaPendudukController;
 use App\Models\Penduduk;
 use App\Models\User;
 use App\Models\Wilayah;
@@ -24,21 +25,21 @@ $buildPublicDashboardData = function () {
     $pendudukAktif = Penduduk::query()->where('status', 'Aktif');
 
     $totalPenduduk = (clone $pendudukAktif)->count();
-    $totalKK = (clone $pendudukAktif)->distinct('nomor_kk')->count('nomor_kk');
+    $totalKK = (clone $pendudukAktif)->distinct('nomor_kartu_keluarga')->count('nomor_kartu_keluarga');
     $totalLakiLaki = (clone $pendudukAktif)->where('jenis_kelamin', 'L')->count();
     $totalPerempuan = (clone $pendudukAktif)->where('jenis_kelamin', 'P')->count();
-    $totalBalita = (clone $pendudukAktif)->where('kategori_usia', 'Balita')->count();
-    $totalProduktif = (clone $pendudukAktif)->where('kategori_usia', 'Produktif')->count();
-    $totalLansia = (clone $pendudukAktif)->where('kategori_usia', 'Lansia')->count();
+    $totalBalita = (clone $pendudukAktif)->whereRaw('TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) < 5')->count();
+    $totalProduktif = (clone $pendudukAktif)->whereRaw('TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 5 AND 59')->count();
+    $totalLansia = (clone $pendudukAktif)->whereRaw('TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) >= 60')->count();
 
     $ageRaw = (clone $pendudukAktif)
-        ->selectRaw('SUM(CASE WHEN umur BETWEEN 0 AND 5 THEN 1 ELSE 0 END) as usia_0_5')
-        ->selectRaw('SUM(CASE WHEN umur BETWEEN 6 AND 12 THEN 1 ELSE 0 END) as usia_6_12')
-        ->selectRaw('SUM(CASE WHEN umur BETWEEN 13 AND 17 THEN 1 ELSE 0 END) as usia_13_17')
-        ->selectRaw('SUM(CASE WHEN umur BETWEEN 18 AND 25 THEN 1 ELSE 0 END) as usia_18_25')
-        ->selectRaw('SUM(CASE WHEN umur BETWEEN 26 AND 40 THEN 1 ELSE 0 END) as usia_26_40')
-        ->selectRaw('SUM(CASE WHEN umur BETWEEN 41 AND 60 THEN 1 ELSE 0 END) as usia_41_60')
-        ->selectRaw('SUM(CASE WHEN umur > 60 THEN 1 ELSE 0 END) as usia_60_plus')
+        ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 0 AND 5 THEN 1 ELSE 0 END) as usia_0_5')
+        ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 6 AND 12 THEN 1 ELSE 0 END) as usia_6_12')
+        ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 13 AND 17 THEN 1 ELSE 0 END) as usia_13_17')
+        ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 18 AND 25 THEN 1 ELSE 0 END) as usia_18_25')
+        ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 26 AND 40 THEN 1 ELSE 0 END) as usia_26_40')
+        ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 41 AND 60 THEN 1 ELSE 0 END) as usia_41_60')
+        ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) > 60 THEN 1 ELSE 0 END) as usia_60_plus')
         ->first();
 
     $ageLabels = ['0-5', '6-12', '13-17', '18-25', '26-40', '41-60', '>60'];
@@ -167,7 +168,7 @@ $buildPublicStatisticsData = function () {
     $pendudukSemuaStatus = Penduduk::query();
 
     $totalPendudukAktif = (clone $pendudukAktif)->count();
-    $totalKK = (clone $pendudukAktif)->distinct('nomor_kk')->count('nomor_kk');
+    $totalKK = (clone $pendudukAktif)->distinct('nomor_kartu_keluarga')->count('nomor_kartu_keluarga');
     $totalDusun = Wilayah::query()->where('tipe', 'dusun')->count();
     $totalRw = Wilayah::query()->where('tipe', 'rw')->count();
     $totalRt = Wilayah::query()->where('tipe', 'rt')->count();
@@ -192,11 +193,11 @@ $buildPublicStatisticsData = function () {
     ];
 
     $usiaRaw = (clone $pendudukAktif)
-        ->selectRaw('SUM(CASE WHEN umur BETWEEN 0 AND 5 THEN 1 ELSE 0 END) as usia_0_5')
-        ->selectRaw('SUM(CASE WHEN umur BETWEEN 6 AND 12 THEN 1 ELSE 0 END) as usia_6_12')
-        ->selectRaw('SUM(CASE WHEN umur BETWEEN 13 AND 17 THEN 1 ELSE 0 END) as usia_13_17')
-        ->selectRaw('SUM(CASE WHEN umur BETWEEN 18 AND 59 THEN 1 ELSE 0 END) as usia_18_59')
-        ->selectRaw('SUM(CASE WHEN umur >= 60 THEN 1 ELSE 0 END) as usia_60_plus')
+        ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 0 AND 5 THEN 1 ELSE 0 END) as usia_0_5')
+        ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 6 AND 12 THEN 1 ELSE 0 END) as usia_6_12')
+        ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 13 AND 17 THEN 1 ELSE 0 END) as usia_13_17')
+        ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 18 AND 59 THEN 1 ELSE 0 END) as usia_18_59')
+        ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) >= 60 THEN 1 ELSE 0 END) as usia_60_plus')
         ->first();
 
     $ageLabels = ['0-5', '6-12', '13-17', '18-59', '60+'];
@@ -277,16 +278,17 @@ $buildPublicStatisticsData = function () {
         $occupationValues = [0];
     }
 
+    $periodStart = now()->subMonths(5);
     $dynamicRows = DB::table('dinamika_penduduk')
-        ->where('tanggal_peristiwa', '>=', now()->subMonths(5)->startOfMonth())
-        ->selectRaw("DATE_FORMAT(tanggal_peristiwa, '%Y-%m') as period")
-        ->select('jenis_dinamika')
-        ->selectRaw('COUNT(*) as total')
-        ->groupByRaw("DATE_FORMAT(tanggal_peristiwa, '%Y-%m'), jenis_dinamika")
-        ->orderByRaw("DATE_FORMAT(tanggal_peristiwa, '%Y-%m') ASC")
-        ->get();
-
-    $dynamicMap = $dynamicRows->groupBy('period');
+        ->whereBetween('tahun', [$periodStart->year, now()->year])
+        ->select('tahun', 'bulan')
+        ->selectRaw('SUM(jumlah_lahir) as jumlah_lahir')
+        ->selectRaw('SUM(jumlah_meninggal) as jumlah_meninggal')
+        ->selectRaw('SUM(jumlah_masuk) as jumlah_masuk')
+        ->selectRaw('SUM(jumlah_keluar) as jumlah_keluar')
+        ->groupBy('tahun', 'bulan')
+        ->get()
+        ->keyBy(fn ($row) => sprintf('%04d-%02d', (int) $row->tahun, (int) $row->bulan));
     $trendLabels = [];
     $kelahiranSeries = [];
     $kematianSeries = [];
@@ -298,12 +300,12 @@ $buildPublicStatisticsData = function () {
         $period = $month->format('Y-m');
         $trendLabels[] = $month->format('M');
 
-        $records = collect($dynamicMap->get($period, []))->keyBy('jenis_dinamika');
+        $row = $dynamicRows->get($period);
 
-        $kelahiranSeries[] = (int) ($records['Kelahiran']->total ?? 0);
-        $kematianSeries[] = (int) ($records['Kematian']->total ?? 0);
-        $migrasiMasukSeries[] = (int) ($records['Migrasi Masuk']->total ?? 0);
-        $migrasiKeluarSeries[] = (int) ($records['Migrasi Keluar']->total ?? 0);
+        $kelahiranSeries[] = (int) ($row->jumlah_lahir ?? 0);
+        $kematianSeries[] = (int) ($row->jumlah_meninggal ?? 0);
+        $migrasiMasukSeries[] = (int) ($row->jumlah_masuk ?? 0);
+        $migrasiKeluarSeries[] = (int) ($row->jumlah_keluar ?? 0);
     }
 
     $dusunRows = Wilayah::query()
@@ -457,15 +459,15 @@ Route::get('/kasi/dashboard-test', function () {
     $persenLakiLaki = $totalPenduduk > 0 ? round(($totalLakiLaki / $totalPenduduk) * 100) : 0;
     $persenPerempuan = $totalPenduduk > 0 ? round(($totalPerempuan / $totalPenduduk) * 100) : 0;
 
-    $totalBalita = Penduduk::where('kategori_usia', 'Balita')->count();
-    $totalProduktif = Penduduk::where('kategori_usia', 'Produktif')->count();
-    $totalLansia = Penduduk::where('kategori_usia', 'Lansia')->count();
+    $totalBalita = Penduduk::whereRaw('TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) < 5')->count();
+    $totalProduktif = Penduduk::whereRaw('TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 5 AND 59')->count();
+    $totalLansia = Penduduk::whereRaw('TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) >= 60')->count();
 
-    $ageRaw = Penduduk::query()->selectRaw('SUM(CASE WHEN umur BETWEEN 0 AND 5 THEN 1 ELSE 0 END) as usia_0_5')
-        ->selectRaw('SUM(CASE WHEN umur BETWEEN 6 AND 12 THEN 1 ELSE 0 END) as usia_6_12')
-        ->selectRaw('SUM(CASE WHEN umur BETWEEN 13 AND 17 THEN 1 ELSE 0 END) as usia_13_17')
-        ->selectRaw('SUM(CASE WHEN umur BETWEEN 18 AND 60 THEN 1 ELSE 0 END) as usia_18_60')
-        ->selectRaw('SUM(CASE WHEN umur > 60 THEN 1 ELSE 0 END) as usia_60_plus')
+    $ageRaw = Penduduk::query()->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 0 AND 5 THEN 1 ELSE 0 END) as usia_0_5')
+        ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 6 AND 12 THEN 1 ELSE 0 END) as usia_6_12')
+        ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 13 AND 17 THEN 1 ELSE 0 END) as usia_13_17')
+        ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 18 AND 60 THEN 1 ELSE 0 END) as usia_18_60')
+        ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) > 60 THEN 1 ELSE 0 END) as usia_60_plus')
         ->first();
 
     $ageLabels = ['0-5', '6-12', '13-17', '18-60', '>60'];
@@ -581,15 +583,15 @@ Route::prefix('kasi')->name('kasi.')->middleware(['auth', 'role:kasi'])->group(f
         $persenLakiLaki = $totalPenduduk > 0 ? round(($totalLakiLaki / $totalPenduduk) * 100) : 0;
         $persenPerempuan = $totalPenduduk > 0 ? round(($totalPerempuan / $totalPenduduk) * 100) : 0;
 
-        $totalBalita = Penduduk::where('kategori_usia', 'Balita')->count();
-        $totalProduktif = Penduduk::where('kategori_usia', 'Produktif')->count();
-        $totalLansia = Penduduk::where('kategori_usia', 'Lansia')->count();
+        $totalBalita = Penduduk::whereRaw('TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) < 5')->count();
+        $totalProduktif = Penduduk::whereRaw('TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 5 AND 59')->count();
+        $totalLansia = Penduduk::whereRaw('TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) >= 60')->count();
 
-        $ageRaw = Penduduk::query()->selectRaw('SUM(CASE WHEN umur BETWEEN 0 AND 5 THEN 1 ELSE 0 END) as usia_0_5')
-            ->selectRaw('SUM(CASE WHEN umur BETWEEN 6 AND 12 THEN 1 ELSE 0 END) as usia_6_12')
-            ->selectRaw('SUM(CASE WHEN umur BETWEEN 13 AND 17 THEN 1 ELSE 0 END) as usia_13_17')
-            ->selectRaw('SUM(CASE WHEN umur BETWEEN 18 AND 60 THEN 1 ELSE 0 END) as usia_18_60')
-            ->selectRaw('SUM(CASE WHEN umur > 60 THEN 1 ELSE 0 END) as usia_60_plus')
+        $ageRaw = Penduduk::query()->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 0 AND 5 THEN 1 ELSE 0 END) as usia_0_5')
+            ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 6 AND 12 THEN 1 ELSE 0 END) as usia_6_12')
+            ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 13 AND 17 THEN 1 ELSE 0 END) as usia_13_17')
+            ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 18 AND 60 THEN 1 ELSE 0 END) as usia_18_60')
+            ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) > 60 THEN 1 ELSE 0 END) as usia_60_plus')
             ->first();
 
         $ageLabels = ['0-5', '6-12', '13-17', '18-60', '>60'];
@@ -728,9 +730,8 @@ Route::prefix('kasi')->name('kasi.')->middleware(['auth', 'role:kasi'])->group(f
     Route::delete('/wilayah/{id}', [WilayahController::class, 'destroy'])->name('wilayah.destroy');
 
     // Dinamika Penduduk (Monitoring)
-    Route::get('/dinamika-penduduk', function () {
-        return view('kasi.dinamika-penduduk');
-    })->name('dinamika');
+    Route::get('/dinamika-penduduk', [DinamikaPendudukController::class, 'index'])->name('dinamika');
+    Route::post('/dinamika-penduduk', [DinamikaPendudukController::class, 'store'])->name('dinamika.store');
     
     // Laporan
     Route::get('/laporan', function () {
@@ -777,18 +778,18 @@ Route::prefix('kasun')->name('kasun.')->middleware(['auth', 'role:kasun'])->grou
         $totalPenduduk = (clone $pendudukDusunQuery)->count();
         $totalLakiLaki = (clone $pendudukDusunQuery)->where('jenis_kelamin', 'L')->count();
         $totalPerempuan = (clone $pendudukDusunQuery)->where('jenis_kelamin', 'P')->count();
-        $totalKK = (clone $pendudukDusunQuery)->distinct('nomor_kk')->count('nomor_kk');
+        $totalKK = (clone $pendudukDusunQuery)->distinct('nomor_kartu_keluarga')->count('nomor_kartu_keluarga');
 
-        $totalBalita = (clone $pendudukDusunQuery)->where('kategori_usia', 'Balita')->count();
-        $totalProduktif = (clone $pendudukDusunQuery)->where('kategori_usia', 'Produktif')->count();
-        $totalLansia = (clone $pendudukDusunQuery)->where('kategori_usia', 'Lansia')->count();
+        $totalBalita = (clone $pendudukDusunQuery)->whereRaw('TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) < 5')->count();
+        $totalProduktif = (clone $pendudukDusunQuery)->whereRaw('TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 5 AND 59')->count();
+        $totalLansia = (clone $pendudukDusunQuery)->whereRaw('TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) >= 60')->count();
 
         $ageRaw = (clone $pendudukDusunQuery)
-            ->selectRaw('SUM(CASE WHEN umur BETWEEN 0 AND 5 THEN 1 ELSE 0 END) as usia_0_5')
-            ->selectRaw('SUM(CASE WHEN umur BETWEEN 6 AND 12 THEN 1 ELSE 0 END) as usia_6_12')
-            ->selectRaw('SUM(CASE WHEN umur BETWEEN 13 AND 17 THEN 1 ELSE 0 END) as usia_13_17')
-            ->selectRaw('SUM(CASE WHEN umur BETWEEN 18 AND 60 THEN 1 ELSE 0 END) as usia_18_60')
-            ->selectRaw('SUM(CASE WHEN umur > 60 THEN 1 ELSE 0 END) as usia_60_plus')
+            ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 0 AND 5 THEN 1 ELSE 0 END) as usia_0_5')
+            ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 6 AND 12 THEN 1 ELSE 0 END) as usia_6_12')
+            ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 13 AND 17 THEN 1 ELSE 0 END) as usia_13_17')
+            ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 18 AND 60 THEN 1 ELSE 0 END) as usia_18_60')
+            ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) > 60 THEN 1 ELSE 0 END) as usia_60_plus')
             ->first();
 
         $ageLabels = ['0-5', '6-12', '13-17', '18-60', '>60'];
@@ -858,24 +859,26 @@ Route::prefix('kasun')->name('kasun.')->middleware(['auth', 'role:kasun'])->grou
             $trendValues[] = (int) ($trendRows[$period]->total ?? 0);
         }
 
-        $dinamikaRows = DB::table('dinamika_penduduk as dp')
-            ->join('penduduk as p', 'p.nik', '=', 'dp.nik')
-            ->whereMonth('dp.tanggal_peristiwa', now()->month)
-            ->whereYear('dp.tanggal_peristiwa', now()->year)
+        $dinamikaRows = DB::table('dinamika_penduduk')
+            ->where('tahun', now()->year)
+            ->where('bulan', now()->month)
             ->when(
                 $idDusun,
-                fn ($query) => $query->where('p.id_dusun', $idDusun),
-                fn ($query) => $query->whereRaw('1 = 0')
+                fn ($query) => $query->where(function ($inner) use ($idDusun) {
+                    $inner->where('id_dusun', $idDusun)
+                        ->orWhereNull('id_dusun');
+                })
             )
-            ->select('dp.jenis_dinamika')
-            ->selectRaw('COUNT(*) as total')
-            ->groupBy('dp.jenis_dinamika')
-            ->pluck('total', 'jenis_dinamika');
+            ->selectRaw('SUM(jumlah_lahir) as jumlah_lahir')
+            ->selectRaw('SUM(jumlah_meninggal) as jumlah_meninggal')
+            ->selectRaw('SUM(jumlah_masuk) as jumlah_masuk')
+            ->selectRaw('SUM(jumlah_keluar) as jumlah_keluar')
+            ->first();
 
-        $kelahiran = (int) ($dinamikaRows['Kelahiran'] ?? 0);
-        $kematian = (int) ($dinamikaRows['Kematian'] ?? 0);
-        $migrasiMasuk = (int) ($dinamikaRows['Migrasi Masuk'] ?? 0);
-        $migrasiKeluar = (int) ($dinamikaRows['Migrasi Keluar'] ?? 0);
+        $kelahiran = (int) ($dinamikaRows->jumlah_lahir ?? 0);
+        $kematian = (int) ($dinamikaRows->jumlah_meninggal ?? 0);
+        $migrasiMasuk = (int) ($dinamikaRows->jumlah_masuk ?? 0);
+        $migrasiKeluar = (int) ($dinamikaRows->jumlah_keluar ?? 0);
 
         $totalPerDusun = Wilayah::query()
             ->from('wilayah as w')

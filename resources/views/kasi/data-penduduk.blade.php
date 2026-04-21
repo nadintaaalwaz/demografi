@@ -32,7 +32,7 @@
                     name="q"
                     id="searchInput"
                     value="{{ request('q') }}"
-                    placeholder="Cari berdasarkan nama, NIK, nomor KK, dusun..."
+                    placeholder="Cari berdasarkan nama, NIK, nomor kartu keluarga, dusun..."
                     autocomplete="off"
                 >
             </div>
@@ -106,9 +106,9 @@
                     <tr>
                         <th>NIK</th>
                         <th>Nama Lengkap</th>
-                        <th>JK</th>
-                        <th>Umur</th>
-                        <th>Kategori</th>
+                        <th>Jenis Kelamin</th>
+                        <th>Tanggal Lahir</th>
+                        <th>Status Keluarga</th>
                         <th>Dusun</th>
                         <th>Pekerjaan</th>
                         <th>Status</th>
@@ -121,12 +121,8 @@
                         <td>{{ $p->nik }}</td>
                         <td>{{ $p->nama_lengkap }}</td>
                         <td>{{ $p->jenis_kelamin }}</td>
-                        <td>{{ $p->umur }} tahun</td>
-                        <td>
-                            <span class="badge badge-{{ $p->kategori_usia == 'Balita' ? 'info' : ($p->kategori_usia == 'Lansia' ? 'warning' : 'success') }}">
-                                {{ $p->kategori_usia }}
-                            </span>
-                        </td>
+                        <td>{{ optional($p->tanggal_lahir)->format('d-m-Y') ?? '-' }}</td>
+                        <td>{{ $p->status_keluarga ?? '-' }}</td>
                         <td>{{ $p->dusun->nama ?? '-' }}</td>
                         <td>{{ $p->pekerjaan ?? '-' }}</td>
                         <td>

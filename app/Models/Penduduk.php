@@ -19,22 +19,26 @@ class Penduduk extends Model
 
     protected $fillable = [
         'nik',
+        'nomor_kartu_keluarga',
         'nama_lengkap',
         'jenis_kelamin',
+        'tempat_lahir',
         'tanggal_lahir',
-        'umur',
-        'kategori_usia',
+        'status_keluarga',
+        'status_perkawinan',
         'pendidikan',
         'pekerjaan',
         'alamat',
         'id_dusun',
-        'nomor_kk',
+        'rw',
+        'rt',
         'status',
+        'tanggal_status',
     ];
 
     protected $casts = [
         'tanggal_lahir' => 'date',
-        'umur' => 'integer',
+        'tanggal_status' => 'date',
     ];
 
     /**
@@ -46,11 +50,11 @@ class Penduduk extends Model
     }
 
     /**
-     * Relasi ke tabel dinamika_penduduk
+     * Relasi ke tabel dinamika_penduduk (rekap per dusun)
      */
     public function dinamika(): HasMany
     {
-        return $this->hasMany(DinamikaPenduduk::class, 'nik', 'nik');
+        return $this->hasMany(DinamikaPenduduk::class, 'id_dusun', 'id_dusun');
     }
 
     /**
