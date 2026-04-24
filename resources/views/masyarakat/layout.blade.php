@@ -309,7 +309,6 @@
                         <li><a href="{{ route('public.home') }}" class="nav-link {{ request()->routeIs('public.home') ? 'active' : '' }}">Beranda</a></li>
                         <li><a href="{{ route('public.profil') }}" class="nav-link {{ request()->routeIs('public.profil') ? 'active' : '' }}">Profil Desa</a></li>
                         <li><a href="{{ route('public.statistik') }}" class="nav-link {{ request()->routeIs('public.statistik') ? 'active' : '' }}">Statistik</a></li>
-                        <li><a href="{{ route('public.peta') }}#peta-wilayah" class="nav-link {{ request()->routeIs('public.peta') ? 'active' : '' }}">Peta Wilayah</a></li>
                     </ul>
                 </nav>
 
@@ -348,7 +347,6 @@
                 <p><a href="{{ route('public.home') }}">Beranda</a></p>
                 <p><a href="{{ route('public.profil') }}">Profil Desa</a></p>
                 <p><a href="{{ route('public.statistik') }}">Statistik</a></p>
-                <p><a href="{{ route('public.peta') }}#peta-wilayah">Peta Wilayah</a></p>
             </div>
 
             <div class="footer-section">

@@ -114,6 +114,42 @@
         color: #0C342C;
     }
 
+    .gender-legend {
+        margin-top: 14px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .gender-legend-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 120px;
+    }
+
+    .gender-legend-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+
+    .male-label { color: #076653; }
+    .female-label { color: #f59e0b; }
+
+    .gender-legend .female-label {
+        justify-content: flex-start;
+    }
+
+    .gender-legend .male-label {
+        justify-content: flex-end;
+        margin-left: auto;
+        text-align: right;
+    }
+
     .chart-menu {
         color: #6b7280;
         cursor: pointer;
@@ -345,6 +381,16 @@
             <i class="fas fa-ellipsis-v chart-menu"></i>
         </div>
         <canvas id="genderChart"></canvas>
+        <div class="gender-legend">
+            <span class="gender-legend-item female-label">
+                <span class="gender-legend-dot" style="background:#f59e0b;"></span>
+                Perempuan
+            </span>
+            <span class="gender-legend-item male-label">
+                <span class="gender-legend-dot" style="background:#076653;"></span>
+                Laki-laki
+            </span>
+        </div>
     </div>
 
     <!-- Age Distribution Chart -->
@@ -504,9 +550,7 @@ new Chart(genderCtx, {
     options: {
         responsive: true,
         plugins: {
-            legend: {
-                position: 'bottom',
-            }
+            legend: { display: false }
         }
     }
 });

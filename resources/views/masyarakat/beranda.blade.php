@@ -227,6 +227,42 @@
         color: #0C342C;
     }
 
+    .gender-legend {
+        margin-top: 14px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .gender-legend-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 120px;
+    }
+
+    .gender-legend-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+
+    .male-label { color: #076653; }
+    .female-label { color: #f59e0b; }
+
+    .gender-legend .female-label {
+        justify-content: flex-start;
+    }
+
+    .gender-legend .male-label {
+        justify-content: flex-end;
+        margin-left: auto;
+        text-align: right;
+    }
+
     /* Map Section */
     .map-section {
         background: #0C342C;
@@ -429,6 +465,16 @@
                 <h3 class="chart-title">Rasio Gender</h3>
             </div>
             <canvas id="genderChart"></canvas>
+            <div class="gender-legend">
+                <span class="gender-legend-item female-label">
+                    <span class="gender-legend-dot" style="background:#f59e0b;"></span>
+                    Perempuan
+                </span>
+                <span class="gender-legend-item male-label">
+                    <span class="gender-legend-dot" style="background:#076653;"></span>
+                    Laki-laki
+                </span>
+            </div>
         </div>
 
         <!-- Age Chart -->
@@ -515,34 +561,43 @@ new Chart(genderCtx, {
         responsive: true,
         maintainAspectRatio: true,
         plugins: {
-            legend: {
-                position: 'bottom',
-                labels: {
-                    padding: 20,
-                    font: { size: 13, weight: 'bold' }
-                }
-            }
+            legend: { display: false }
         }
     }
 });
 
 // Age Chart
 const ageCtx = document.getElementById('ageChart').getContext('2d');
+const ageLabels = @json($ageLabels ?? []);
+const ageValues = @json($ageValues ?? []);
+const productiveRanges = ['18-25', '26-40', '41-60'];
+const ageColors = ageLabels.map(label => productiveRanges.includes(label) ? '#10b981' : '#94a3b8');
+const ageStatus = ageLabels.map(label => productiveRanges.includes(label) ? 'Produktif' : 'Non-Produktif');
+
 new Chart(ageCtx, {
     type: 'bar',
     data: {
-        labels: @json($ageLabels ?? []),
+        labels: ageLabels,
         datasets: [{
             label: 'Jumlah',
-            data: @json($ageValues ?? []),
-            backgroundColor: chartColors.accent,
+            data: ageValues,
+            backgroundColor: ageColors,
             borderRadius: 8
         }]
     },
     options: {
         responsive: true,
         maintainAspectRatio: true,
-        plugins: { legend: { display: false } },
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                callbacks: {
+                    afterLabel: function(context) {
+                        return 'Kategori: ' + ageStatus[context.dataIndex];
+                    }
+                }
+            }
+        },
         scales: { y: { beginAtZero: true } }
     }
 });

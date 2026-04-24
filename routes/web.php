@@ -56,9 +56,20 @@ $buildPublicDashboardData = function () {
     $educationRows = (clone $pendudukAktif)
         ->selectRaw("COALESCE(NULLIF(TRIM(pendidikan), ''), 'Tidak diketahui') as label")
         ->selectRaw('COUNT(*) as total')
-        ->groupBy('label')
+        ->selectRaw("CASE
+            WHEN LOWER(TRIM(COALESCE(pendidikan, ''))) IN ('tidak sekolah','belum sekolah') THEN 1
+            WHEN LOWER(TRIM(COALESCE(pendidikan, ''))) IN ('sd','sederajat sd','sekolah dasar') THEN 2
+            WHEN LOWER(TRIM(COALESCE(pendidikan, ''))) IN ('smp','sederajat smp') THEN 3
+            WHEN LOWER(TRIM(COALESCE(pendidikan, ''))) IN ('sma','smk','sederajat sma') THEN 4
+            WHEN LOWER(TRIM(COALESCE(pendidikan, ''))) IN ('d1','d2','d3','d4') THEN 5
+            WHEN LOWER(TRIM(COALESCE(pendidikan, ''))) = 's1' THEN 6
+            WHEN LOWER(TRIM(COALESCE(pendidikan, ''))) = 's2' THEN 7
+            WHEN LOWER(TRIM(COALESCE(pendidikan, ''))) = 's3' THEN 8
+            ELSE 99
+        END as urutan")
+        ->groupBy('label', 'urutan')
+        ->orderBy('urutan')
         ->orderByDesc('total')
-        ->limit(7)
         ->get();
 
     $educationLabels = $educationRows->pluck('label')->values()->all();
