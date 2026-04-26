@@ -282,6 +282,10 @@ Dashboard {{ Auth::user()->dusun_name ?? "Dusun" }}
         margin-top: 14px;
     }
 
+    .table-responsive {
+        overflow-x: auto;
+    }
+
     .dusun-total-table th,
     .dusun-total-table td {
         text-align: left;
@@ -302,6 +306,18 @@ Dashboard {{ Auth::user()->dusun_name ?? "Dusun" }}
 
     .text-right {
         text-align: right;
+    }
+
+    .text-center {
+        text-align: center;
+    }
+
+    .age-note-list {
+        margin-top: 14px;
+        padding-left: 18px;
+        color: #4b5563;
+        font-size: 13px;
+        line-height: 1.6;
     }
 
     @media (max-width: 768px) {
@@ -379,29 +395,6 @@ Dashboard {{ Auth::user()->dusun_name ?? "Dusun" }}
         <span class="percentage">{{ $totalPenduduk > 0 ? round(($totalPerempuan / $totalPenduduk) * 100) : 0 }}%</span>
     </div>
 
-    <div class="stat-card primary">
-        <div class="stat-icon primary">
-            <i class="fas fa-child"></i>
-        </div>
-        <h3>{{ number_format($totalBalita) }}</h3>
-        <p>Balita (0-5 Tahun)</p>
-    </div>
-
-    <div class="stat-card success">
-        <div class="stat-icon success">
-            <i class="fas fa-user-friends"></i>
-        </div>
-        <h3>{{ number_format($totalProduktif) }}</h3>
-        <p>Usia Produktif</p>
-    </div>
-
-    <div class="stat-card warning">
-        <div class="stat-icon warning">
-            <i class="fas fa-user-clock"></i>
-        </div>
-        <h3>{{ number_format($totalLansia) }}</h3>
-        <p>Lansia (>60 Tahun)</p>
-    </div>
 </div>
 
 <!-- Charts -->
@@ -457,34 +450,54 @@ Dashboard {{ Auth::user()->dusun_name ?? "Dusun" }}
     <div id="dusunMap"></div>
 </div>
 
-<!-- Total Penduduk per Dusun -->
+<!-- Kategori Usia per Dusun -->
 <div class="dusun-total-section">
     <div class="chart-header">
-        <h2 class="chart-title">Total Penduduk per Dusun</h2>
+        <h2 class="chart-title">Kategori Usia per Dusun</h2>
     </div>
 
-    <table class="dusun-total-table">
-        <thead>
-            <tr>
-                <th style="width: 60px;">No</th>
-                <th>Nama Dusun</th>
-                <th class="text-right">Total Penduduk Aktif</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse($totalPerDusun as $index => $item)
-                <tr class="{{ (int) $item->id === (int) (Auth::user()->id_dusun ?? 0) ? 'highlight-row' : '' }}">
-                    <td>{{ $index + 1 }}</td>
-                    <td>{{ $item->nama }}</td>
-                    <td class="text-right">{{ number_format($item->total_penduduk) }}</td>
-                </tr>
-            @empty
+    <div class="table-responsive">
+        <table class="dusun-total-table">
+            <thead>
                 <tr>
-                    <td colspan="3">Belum ada data dusun.</td>
+                    <th style="width: 60px;">No</th>
+                    <th>Nama Dusun</th>
+                    <th class="text-center">Bayi & Balita (0-5)</th>
+                    <th class="text-center">Anak-anak (6-11)</th>
+                    <th class="text-center">Remaja (10-19)</th>
+                    <th class="text-center">Dewasa (19-59)</th>
+                    <th class="text-center">Lansia (60+)</th>
+                    <th class="text-right">Total Penduduk Aktif</th>
                 </tr>
-            @endforelse
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @forelse($kategoriUsiaPerDusun as $index => $item)
+                    <tr class="{{ (int) $item->id === (int) (Auth::user()->id_dusun ?? 0) ? 'highlight-row' : '' }}">
+                        <td>{{ $index + 1 }}</td>
+                        <td>{{ $item->nama }}</td>
+                        <td class="text-center">{{ number_format($item->bayi_balita) }}</td>
+                        <td class="text-center">{{ number_format($item->anak_anak) }}</td>
+                        <td class="text-center">{{ number_format($item->remaja) }}</td>
+                        <td class="text-center">{{ number_format($item->dewasa) }}</td>
+                        <td class="text-center">{{ number_format($item->lansia) }}</td>
+                        <td class="text-right">{{ number_format($item->total_penduduk) }}</td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="8">Belum ada data dusun.</td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+
+    <ul class="age-note-list">
+        <li>Bayi & Balita (0-5 Tahun): Masa krusial untuk pertumbuhan fisik, perkembangan kognitif, dan pencegahan stunting.</li>
+        <li>Anak-anak (6-11 Tahun): Masa usia sekolah dasar, fokus pada pengembangan kemampuan sosial, kognitif, dan perilaku dasar.</li>
+        <li>Remaja (10-19 Tahun): Masa pubertas dan pencarian jati diri, penting untuk edukasi kesehatan reproduksi dan mental.</li>
+        <li>Dewasa (19-59 Tahun): Usia produktif yang fokus pada produktivitas kerja, kesehatan fisik, dan pencegahan penyakit tidak menular.</li>
+        <li>Lansia (60+ Tahun): Fokus pada pemeliharaan kesehatan di usia tua agar tetap mandiri dan memiliki kualitas hidup yang baik.</li>
+    </ul>
 </div>
 
 <!-- Dinamika Penduduk -->

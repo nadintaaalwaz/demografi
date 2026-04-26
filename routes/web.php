@@ -886,32 +886,53 @@ Route::prefix('kasun')->name('kasun.')->middleware(['auth', 'role:kasun'])->grou
         $totalLansia = (clone $pendudukDusunQuery)->whereRaw('TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) >= 60')->count();
 
         $ageRaw = (clone $pendudukDusunQuery)
-            ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 0 AND 5 THEN 1 ELSE 0 END) as usia_0_5')
-            ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 6 AND 12 THEN 1 ELSE 0 END) as usia_6_12')
-            ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 13 AND 17 THEN 1 ELSE 0 END) as usia_13_17')
-            ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 18 AND 60 THEN 1 ELSE 0 END) as usia_18_60')
-            ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) > 60 THEN 1 ELSE 0 END) as usia_60_plus')
+            ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 0 AND 5 THEN 1 ELSE 0 END) as bayi_balita')
+            ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 6 AND 11 THEN 1 ELSE 0 END) as anak_anak')
+            ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 10 AND 19 THEN 1 ELSE 0 END) as remaja')
+            ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 19 AND 59 THEN 1 ELSE 0 END) as dewasa')
+            ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) >= 60 THEN 1 ELSE 0 END) as lansia')
             ->first();
 
-        $ageLabels = ['0-5', '6-12', '13-17', '18-60', '>60'];
+        $ageLabels = [
+            'Bayi & Balita (0-5)',
+            'Anak-anak (6-11)',
+            'Remaja (10-19)',
+            'Dewasa (19-59)',
+            'Lansia (60+)',
+        ];
         $ageValues = [
-            (int) ($ageRaw->usia_0_5 ?? 0),
-            (int) ($ageRaw->usia_6_12 ?? 0),
-            (int) ($ageRaw->usia_13_17 ?? 0),
-            (int) ($ageRaw->usia_18_60 ?? 0),
-            (int) ($ageRaw->usia_60_plus ?? 0),
+            (int) ($ageRaw->bayi_balita ?? 0),
+            (int) ($ageRaw->anak_anak ?? 0),
+            (int) ($ageRaw->remaja ?? 0),
+            (int) ($ageRaw->dewasa ?? 0),
+            (int) ($ageRaw->lansia ?? 0),
         ];
 
-        $educationRows = (clone $pendudukDusunQuery)
-            ->selectRaw("COALESCE(NULLIF(TRIM(pendidikan), ''), 'Tidak diketahui') as label")
-            ->selectRaw('COUNT(*) as total')
-            ->groupBy('label')
-            ->orderByDesc('total')
-            ->limit(6)
-            ->get();
+        $educationRaw = (clone $pendudukDusunQuery)
+            ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('SD', 'TAMAT SD', 'SEKOLAH DASAR') THEN 1 ELSE 0 END) as tamat_sd")
+            ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('SMP', 'SLTP', 'TAMAT SMP', 'SEKOLAH MENENGAH PERTAMA') THEN 1 ELSE 0 END) as smp")
+            ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('SMA', 'SMA/SMK', 'SMK', 'SLTA', 'MA', 'TAMAT SMA', 'SEKOLAH MENENGAH ATAS') THEN 1 ELSE 0 END) as sma")
+            ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('D3', 'D-3', 'D III', 'D-III', 'DIPLOMA III', 'DIPLOMA 3') THEN 1 ELSE 0 END) as diploma_iii")
+            ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('D4', 'D-4', 'D IV', 'D-IV', 'DIPLOMA IV', 'DIPLOMA 4', 'S1', 'STRATA 1', 'STRATA I', 'DIPLOMA IV/STRATA 1') THEN 1 ELSE 0 END) as diploma_iv_s1")
+            ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('S2', 'STRATA 2', 'STRATA II', 'MAGISTER') THEN 1 ELSE 0 END) as strata_ii")
+            ->first();
 
-        $educationLabels = $educationRows->pluck('label')->values()->all();
-        $educationValues = $educationRows->pluck('total')->map(fn ($value) => (int) $value)->values()->all();
+        $educationCategories = [
+            ['label' => 'Tamat SD', 'value' => (int) ($educationRaw->tamat_sd ?? 0)],
+            ['label' => 'SMP', 'value' => (int) ($educationRaw->smp ?? 0)],
+            ['label' => 'SMA', 'value' => (int) ($educationRaw->sma ?? 0)],
+            ['label' => 'Diploma III', 'value' => (int) ($educationRaw->diploma_iii ?? 0)],
+            ['label' => 'Diploma IV/Strata 1', 'value' => (int) ($educationRaw->diploma_iv_s1 ?? 0)],
+            ['label' => 'Strata II', 'value' => (int) ($educationRaw->strata_ii ?? 0)],
+        ];
+
+        $educationCategories = array_values(array_filter(
+            $educationCategories,
+            fn ($item) => ($item['value'] ?? 0) > 0
+        ));
+
+        $educationLabels = array_column($educationCategories, 'label');
+        $educationValues = array_column($educationCategories, 'value');
 
         if (empty($educationLabels)) {
             $educationLabels = ['Belum ada data'];
@@ -981,7 +1002,7 @@ Route::prefix('kasun')->name('kasun.')->middleware(['auth', 'role:kasun'])->grou
         $migrasiMasuk = (int) ($dinamikaRows->jumlah_masuk ?? 0);
         $migrasiKeluar = (int) ($dinamikaRows->jumlah_keluar ?? 0);
 
-        $totalPerDusun = Wilayah::query()
+        $kategoriUsiaPerDusun = Wilayah::query()
             ->from('wilayah as w')
             ->leftJoin('penduduk as p', function ($join) {
                 $join->on('p.id_dusun', '=', 'w.id')
@@ -989,6 +1010,11 @@ Route::prefix('kasun')->name('kasun.')->middleware(['auth', 'role:kasun'])->grou
             })
             ->where('w.tipe', 'dusun')
             ->select('w.id', 'w.nama')
+            ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, p.tanggal_lahir, CURDATE()) BETWEEN 0 AND 5 THEN 1 ELSE 0 END) as bayi_balita')
+            ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, p.tanggal_lahir, CURDATE()) BETWEEN 6 AND 11 THEN 1 ELSE 0 END) as anak_anak')
+            ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, p.tanggal_lahir, CURDATE()) BETWEEN 10 AND 19 THEN 1 ELSE 0 END) as remaja')
+            ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, p.tanggal_lahir, CURDATE()) BETWEEN 19 AND 59 THEN 1 ELSE 0 END) as dewasa')
+            ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, p.tanggal_lahir, CURDATE()) >= 60 THEN 1 ELSE 0 END) as lansia')
             ->selectRaw('COUNT(p.nik) as total_penduduk')
             ->groupBy('w.id', 'w.nama')
             ->orderBy('w.nama')
@@ -1021,7 +1047,7 @@ Route::prefix('kasun')->name('kasun.')->middleware(['auth', 'role:kasun'])->grou
             'occupationValues' => $occupationValues,
             'trendLabels' => $trendLabels,
             'trendValues' => $trendValues,
-            'totalPerDusun' => $totalPerDusun,
+            'kategoriUsiaPerDusun' => $kategoriUsiaPerDusun,
             'mapLat' => $latitude,
             'mapLng' => $longitude,
             'kepadatan' => $kepadatan,

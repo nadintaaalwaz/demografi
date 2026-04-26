@@ -192,11 +192,6 @@
                 <span class="detail-label">Dibuat Pada</span>
                 <span class="detail-value">{{ optional($user->created_at)->format('d M Y H:i') ?? '-' }}</span>
             </div>
-
-            <div class="detail-item">
-                <span class="detail-label">Data Sumber</span>
-                <span class="detail-value">Tabel users</span>
-            </div>
         </div>
     </div>
 </div>
