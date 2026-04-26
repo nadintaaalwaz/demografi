@@ -354,6 +354,10 @@ Manajemen Wilayah
         background: #10b981;
     }
 
+    .legend-dot.rw {
+        background: #3b82f6;
+    }
+
     .empty-state {
         padding: 60px 25px;
         text-align: center;
@@ -600,7 +604,8 @@ Manajemen Wilayah
                                         <span class="relation-text">RT {{ $item->nomor_rt ?? '-' }} berada di RW {{ $item->nomor_rw ?? '-' }}</span>
                                     @elseif($item->tipe === 'rw')
                                         @php
-                                            $daftarRt = $rwTemplate[(int) $item->nomor_rw] ?? ($rtByRw[$item->nomor_rw] ?? []);
+                                            $rtKey = (string) ($item->id_dusun ?? '') . '-' . (string) $item->nomor_rw;
+                                            $daftarRt = $rtByDusunRw[$rtKey] ?? [];
                                         @endphp
 
                                         @if(count($daftarRt) > 0)
@@ -612,14 +617,14 @@ Manajemen Wilayah
                                         @endif
                                     @elseif($item->tipe === 'dusun')
                                         @php
-                                            $namaDusun = strtolower(trim($item->nama));
+                                            $daftarRw = $rwByDusun[$item->id] ?? [];
                                         @endphp
-                                        @if(str_contains($namaDusun, 'sebalor'))
-                                            <span class="relation-text">Dusun Sebalor memiliki RW: RW 2, RW 3, RW 4</span>
-                                        @elseif(str_contains($namaDusun, 'sirah kandang'))
-                                            <span class="relation-text">Dusun Sirah Kandang memiliki RW: RW 1</span>
+                                        @if(count($daftarRw) > 0)
+                                            <span class="relation-text">
+                                                Dusun {{ $item->nama }} memiliki RW: {{ collect($daftarRw)->map(fn ($rw) => 'RW ' . $rw)->implode(', ') }}
+                                            </span>
                                         @else
-                                            <span class="relation-empty">-</span>
+                                            <span class="relation-empty">Belum ada RW di dusun ini</span>
                                         @endif
                                     @else
                                         <span class="relation-empty">-</span>
@@ -660,10 +665,12 @@ Manajemen Wilayah
         <div id="map"></div>
         <div class="map-legend">
             <span><i class="legend-dot dusun"></i>Dusun</span>
-            <span><i class="legend-dot rt"></i>Ukuran lingkaran = jumlah penduduk dusun</span>
+            <span><i class="legend-dot rt"></i>RT (pin hijau)</span>
+            <span><i class="legend-dot rw"></i>RW (pin biru)</span>
+            <span><i class="legend-dot dusun"></i>Ukuran lingkaran dusun = jumlah penduduk</span>
         </div>
         <div class="map-hint">
-            Peta menampilkan persebaran dusun. Klik marker untuk detail.
+            Peta menampilkan persebaran Dusun, RT, dan RW. Klik marker untuk detail koordinat.
         </div>
     </div>
 </div>
@@ -716,11 +723,17 @@ Manajemen Wilayah
     const dusunPendudukMap = new Map(dusunSummary.map(item => [Number(item.id), Number(item.total_penduduk || 0)]));
     const bounds = [];
 
-    wilayahData.forEach(item => {
-        if (item.tipe !== 'dusun') {
-            return;
-        }
+    function buildPinIcon(color) {
+        return L.divIcon({
+            className: 'custom-pin-icon',
+            html: `<i class="fas fa-map-marker-alt" style="color: ${color}; font-size: 24px; text-shadow: 0 2px 6px rgba(0,0,0,0.35);"></i>`,
+            iconSize: [24, 24],
+            iconAnchor: [12, 24],
+            popupAnchor: [0, -20],
+        });
+    }
 
+    wilayahData.forEach(item => {
         if (item.latitude && item.longitude) {
             let markerColor = '';
             if (item.tipe === 'dusun') markerColor = '#E3EF26';
@@ -739,13 +752,7 @@ Manajemen Wilayah
                     fillOpacity: 0.5,
                 });
             } else {
-                const customIcon = L.divIcon({
-                    className: 'custom-marker',
-                    html: `<div style="background-color: ${markerColor}; width: 20px; height: 20px; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"></div>`,
-                    iconSize: [20, 20],
-                    iconAnchor: [10, 10]
-                });
-                marker = L.marker([item.latitude, item.longitude], { icon: customIcon });
+                marker = L.marker([item.latitude, item.longitude], { icon: buildPinIcon(markerColor) });
             }
 
             marker.addTo(dusunLayer);

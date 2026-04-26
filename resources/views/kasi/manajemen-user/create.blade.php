@@ -205,6 +205,7 @@
                                 required
                             >
                         </div>
+                        <small class="form-text">Nama harus sesuai data penduduk.</small>
                         @error('nama')
                             <span class="error-message">
                                 <i class="fas fa-exclamation-circle"></i>

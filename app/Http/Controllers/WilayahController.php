@@ -6,6 +6,7 @@ use App\Models\Wilayah;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class WilayahController extends Controller
 {
@@ -18,18 +19,41 @@ class WilayahController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        $wilayah = Wilayah::orderBy('tipe', 'asc')
+        $wilayah = Wilayah::with('dusun')
+            ->orderBy('tipe', 'asc')
             ->orderBy('nama', 'asc')
             ->get();
 
-        $rtByRw = Wilayah::query()
+        $rwByDusun = Wilayah::query()
+            ->where('tipe', 'rw')
+            ->whereNotNull('id_dusun')
+            ->whereNotNull('nomor_rw')
+            ->orderBy('id_dusun')
+            ->orderBy('nomor_rw')
+            ->get(['id_dusun', 'nomor_rw'])
+            ->groupBy('id_dusun')
+            ->map(function ($rows) {
+                return $rows->pluck('nomor_rw')
+                    ->map(fn ($value) => (int) $value)
+                    ->unique()
+                    ->sort()
+                    ->values()
+                    ->all();
+            })
+            ->toArray();
+
+        $rtByDusunRw = Wilayah::query()
             ->where('tipe', 'rt')
+            ->whereNotNull('id_dusun')
             ->whereNotNull('nomor_rw')
             ->whereNotNull('nomor_rt')
+            ->orderBy('id_dusun')
             ->orderBy('nomor_rw')
             ->orderBy('nomor_rt')
-            ->get(['nomor_rw', 'nomor_rt'])
-            ->groupBy('nomor_rw')
+            ->get(['id_dusun', 'nomor_rw', 'nomor_rt'])
+            ->groupBy(function ($row) {
+                return $row->id_dusun . '-' . $row->nomor_rw;
+            })
             ->map(function ($rows) {
                 return $rows->pluck('nomor_rt')
                     ->map(fn ($value) => (int) $value)
@@ -75,7 +99,8 @@ class WilayahController extends Controller
 
         return view('kasi.wilayah.index', [
             'wilayah' => $wilayah,
-            'rtByRw' => $rtByRw,
+            'rwByDusun' => $rwByDusun,
+            'rtByDusunRw' => $rtByDusunRw,
             'dusunSummary' => $dusunSummary,
             'totalLuasDusun' => (float) $totalLuasDusun,
             'wilayahCounts' => $wilayahCounts,
@@ -92,7 +117,11 @@ class WilayahController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        return view('kasi.wilayah.create');
+        $dusunList = Wilayah::where('tipe', 'dusun')
+            ->orderBy('nama', 'asc')
+            ->get();
+
+        return view('kasi.wilayah.create', compact('dusunList'));
     }
 
     /**
@@ -107,6 +136,13 @@ class WilayahController extends Controller
         $validated = $request->validate([
             'nama' => 'required|string|max:255',
             'tipe' => 'required|in:dusun,rt,rw',
+            'id_dusun' => [
+                'nullable',
+                'integer',
+                Rule::exists('wilayah', 'id')->where(function ($query) {
+                    $query->where('tipe', 'dusun');
+                }),
+            ],
             'nomor_rt' => 'nullable|integer|min:1|required_if:tipe,rt',
             'nomor_rw' => 'nullable|integer|min:1|required_if:tipe,rt,rw',
             'luas_wilayah' => 'nullable|numeric|min:0.01',
@@ -114,9 +150,16 @@ class WilayahController extends Controller
             'longitude' => 'required|numeric|between:-180,180',
         ]);
 
+        if ($validated['tipe'] === 'rw' && empty($validated['id_dusun'])) {
+            return redirect()->back()
+                ->withErrors(['id_dusun' => 'Dusun wajib dipilih untuk data RW/RT.'])
+                ->withInput();
+        }
+
         if ($validated['tipe'] === 'rw') {
             $existsRw = Wilayah::query()
                 ->where('tipe', 'rw')
+                ->where('id_dusun', $validated['id_dusun'])
                 ->where('nomor_rw', $validated['nomor_rw'])
                 ->exists();
 
@@ -130,6 +173,19 @@ class WilayahController extends Controller
         }
 
         if ($validated['tipe'] === 'rt') {
+            $rwParent = Wilayah::query()
+                ->where('tipe', 'rw')
+                ->where('nomor_rw', $validated['nomor_rw'])
+                ->first();
+
+            if (!$rwParent) {
+                return redirect()->back()
+                    ->withErrors(['nomor_rw' => 'Nomor RW belum terdaftar. Tambahkan data RW terlebih dahulu.'])
+                    ->withInput();
+            }
+
+            $validated['id_dusun'] = $rwParent->id_dusun;
+
             $rwExists = Wilayah::query()
                 ->where('tipe', 'rw')
                 ->where('nomor_rw', $validated['nomor_rw'])
@@ -143,6 +199,7 @@ class WilayahController extends Controller
 
             $duplicateRtInRw = Wilayah::query()
                 ->where('tipe', 'rt')
+                ->where('id_dusun', $validated['id_dusun'])
                 ->where('nomor_rw', $validated['nomor_rw'])
                 ->where('nomor_rt', $validated['nomor_rt'])
                 ->exists();
@@ -157,6 +214,7 @@ class WilayahController extends Controller
         if ($validated['tipe'] === 'dusun') {
             $validated['nomor_rt'] = null;
             $validated['nomor_rw'] = null;
+            $validated['id_dusun'] = null;
         }
 
         Wilayah::create($validated);
@@ -175,8 +233,11 @@ class WilayahController extends Controller
         }
 
         $wilayah = Wilayah::findOrFail($id);
+        $dusunList = Wilayah::where('tipe', 'dusun')
+            ->orderBy('nama', 'asc')
+            ->get();
 
-        return view('kasi.wilayah.edit', compact('wilayah'));
+        return view('kasi.wilayah.edit', compact('wilayah', 'dusunList'));
     }
 
     /**
@@ -193,6 +254,13 @@ class WilayahController extends Controller
         $validated = $request->validate([
             'nama' => 'required|string|max:255',
             'tipe' => 'required|in:dusun,rt,rw',
+            'id_dusun' => [
+                'nullable',
+                'integer',
+                Rule::exists('wilayah', 'id')->where(function ($query) {
+                    $query->where('tipe', 'dusun');
+                }),
+            ],
             'nomor_rt' => 'nullable|integer|min:1|required_if:tipe,rt',
             'nomor_rw' => 'nullable|integer|min:1|required_if:tipe,rt,rw',
             'luas_wilayah' => 'nullable|numeric|min:0.01',
@@ -200,9 +268,16 @@ class WilayahController extends Controller
             'longitude' => 'required|numeric|between:-180,180',
         ]);
 
+        if ($validated['tipe'] === 'rw' && empty($validated['id_dusun'])) {
+            return redirect()->back()
+                ->withErrors(['id_dusun' => 'Dusun wajib dipilih untuk data RW/RT.'])
+                ->withInput();
+        }
+
         if ($validated['tipe'] === 'rw') {
             $existsRw = Wilayah::query()
                 ->where('tipe', 'rw')
+                ->where('id_dusun', $validated['id_dusun'])
                 ->where('nomor_rw', $validated['nomor_rw'])
                 ->where('id', '!=', $wilayah->id)
                 ->exists();
@@ -217,6 +292,19 @@ class WilayahController extends Controller
         }
 
         if ($validated['tipe'] === 'rt') {
+            $rwParent = Wilayah::query()
+                ->where('tipe', 'rw')
+                ->where('nomor_rw', $validated['nomor_rw'])
+                ->first();
+
+            if (!$rwParent) {
+                return redirect()->back()
+                    ->withErrors(['nomor_rw' => 'Nomor RW belum terdaftar. Tambahkan data RW terlebih dahulu.'])
+                    ->withInput();
+            }
+
+            $validated['id_dusun'] = $rwParent->id_dusun;
+
             $rwExists = Wilayah::query()
                 ->where('tipe', 'rw')
                 ->where('nomor_rw', $validated['nomor_rw'])
@@ -230,6 +318,7 @@ class WilayahController extends Controller
 
             $duplicateRtInRw = Wilayah::query()
                 ->where('tipe', 'rt')
+                ->where('id_dusun', $validated['id_dusun'])
                 ->where('nomor_rw', $validated['nomor_rw'])
                 ->where('nomor_rt', $validated['nomor_rt'])
                 ->where('id', '!=', $wilayah->id)
@@ -245,6 +334,7 @@ class WilayahController extends Controller
         if ($validated['tipe'] === 'dusun') {
             $validated['nomor_rt'] = null;
             $validated['nomor_rw'] = null;
+            $validated['id_dusun'] = null;
         }
 
         $wilayah->update($validated);
@@ -266,6 +356,12 @@ class WilayahController extends Controller
 
         // Cek apakah ada penduduk di wilayah ini
         if ($wilayah->tipe === 'dusun') {
+            $jumlahAnakWilayah = Wilayah::where('id_dusun', $wilayah->id)->count();
+            if ($jumlahAnakWilayah > 0) {
+                return redirect()->route('kasi.wilayah.index')
+                    ->with('error', "Tidak bisa hapus wilayah karena masih ada {$jumlahAnakWilayah} RW/RT yang terhubung ke {$wilayah->nama}.");
+            }
+
             $jumlahPenduduk = User::where('id_dusun', $id)->count();
             
             if ($jumlahPenduduk > 0) {

@@ -11,6 +11,9 @@ Tambah Wilayah Baru
     .form-container {
         max-width: 900px;
         margin: 0 auto;
+        padding: 0 40px;
+        box-sizing: border-box;
+        width: 100%;
     }
 
     .form-card {
@@ -306,6 +309,37 @@ Tambah Wilayah Baru
                         @enderror
                     </div>
                 </div>
+                
+                <div class="form-row single">
+                    <div class="form-group conditional-field" id="field_id_dusun">
+                        <label for="id_dusun">
+                            Dusun Induk
+                            <span class="required">*</span>
+                        </label>
+                        <div class="input-group">
+                            <i class="fas fa-map-marker-alt input-icon"></i>
+                            <select
+                                id="id_dusun"
+                                name="id_dusun"
+                                class="form-control @error('id_dusun') error @enderror"
+                            >
+                                <option value="">-- Pilih Dusun --</option>
+                                @foreach($dusunList as $dusun)
+                                    <option value="{{ $dusun->id }}" {{ old('id_dusun') == $dusun->id ? 'selected' : '' }}>
+                                        {{ $dusun->nama }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <small class="form-text">Wajib dipilih untuk RW. RT akan mengikuti dusun dari RW yang dipilih.</small>
+                        @error('id_dusun')
+                            <span class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ $message }}
+                            </span>
+                        @enderror
+                    </div>
+                </div>
 
                 <div class="form-row">
                     <div class="form-group conditional-field" id="field_nomor_rt">
@@ -470,8 +504,10 @@ Tambah Wilayah Baru
 <script>
     function toggleConditionalFields() {
         const tipeRadios = document.getElementsByName('tipe');
+        const fieldDusun = document.getElementById('field_id_dusun');
         const fieldNomorRt = document.getElementById('field_nomor_rt');
         const fieldNomorRw = document.getElementById('field_nomor_rw');
+        const inputDusun = document.getElementById('id_dusun');
         const inputNomorRt = document.getElementById('nomor_rt');
         const inputNomorRw = document.getElementById('nomor_rw');
         
@@ -485,18 +521,27 @@ Tambah Wilayah Baru
         
         // Show/hide fields based on selection
         if (selectedTipe === 'rt') {
+            fieldDusun.classList.remove('show');
             fieldNomorRt.classList.add('show');
             fieldNomorRw.classList.add('show');
+            inputDusun.required = false;
+            inputDusun.disabled = true;
             inputNomorRt.required = true;
             inputNomorRw.required = true;
         } else if (selectedTipe === 'rw') {
+            fieldDusun.classList.add('show');
             fieldNomorRw.classList.add('show');
             fieldNomorRt.classList.remove('show');
+            inputDusun.required = true;
+            inputDusun.disabled = false;
             inputNomorRw.required = true;
             inputNomorRt.required = false;
         } else {
+            fieldDusun.classList.remove('show');
             fieldNomorRt.classList.remove('show');
             fieldNomorRw.classList.remove('show');
+            inputDusun.required = false;
+            inputDusun.disabled = true;
             inputNomorRt.required = false;
             inputNomorRw.required = false;
         }

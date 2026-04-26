@@ -127,13 +127,13 @@
         color: #374151;
     }
 
-    .user-info {
+    .table-user-info {
         display: flex;
         align-items: center;
         gap: 12px;
     }
 
-    .user-avatar {
+    .table-user-avatar {
         width: 45px;
         height: 45px;
         border-radius: 50%;
@@ -320,8 +320,8 @@
                         <tr>
                             <td>{{ $index + 1 }}</td>
                             <td>
-                                <div class="user-info">
-                                    <div class="user-avatar">
+                                <div class="table-user-info">
+                                    <div class="table-user-avatar">
                                         {{ strtoupper(substr($user->nama, 0, 1)) }}
                                     </div>
                                     <div class="user-details">

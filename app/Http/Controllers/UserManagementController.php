@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Wilayah;
+use App\Models\Penduduk;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
@@ -55,7 +56,21 @@ class UserManagementController extends Controller
         $validated = $request->validate([
             'username' => 'required|string|max:255|unique:users,username',
             'password' => 'required|string|min:6',
-            'nama' => 'required|string|max:255',
+            'nama' => [
+                'required',
+                'string',
+                'max:255',
+                function ($attribute, $value, $fail) {
+                    $nama = trim((string) $value);
+                    $exists = Penduduk::query()
+                        ->whereRaw('LOWER(TRIM(nama_lengkap)) = ?', [mb_strtolower($nama)])
+                        ->exists();
+
+                    if (!$exists) {
+                        $fail('Nama kasun tidak ditemukan pada data penduduk. Pastikan nama benar dan ada.');
+                    }
+                },
+            ],
             'id_dusun' => 'nullable|integer',
         ]);
 
@@ -102,7 +117,21 @@ class UserManagementController extends Controller
         $validated = $request->validate([
             'username' => 'required|string|max:255|unique:users,username,' . $id,
             'password' => 'nullable|string|min:6',
-            'nama' => 'required|string|max:255',
+            'nama' => [
+                'required',
+                'string',
+                'max:255',
+                function ($attribute, $value, $fail) {
+                    $nama = trim((string) $value);
+                    $exists = Penduduk::query()
+                        ->whereRaw('LOWER(TRIM(nama_lengkap)) = ?', [mb_strtolower($nama)])
+                        ->exists();
+
+                    if (!$exists) {
+                        $fail('Nama kasun tidak ditemukan pada data penduduk. Pastikan nama benar dan ada.');
+                    }
+                },
+            ],
             'id_dusun' => 'nullable|integer',
         ]);
 
