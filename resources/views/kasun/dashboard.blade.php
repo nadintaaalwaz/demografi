@@ -656,6 +656,7 @@ new Chart(occupationCtx, {
 // Leaflet Map
 const mapLat = {{ (float) $mapLat }};
 const mapLng = {{ (float) $mapLng }};
+const rwMapData = @json($rwMapData ?? []);
 
 const dusunMap = L.map('dusunMap').setView([mapLat, mapLng], 15);
 
@@ -663,7 +664,16 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap contributors'
 }).addTo(dusunMap);
 
-const marker = L.marker([mapLat, mapLng]).addTo(dusunMap);
+const bounds = [[mapLat, mapLng]];
+
+const marker = L.circleMarker([mapLat, mapLng], {
+    radius: 11,
+    color: '#ca8a04',
+    weight: 2,
+    fillColor: '#facc15',
+    fillOpacity: 0.95,
+}).addTo(dusunMap);
+
 marker.bindPopup(`
     <div style="font-family: 'Segoe UI', sans-serif;">
         <h3 style="margin: 0 0 10px 0; color: #0C342C;">{{ $dusun?->nama ?? (Auth::user()->dusun_name ?? 'Dusun') }}</h3>
@@ -674,6 +684,40 @@ marker.bindPopup(`
         <p style="margin: 5px 0;"><strong>Lansia:</strong> {{ number_format($totalLansia) }}</p>
         <p style="margin: 5px 0;"><strong>Kepadatan:</strong> {{ number_format($kepadatan, 2) }} jiwa/km²</p>
     </div>
-`).openPopup();
+`);
+
+rwMapData.forEach((rw) => {
+    const lat = Number(rw.lat);
+    const lng = Number(rw.lng);
+
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+        return;
+    }
+
+    bounds.push([lat, lng]);
+
+    const rwLabel = rw.nomor_rw ? `RW ${rw.nomor_rw}` : (rw.name || 'RW');
+    const rwMarker = L.circleMarker([lat, lng], {
+        radius: 8,
+        color: '#1d4ed8',
+        weight: 2,
+        fillColor: '#3b82f6',
+        fillOpacity: 0.9,
+    }).addTo(dusunMap);
+
+    rwMarker.bindPopup(`
+        <div style="font-family: 'Segoe UI', sans-serif; min-width: 170px;">
+            <h3 style="margin: 0 0 8px 0; color: #0C342C; font-size: 15px;">${rwLabel}</h3>
+            <p style="margin: 4px 0; color: #4b5563;"><strong>Dusun:</strong> {{ $dusun?->nama ?? (Auth::user()->dusun_name ?? 'Dusun') }}</p>
+            <p style="margin: 4px 0; color: #4b5563;"><strong>Nama Wilayah:</strong> ${rw.name || '-'}</p>
+        </div>
+    `);
+});
+
+if (bounds.length > 1) {
+    dusunMap.fitBounds(bounds, { padding: [30, 30] });
+} else {
+    marker.openPopup();
+}
 </script>
 @endpush

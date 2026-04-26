@@ -1026,6 +1026,27 @@ Route::prefix('kasun')->name('kasun.')->middleware(['auth', 'role:kasun'])->grou
             ? round($totalPenduduk / (float) $dusun->luas_wilayah, 2)
             : 0;
 
+        $rwMapData = Wilayah::query()
+            ->where('tipe', 'rw')
+            ->when(
+                $idDusun,
+                fn ($query) => $query->where('id_dusun', $idDusun),
+                fn ($query) => $query->whereRaw('1 = 0')
+            )
+            ->orderBy('nomor_rw')
+            ->get(['id', 'nama', 'nomor_rw', 'latitude', 'longitude'])
+            ->map(function ($row) {
+                return [
+                    'id' => (int) $row->id,
+                    'name' => $row->nama,
+                    'nomor_rw' => (int) ($row->nomor_rw ?? 0),
+                    'lat' => (float) $row->latitude,
+                    'lng' => (float) $row->longitude,
+                ];
+            })
+            ->values()
+            ->all();
+
         return view('kasun.dashboard', [
             'dusun' => $dusun,
             'totalPenduduk' => $totalPenduduk,
@@ -1051,6 +1072,7 @@ Route::prefix('kasun')->name('kasun.')->middleware(['auth', 'role:kasun'])->grou
             'mapLat' => $latitude,
             'mapLng' => $longitude,
             'kepadatan' => $kepadatan,
+            'rwMapData' => $rwMapData,
         ]);
     })->name('dashboard');
     
