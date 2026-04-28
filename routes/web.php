@@ -723,32 +723,67 @@ Route::prefix('kasi')->name('kasi.')->middleware(['auth', 'role:kasi'])->group(f
         $totalProduktif = Penduduk::whereRaw('TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 19 AND 59')->count();
         $totalLansia = Penduduk::whereRaw('TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) >= 60')->count();
 
-        $ageRaw = Penduduk::query()->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 0 AND 5 THEN 1 ELSE 0 END) as usia_0_5')
-            ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 6 AND 12 THEN 1 ELSE 0 END) as usia_6_12')
-            ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 13 AND 17 THEN 1 ELSE 0 END) as usia_13_17')
-            ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 18 AND 60 THEN 1 ELSE 0 END) as usia_18_60')
-            ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) > 60 THEN 1 ELSE 0 END) as usia_60_plus')
+        $ageRaw = Penduduk::query()
+            ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 0 AND 5 THEN 1 ELSE 0 END) as usia_bayi_balita')
+            ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 6 AND 11 THEN 1 ELSE 0 END) as usia_anak')
+            ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 10 AND 19 THEN 1 ELSE 0 END) as usia_remaja')
+            ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 19 AND 59 THEN 1 ELSE 0 END) as usia_dewasa')
+            ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) >= 60 THEN 1 ELSE 0 END) as usia_lansia')
             ->first();
 
-        $ageLabels = ['0-5', '6-12', '13-17', '18-60', '>60'];
+        $ageLabels = [
+            'Bayi & Balita (0–5 Tahun)',
+            'Anak-anak (6–11 Tahun)',
+            'Remaja (10–19 Tahun)',
+            'Dewasa (19–59 Tahun)',
+            'Lansia (60+ Tahun)',
+        ];
         $ageValues = [
-            (int) ($ageRaw->usia_0_5 ?? 0),
-            (int) ($ageRaw->usia_6_12 ?? 0),
-            (int) ($ageRaw->usia_13_17 ?? 0),
-            (int) ($ageRaw->usia_18_60 ?? 0),
-            (int) ($ageRaw->usia_60_plus ?? 0),
+            (int) ($ageRaw->usia_bayi_balita ?? 0),
+            (int) ($ageRaw->usia_anak ?? 0),
+            (int) ($ageRaw->usia_remaja ?? 0),
+            (int) ($ageRaw->usia_dewasa ?? 0),
+            (int) ($ageRaw->usia_lansia ?? 0),
         ];
 
-        $educationRows = Penduduk::query()
-            ->selectRaw("COALESCE(NULLIF(TRIM(pendidikan), ''), 'Tidak diketahui') as label")
-            ->selectRaw('COUNT(*) as total')
-            ->groupBy('label')
-            ->orderByDesc('total')
-            ->limit(6)
-            ->get();
+        // Hitung kategori pendidikan dengan urutan tetap untuk kasi
+        $educationRaw = Penduduk::query()
+            ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('SD','TAMAT SD','SEKOLAH DASAR') THEN 1 ELSE 0 END) as tamat_sd")
+            ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('SMP','TAMAT SMP','SEKOLAH MENENGAH PERTAMA') THEN 1 ELSE 0 END) as smp")
+            ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('SMA','SMK','SLTA','TAMAT SMA','SEKOLAH MENENGAH ATAS','MA') THEN 1 ELSE 0 END) as sma")
+            ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('D3','D-3','DIII','DIPLOMA III','DIPLOMA 3') THEN 1 ELSE 0 END) as diploma_iii")
+            ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('D4','D-4','DIV','DIPLOMA IV','DIPLOMA 4','S1','STRATA I','STRATA 1') THEN 1 ELSE 0 END) as diploma_iv_s1")
+            ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('S2','STRATA II','STRATA 2','MAGISTER') THEN 1 ELSE 0 END) as strata_ii")
+            ->first();
 
-        $educationLabels = $educationRows->pluck('label')->values()->all();
-        $educationValues = $educationRows->pluck('total')->map(fn ($value) => (int) $value)->values()->all();
+        $educationFixedOrder = [
+            'Tamat SD',
+            'SMP',
+            'SMA',
+            'DIPLOMA III',
+            'DIPLOMA IV/STRATA I',
+            'STRATA II',
+        ];
+
+        $educationValuesMap = [
+            'Tamat SD' => (int) ($educationRaw->tamat_sd ?? 0),
+            'SMP' => (int) ($educationRaw->smp ?? 0),
+            'SMA' => (int) ($educationRaw->sma ?? 0),
+            'DIPLOMA III' => (int) ($educationRaw->diploma_iii ?? 0),
+            'DIPLOMA IV/STRATA I' => (int) ($educationRaw->diploma_iv_s1 ?? 0),
+            'STRATA II' => (int) ($educationRaw->strata_ii ?? 0),
+        ];
+
+        $matchedTotal = array_sum(array_values($educationValuesMap));
+        $othersTotal = max(0, $totalPenduduk - $matchedTotal);
+
+        $educationLabels = $educationFixedOrder;
+        $educationValues = array_map(fn($label) => $educationValuesMap[$label] ?? 0, $educationLabels);
+
+        if ($othersTotal > 0) {
+            $educationLabels[] = 'Lainnya';
+            $educationValues[] = $othersTotal;
+        }
 
         if (empty($educationLabels)) {
             $educationLabels = ['Belum ada data'];
