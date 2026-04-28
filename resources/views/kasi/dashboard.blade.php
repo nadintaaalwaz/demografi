@@ -160,72 +160,7 @@
         color: #076653;
     }
 
-    .map-container {
-        background: #fff;
-        padding: 25px;
-        border-radius: 16px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-        margin-bottom: 40px;
-    }
 
-    .map-topbar {
-        margin-top: 8px;
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: 10px;
-    }
-
-    .map-stat {
-        border: 1px solid #e5e7eb;
-        border-radius: 10px;
-        padding: 10px 12px;
-        background: linear-gradient(135deg, #f8fafc, #f1f5f9);
-    }
-
-    .map-stat small {
-        display: block;
-        color: #6b7280;
-        font-size: 11px;
-        margin-bottom: 4px;
-    }
-
-    .map-stat strong {
-        color: #0C342C;
-        font-size: 16px;
-        font-weight: 700;
-    }
-
-    .map-legend {
-        margin-top: 10px;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 14px;
-        font-size: 12px;
-        color: #4b5563;
-    }
-
-    .map-legend span {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-    }
-
-    .legend-dot {
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        display: inline-block;
-    }
-
-    .legend-dot.primary {
-        background: #0ea5e9;
-    }
-
-    #map {
-        height: 500px;
-        border-radius: 12px;
-        margin-top: 20px;
-    }
 
     .recent-activity {
         background: #fff;
@@ -275,25 +210,6 @@
     .activity-icon.delete {
         background: #fee2e2;
         color: #991b1b;
-    }
-
-    .activity-content h4 {
-        font-size: 14px;
-        font-weight: 600;
-        color: #0C342C;
-        margin-bottom: 3px;
-    }
-
-    .activity-content p {
-        font-size: 12px;
-        color: #6b7280;
-    }
-
-    .activity-time {
-        font-size: 11px;
-        color: #9ca3af;
-        margin-left: auto;
-        flex-shrink: 0;
     }
 
     @media (max-width: 768px) {
@@ -418,84 +334,6 @@
             <i class="fas fa-ellipsis-v chart-menu"></i>
         </div>
         <canvas id="occupationChart"></canvas>
-    </div>
-</div>
-
-<!-- Map -->
-<div class="map-container">
-    <div class="chart-header">
-        <h2 class="chart-title">Peta Sebaran Penduduk Per Dusun</h2>
-        <i class="fas fa-expand chart-menu"></i>
-    </div>
-    <div class="map-topbar">
-        <div class="map-stat">
-            <small>Luas Desa Sebalor (akumulasi dusun)</small>
-            <strong>{{ number_format($totalLuasDusun ?? 0, 2) }} Ha</strong>
-        </div>
-        <div class="map-stat">
-            <small>Jumlah Dusun</small>
-            <strong>{{ count($dusunMapData ?? []) }}</strong>
-        </div>
-        <div class="map-stat">
-            <small>Total Penduduk Terpetakan</small>
-            <strong>{{ number_format($totalPendudukTerpetakan ?? 0) }}</strong>
-        </div>
-    </div>
-    <div class="map-legend">
-        <span><i class="legend-dot primary"></i>Lingkaran biru: total penduduk per dusun</span>
-    </div>
-    <div id="map"></div>
-</div>
-
-<!-- Recent Activity -->
-<div class="recent-activity">
-    <div class="chart-header">
-        <h2 class="chart-title">Aktivitas Terbaru</h2>
-        <a href="#" style="color: #076653; font-size: 14px; text-decoration: none;">Lihat Semua</a>
-    </div>
-    
-    <div class="activity-item">
-        <div class="activity-icon upload">
-            <i class="fas fa-file-upload"></i>
-        </div>
-        <div class="activity-content">
-            <h4>Upload Data Penduduk</h4>
-            <p>500 data penduduk berhasil diimport</p>
-        </div>
-        <span class="activity-time">2 jam lalu</span>
-    </div>
-
-    <div class="activity-item">
-        <div class="activity-icon edit">
-            <i class="fas fa-edit"></i>
-        </div>
-        <div class="activity-content">
-            <h4>Edit Data Penduduk</h4>
-            <p>Data penduduk "Ahmad Fauzi" telah diperbarui</p>
-        </div>
-        <span class="activity-time">5 jam lalu</span>
-    </div>
-
-    <div class="activity-item">
-        <div class="activity-icon delete">
-            <i class="fas fa-trash-alt"></i>
-        </div>
-        <div class="activity-content">
-            <h4>Hapus Data Penduduk</h4>
-            <p>1 data penduduk telah dihapus</p>
-        </div>
-        <span class="activity-time">1 hari lalu</span>
-    </div>
-
-    <div class="activity-item">
-        <div class="activity-icon upload">
-            <i class="fas fa-map-marker-alt"></i>
-        </div>
-        <div class="activity-content">
-            <h4>Tambah Wilayah Baru</h4>
-            <p>Dusun "Krajan" berhasil ditambahkan</p>
-        </div>
-        <span class="activity-time">2 hari lalu</span>
     </div>
 </div>
 @endsection
