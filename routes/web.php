@@ -62,38 +62,44 @@ $buildPublicDashboardData = function () {
         (int) ($ageRaw->usia_60_plus ?? 0),
     ];
 
-    $educationRows = (clone $pendudukAktif)
-        ->selectRaw('COUNT(*) as total')
-        ->selectRaw("CASE
-            WHEN LOWER(TRIM(COALESCE(pendidikan, ''))) IN ('tidak sekolah','belum sekolah','tidak tamat sd') THEN 'Tidak Sekolah'
-            WHEN LOWER(TRIM(COALESCE(pendidikan, ''))) IN ('sd','sederajat sd','sekolah dasar','tamat sd') THEN 'Tamat SD'
-            WHEN LOWER(TRIM(COALESCE(pendidikan, ''))) IN ('smp','sederajat smp','tamat smp') THEN 'SMP'
-            WHEN LOWER(TRIM(COALESCE(pendidikan, ''))) IN ('sma','smk','sederajat sma','tamat sma') THEN 'SMA'
-            WHEN LOWER(TRIM(COALESCE(pendidikan, ''))) IN ('d3','diploma iii','diploma 3') THEN 'DIPLOMA III'
-            WHEN LOWER(TRIM(COALESCE(pendidikan, ''))) IN ('d4','s1','strata i','strata 1','diploma iv','diploma 4') THEN 'DIPLOMA IV/STRATA I'
-            ELSE 'Lainnya'
-        END as kategori_pendidikan")
-        ->groupBy('kategori_pendidikan')
-        ->get();
+    // Statistik pendidikan: tetap menggunakan urutan yang dispesifikasikan
+    $educationRaw = (clone $pendudukAktif)
+        ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('SD','TAMAT SD','SEKOLAH DASAR') THEN 1 ELSE 0 END) as tamat_sd")
+        ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('SMP','TAMAT SMP','SEKOLAH MENENGAH PERTAMA') THEN 1 ELSE 0 END) as smp")
+        ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('SMA','SMK','SLTA','TAMAT SMA') THEN 1 ELSE 0 END) as sma")
+        ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('D3','D-3','DIII','DIPLOMA III','DIPLOMA 3') THEN 1 ELSE 0 END) as diploma_iii")
+        ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('D4','D-4','DIV','DIPLOMA IV','DIPLOMA 4','S1','STRATA I','STRATA 1') THEN 1 ELSE 0 END) as diploma_iv_s1")
+        ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('S2','STRATA II','STRATA 2','MAGISTER') THEN 1 ELSE 0 END) as strata_ii")
+        ->first();
 
     $educationFixedOrder = [
-        'Tidak Sekolah',
         'Tamat SD',
         'SMP',
         'SMA',
         'DIPLOMA III',
         'DIPLOMA IV/STRATA I',
+        'STRATA II',
     ];
 
-    $educationCountMap = $educationRows
-        ->pluck('total', 'kategori_pendidikan')
-        ->map(fn ($value) => (int) $value);
+    $educationValuesMap = [
+        'Tamat SD' => (int) ($educationRaw->tamat_sd ?? 0),
+        'SMP' => (int) ($educationRaw->smp ?? 0),
+        'SMA' => (int) ($educationRaw->sma ?? 0),
+        'DIPLOMA III' => (int) ($educationRaw->diploma_iii ?? 0),
+        'DIPLOMA IV/STRATA I' => (int) ($educationRaw->diploma_iv_s1 ?? 0),
+        'STRATA II' => (int) ($educationRaw->strata_ii ?? 0),
+    ];
+
+    $matchedTotal = array_sum(array_values($educationValuesMap));
+    $othersTotal = max(0, $totalPenduduk - $matchedTotal);
 
     $educationLabels = $educationFixedOrder;
-    $educationValues = collect($educationFixedOrder)
-        ->map(fn ($label) => (int) ($educationCountMap[$label] ?? 0))
-        ->values()
-        ->all();
+    $educationValues = array_map(fn($label) => $educationValuesMap[$label] ?? 0, $educationLabels);
+
+    if ($othersTotal > 0) {
+        $educationLabels[] = 'Lainnya';
+        $educationValues[] = $othersTotal;
+    }
 
     if (empty($educationLabels)) {
         $educationLabels = ['Belum ada data'];
@@ -267,22 +273,43 @@ $buildPublicStatisticsData = function () {
         $statusTotal > 0 ? round(($statusValues[2] / $statusTotal) * 100, 1) : 0,
     ];
 
-    $educationRows = (clone $pendudukAktif)
-        ->selectRaw("COALESCE(NULLIF(TRIM(pendidikan), ''), 'Tidak diketahui') as label")
-        ->selectRaw('COUNT(*) as total')
-        ->groupBy('label')
-        ->orderByDesc('total')
-        ->get();
+    // Hitung kategori pendidikan dengan urutan tetap
+    $educationRaw = (clone $pendudukAktif)
+        ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('SD','TAMAT SD','SEKOLAH DASAR','SDA') THEN 1 ELSE 0 END) as tamat_sd")
+        ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('SMP','TAMAT SMP','SEKOLAH MENENGAH PERTAMA') THEN 1 ELSE 0 END) as smp")
+        ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('SMA','SMK','SLTA','TAMAT SMA','SEKOLAH MENENGAH ATAS','MA') THEN 1 ELSE 0 END) as sma")
+        ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('D3','D-3','DIII','DIPLOMA III','DIPLOMA 3') THEN 1 ELSE 0 END) as diploma_iii")
+        ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('D4','D-4','DIV','DIPLOMA IV','DIPLOMA 4','S1','STRATA I','STRATA 1') THEN 1 ELSE 0 END) as diploma_iv_s1")
+        ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('S2','STRATA II','STRATA 2','MAGISTER') THEN 1 ELSE 0 END) as strata_ii")
+        ->first();
 
-    $educationFiltered = $educationRows->filter(fn ($row) => (int) $row->total >= $privacyThreshold);
-    $educationOthersTotal = (int) $educationRows->filter(fn ($row) => (int) $row->total < $privacyThreshold)->sum('total');
+    $educationFixedOrder = [
+        'Tamat SD',
+        'SMP',
+        'SMA',
+        'DIPLOMA III',
+        'DIPLOMA IV/STRATA I',
+        'STRATA II',
+    ];
 
-    $educationLabels = $educationFiltered->pluck('label')->values()->all();
-    $educationValues = $educationFiltered->pluck('total')->map(fn ($value) => (int) $value)->values()->all();
+    $educationValuesMap = [
+        'Tamat SD' => (int) ($educationRaw->tamat_sd ?? 0),
+        'SMP' => (int) ($educationRaw->smp ?? 0),
+        'SMA' => (int) ($educationRaw->sma ?? 0),
+        'DIPLOMA III' => (int) ($educationRaw->diploma_iii ?? 0),
+        'DIPLOMA IV/STRATA I' => (int) ($educationRaw->diploma_iv_s1 ?? 0),
+        'STRATA II' => (int) ($educationRaw->strata_ii ?? 0),
+    ];
 
-    if ($educationOthersTotal > 0) {
+    $matchedTotal = array_sum(array_values($educationValuesMap));
+    $othersTotal = max(0, $totalPendudukAktif - $matchedTotal);
+
+    $educationLabels = $educationFixedOrder;
+    $educationValues = array_map(fn($label) => $educationValuesMap[$label] ?? 0, $educationLabels);
+
+    if ($othersTotal > 0) {
         $educationLabels[] = 'Lainnya';
-        $educationValues[] = $educationOthersTotal;
+        $educationValues[] = $othersTotal;
     }
 
     if (empty($educationLabels)) {
