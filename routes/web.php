@@ -38,28 +38,30 @@ $buildPublicDashboardData = function () {
     $totalLakiLaki = (clone $pendudukAktif)->where('jenis_kelamin', 'L')->count();
     $totalPerempuan = (clone $pendudukAktif)->where('jenis_kelamin', 'P')->count();
     $totalBalita = (clone $pendudukAktif)->whereRaw('TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) < 5')->count();
-    $totalProduktif = (clone $pendudukAktif)->whereRaw('TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 5 AND 59')->count();
+    $totalProduktif = (clone $pendudukAktif)->whereRaw('TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 19 AND 59')->count();
     $totalLansia = (clone $pendudukAktif)->whereRaw('TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) >= 60')->count();
 
     $ageRaw = (clone $pendudukAktif)
-        ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 0 AND 5 THEN 1 ELSE 0 END) as usia_0_5')
-        ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 6 AND 12 THEN 1 ELSE 0 END) as usia_6_12')
-        ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 13 AND 17 THEN 1 ELSE 0 END) as usia_13_17')
-        ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 18 AND 25 THEN 1 ELSE 0 END) as usia_18_25')
-        ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 26 AND 40 THEN 1 ELSE 0 END) as usia_26_40')
-        ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 41 AND 60 THEN 1 ELSE 0 END) as usia_41_60')
-        ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) > 60 THEN 1 ELSE 0 END) as usia_60_plus')
+        ->selectRaw("SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 0 AND 5 THEN 1 ELSE 0 END) as bayi_balita")
+        ->selectRaw("SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 6 AND 11 THEN 1 ELSE 0 END) as anak_anak")
+        ->selectRaw("SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 10 AND 19 THEN 1 ELSE 0 END) as remaja")
+        ->selectRaw("SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 19 AND 59 THEN 1 ELSE 0 END) as dewasa")
+        ->selectRaw("SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) >= 60 THEN 1 ELSE 0 END) as lansia")
         ->first();
 
-    $ageLabels = ['0-5', '6-12', '13-17', '18-25', '26-40', '41-60', '>60'];
+    $ageLabels = [
+        'Bayi & Balita (0–5 Tahun)',
+        'Anak-anak (6–11 Tahun)',
+        'Remaja (10–19 Tahun)',
+        'Dewasa (19–59 Tahun)',
+        'Lansia (60+ Tahun)'
+    ];
     $ageValues = [
-        (int) ($ageRaw->usia_0_5 ?? 0),
-        (int) ($ageRaw->usia_6_12 ?? 0),
-        (int) ($ageRaw->usia_13_17 ?? 0),
-        (int) ($ageRaw->usia_18_25 ?? 0),
-        (int) ($ageRaw->usia_26_40 ?? 0),
-        (int) ($ageRaw->usia_41_60 ?? 0),
-        (int) ($ageRaw->usia_60_plus ?? 0),
+        (int) ($ageRaw->bayi_balita ?? 0),
+        (int) ($ageRaw->anak_anak ?? 0),
+        (int) ($ageRaw->remaja ?? 0),
+        (int) ($ageRaw->dewasa ?? 0),
+        (int) ($ageRaw->lansia ?? 0),
     ];
 
     // Statistik pendidikan: tetap menggunakan urutan yang dispesifikasikan
@@ -238,20 +240,26 @@ $buildPublicStatisticsData = function () {
     ];
 
     $usiaRaw = (clone $pendudukAktif)
-        ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 0 AND 5 THEN 1 ELSE 0 END) as usia_0_5')
-        ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 6 AND 12 THEN 1 ELSE 0 END) as usia_6_12')
-        ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 13 AND 17 THEN 1 ELSE 0 END) as usia_13_17')
-        ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 18 AND 59 THEN 1 ELSE 0 END) as usia_18_59')
-        ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) >= 60 THEN 1 ELSE 0 END) as usia_60_plus')
+        ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 0 AND 5 THEN 1 ELSE 0 END) as usia_bayi_balita')
+        ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 6 AND 11 THEN 1 ELSE 0 END) as usia_anak')
+        ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 10 AND 19 THEN 1 ELSE 0 END) as usia_remaja')
+        ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 19 AND 59 THEN 1 ELSE 0 END) as usia_dewasa')
+        ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) >= 60 THEN 1 ELSE 0 END) as usia_lansia')
         ->first();
 
-    $ageLabels = ['0-5', '6-12', '13-17', '18-59', '60+'];
+    $ageLabels = [
+        'Bayi & Balita (0–5 Tahun)',
+        'Anak-anak (6–11 Tahun)',
+        'Remaja (10–19 Tahun)',
+        'Dewasa (19–59 Tahun)',
+        'Lansia (60+ Tahun)',
+    ];
     $ageValues = [
-        (int) ($usiaRaw->usia_0_5 ?? 0),
-        (int) ($usiaRaw->usia_6_12 ?? 0),
-        (int) ($usiaRaw->usia_13_17 ?? 0),
-        (int) ($usiaRaw->usia_18_59 ?? 0),
-        (int) ($usiaRaw->usia_60_plus ?? 0),
+        (int) ($usiaRaw->usia_bayi_balita ?? 0),
+        (int) ($usiaRaw->usia_anak ?? 0),
+        (int) ($usiaRaw->usia_remaja ?? 0),
+        (int) ($usiaRaw->usia_dewasa ?? 0),
+        (int) ($usiaRaw->usia_lansia ?? 0),
     ];
 
     $statusRows = (clone $pendudukSemuaStatus)
@@ -588,7 +596,7 @@ Route::get('/kasi/dashboard-test', function () {
     $persenPerempuan = $totalPenduduk > 0 ? round(($totalPerempuan / $totalPenduduk) * 100) : 0;
 
     $totalBalita = Penduduk::whereRaw('TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) < 5')->count();
-    $totalProduktif = Penduduk::whereRaw('TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 5 AND 59')->count();
+    $totalProduktif = Penduduk::whereRaw('TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 19 AND 59')->count();
     $totalLansia = Penduduk::whereRaw('TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) >= 60')->count();
 
     $ageRaw = Penduduk::query()->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 0 AND 5 THEN 1 ELSE 0 END) as usia_0_5')
@@ -712,7 +720,7 @@ Route::prefix('kasi')->name('kasi.')->middleware(['auth', 'role:kasi'])->group(f
         $persenPerempuan = $totalPenduduk > 0 ? round(($totalPerempuan / $totalPenduduk) * 100) : 0;
 
         $totalBalita = Penduduk::whereRaw('TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) < 5')->count();
-        $totalProduktif = Penduduk::whereRaw('TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 5 AND 59')->count();
+        $totalProduktif = Penduduk::whereRaw('TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 19 AND 59')->count();
         $totalLansia = Penduduk::whereRaw('TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) >= 60')->count();
 
         $ageRaw = Penduduk::query()->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 0 AND 5 THEN 1 ELSE 0 END) as usia_0_5')
@@ -909,7 +917,7 @@ Route::prefix('kasun')->name('kasun.')->middleware(['auth', 'role:kasun'])->grou
         $totalKK = (clone $pendudukDusunQuery)->distinct('nomor_kartu_keluarga')->count('nomor_kartu_keluarga');
 
         $totalBalita = (clone $pendudukDusunQuery)->whereRaw('TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) < 5')->count();
-        $totalProduktif = (clone $pendudukDusunQuery)->whereRaw('TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 5 AND 59')->count();
+        $totalProduktif = (clone $pendudukDusunQuery)->whereRaw('TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 19 AND 59')->count();
         $totalLansia = (clone $pendudukDusunQuery)->whereRaw('TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) >= 60')->count();
 
         $ageRaw = (clone $pendudukDusunQuery)

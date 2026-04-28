@@ -131,7 +131,7 @@ class PendudukController extends Controller
             } elseif ($kategoriUsia === 'Lansia') {
                 $pendudukQuery->whereRaw('TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) >= 60');
             } else {
-                $pendudukQuery->whereRaw('TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 5 AND 59');
+                $pendudukQuery->whereRaw('TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 19 AND 59');
             }
         }
 

@@ -77,9 +77,9 @@ Dashboard {{ Auth::user()->dusun_name ?? "Dusun" }}
     .stat-card h3 {
         font-size: 36px;
         font-weight: 700;
-        color: #0C342C;
-        margin-bottom: 5px;
-    }
+            border-radius: 16px;
+            box-shadow: 0 12px 30px rgba(12, 52, 44, 0.08);
+            border: none;
 
     .stat-card p {
         font-size: 14px;
@@ -131,8 +131,8 @@ Dashboard {{ Auth::user()->dusun_name ?? "Dusun" }}
         background: #fff;
         padding: 16px;
         border-radius: 16px;
-        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
-        border: 1px solid #edf2f7;
+        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+        border: none;
     }
 
     .chart-card canvas {

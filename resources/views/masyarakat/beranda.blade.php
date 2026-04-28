@@ -117,8 +117,9 @@
         backdrop-filter: blur(10px);
         padding: 30px;
         border-radius: 12px;
-        border: 1px solid rgba(227, 239, 38, 0.2);
         transition: all 0.3s ease;
+        box-shadow: 0 12px 30px rgba(3, 63, 45, 0.06);
+        border: none;
     }
 
     .stat-card:hover {
@@ -191,8 +192,9 @@
         background: #fff;
         padding: 30px;
         border-radius: 16px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        box-shadow: 0 12px 30px rgba(4, 36, 27, 0.07);
         transition: all 0.3s ease;
+        border: none;
     }
 
     .chart-card:hover {
@@ -297,7 +299,8 @@
         background: rgba(255, 255, 255, 0.05);
         border-radius: 16px;
         overflow: hidden;
-        border: 1px solid rgba(227, 239, 38, 0.1);
+        box-shadow: 0 10px 28px rgba(3, 63, 45, 0.04);
+        border: none;
     }
 
     .dusun-list {
@@ -570,7 +573,8 @@ new Chart(genderCtx, {
 const ageCtx = document.getElementById('ageChart').getContext('2d');
 const ageLabels = @json($ageLabels ?? []);
 const ageValues = @json($ageValues ?? []);
-const productiveRanges = ['18-25', '26-40', '41-60'];
+// Mark Dewasa (19–59 Tahun) as produktif to match backend grouping
+const productiveRanges = ['Dewasa (19–59 Tahun)'];
 const ageColors = ageLabels.map(label => productiveRanges.includes(label) ? '#10b981' : '#94a3b8');
 const ageStatus = ageLabels.map(label => productiveRanges.includes(label) ? 'Produktif' : 'Non-Produktif');
 

@@ -61,13 +61,13 @@
     .kpi-card {
         background: #fff;
         border-radius: 26px;
-        border: 2px solid #0f172a;
-        box-shadow: none;
         padding: 20px;
         min-height: 190px;
         display: flex;
         flex-direction: column;
         justify-content: flex-start;
+        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+        border: none;
     }
 
     .kpi-label {
@@ -127,9 +127,10 @@
         margin-top: 8px;
         max-height: 102px;
         overflow: auto;
-        border: 1px solid #e2e8f0;
         border-radius: 10px;
         background: #f8fafc;
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
+        border: none;
     }
 
     .mini-list {
@@ -155,9 +156,9 @@
     .panel {
         background: #fff;
         border-radius: 14px;
-        border: 1px solid #e2e8f0;
-        box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
         padding: 16px;
+        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+        border: none;
     }
 
     .panel h3 {
@@ -185,10 +186,11 @@
     }
 
     .status-summary {
-        border: 1px solid #e2e8f0;
         border-radius: 10px;
         padding: 10px;
         background: #f8fafc;
+        box-shadow: 0 8px 22px rgba(15, 23, 42, 0.04);
+        border: none;
     }
 
     .status-item {
