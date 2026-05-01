@@ -333,13 +333,7 @@
         <div class="footer-content">
             <div class="footer-section">
                 <h3>Tentang Desa Sebalor</h3>
-                <p>Sistem Informasi Demografi Desa Sebalor menyediakan data kependudukan yang akurat dan transparan untuk masyarakat.</p>
-                <div class="social-links">
-                    <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
-                    <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
-                    <a href="#" class="social-link"><i class="fab fa-youtube"></i></a>
-                </div>
+                <p>Sistem Informasi Demografi Desa Sebalor menyediakan data kependudukan untuk masyarakat.</p>
             </div>
 
             <div class="footer-section">

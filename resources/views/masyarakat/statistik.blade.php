@@ -68,6 +68,55 @@
         justify-content: flex-start;
         box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
         border: none;
+        cursor: pointer;
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .kpi-card.kpi-card-center {
+        align-items: center;
+        text-align: center;
+    }
+
+    .kpi-card.kpi-card-center .kpi-sub {
+        text-align: center;
+    }
+
+    .kpi-card-featured {
+        min-height: 220px;
+        padding: 24px 24px 22px;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+        box-shadow: 0 18px 40px rgba(12, 52, 44, 0.10);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .kpi-card-featured::before {
+        content: '';
+        position: absolute;
+        top: -36px;
+        right: -36px;
+        width: 110px;
+        height: 110px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(227, 239, 38, 0.16) 0%, rgba(227, 239, 38, 0) 72%);
+        pointer-events: none;
+    }
+
+    .kpi-card-featured .kpi-label {
+        margin-bottom: 10px;
+    }
+
+    .kpi-card-featured .kpi-value {
+        font-size: 40px;
+        line-height: 1.05;
+    }
+
+    .kpi-card-featured .kpi-sub {
+        font-size: 14px;
+        margin-top: 8px;
     }
 
     .kpi-label {
@@ -184,6 +233,18 @@
         padding: 16px;
         box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
         border: none;
+        cursor: pointer;
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .kpi-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 18px 40px rgba(12, 52, 44, 0.10);
+    }
+
+    .panel:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 18px 40px rgba(12, 52, 44, 0.10);
     }
 
     .panel h3 {
@@ -354,17 +415,17 @@
 
     <div class="kpi-grid">
         <!-- Row 1 -->
-        <div class="kpi-card">
+        <div class="kpi-card kpi-card-center kpi-card-featured">
             <div class="kpi-label">Total Penduduk Aktif</div>
             <div class="kpi-value">{{ number_format($totalPendudukAktif) }}</div>
         </div>
 
-        <div class="kpi-card">
+        <div class="kpi-card kpi-card-center kpi-card-featured">
             <div class="kpi-label">Total Kepala Keluarga</div>
             <div class="kpi-value">{{ number_format($totalKK) }}</div>
         </div>
 
-        <div class="kpi-card">
+        <div class="kpi-card kpi-card-center kpi-card-featured">
             <div class="kpi-label">Luas Wilayah Desa</div>
             <div class="kpi-value">{{ number_format($totalLuasDesaKm2, 2) }} km²</div>
             <div class="kpi-sub">Kepadatan: {{ number_format($kepadatan, 2) }} jiwa/km²</div>
