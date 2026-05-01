@@ -5,113 +5,152 @@
 
 @push('styles')
 <style>
-    .stats-grid {
+    .stats-grid,
+    .age-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 25px;
-        margin-bottom: 40px;
+        gap: 18px;
+        margin-bottom: 22px;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+
+    .age-grid {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        margin-bottom: 30px;
     }
 
     .stat-card {
-        background: #fff;
-        padding: 25px;
-        border-radius: 16px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        background: linear-gradient(180deg, #ffffff 0%, #fbfcfd 100%);
+        padding: 18px 18px 16px;
+        border-radius: 24px;
+        box-shadow: 0 14px 32px rgba(15, 23, 42, 0.08);
+        border: none;
         display: flex;
-        align-items: center;
-        gap: 20px;
-        transition: all 0.3s ease;
-        border-left: 4px solid transparent;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 142px;
+        transition: transform 0.28s ease, box-shadow 0.28s ease, border-color 0.28s ease;
+        position: relative;
+        overflow: hidden;
     }
 
     .stat-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        transform: translateY(-7px);
+        box-shadow: 0 18px 36px rgba(7, 102, 83, 0.16), 0 0 0 1px rgba(227, 239, 38, 0.18);
     }
 
-    .stat-card.primary {
-        border-left-color: #076653;
+    .stat-card.summary-card {
+        min-height: 132px;
     }
 
-    .stat-card.success {
-        border-left-color: #10b981;
+    .stat-card.summary-card::after,
+    .stat-card.age-card::after {
+        content: '';
+        position: absolute;
+        inset: auto -24px -30px auto;
+        width: 90px;
+        height: 90px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(227, 239, 38, 0.12) 0%, rgba(227, 239, 38, 0) 72%);
+        pointer-events: none;
     }
 
-    .stat-card.warning {
-        border-left-color: #f59e0b;
+    .stat-label {
+        font-size: 15px;
+        font-weight: 800;
+        color: #111827;
+        line-height: 1.35;
+        text-transform: none;
+        letter-spacing: 0;
+        margin-bottom: 8px;
     }
 
-    .stat-card.info {
-        border-left-color: #3b82f6;
+    .stat-label.small {
+        font-size: 13px;
+        color: #475569;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
     }
 
-    .stat-icon {
-        width: 60px;
-        height: 60px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 28px;
-        color: #fff;
-    }
-
-    .stat-icon.primary {
-        background: linear-gradient(135deg, #076653, #0C342C);
-    }
-
-    .stat-icon.success {
-        background: linear-gradient(135deg, #10b981, #059669);
-    }
-
-    .stat-icon.warning {
-        background: linear-gradient(135deg, #f59e0b, #d97706);
-    }
-
-    .stat-icon.info {
-        background: linear-gradient(135deg, #3b82f6, #2563eb);
-    }
-
-    .stat-content h3 {
+    .stat-value {
         font-size: 32px;
-        font-weight: 700;
+        font-weight: 800;
         color: #0C342C;
-        margin-bottom: 5px;
+        line-height: 1;
+        margin-top: auto;
     }
 
-    .stat-content p {
-        font-size: 14px;
-        color: #6b7280;
-        font-weight: 500;
+    .stat-sub {
+        margin-top: 10px;
+        font-size: 13px;
+        color: #475569;
+        line-height: 1.55;
+    }
+
+    .stat-detail {
+        margin-top: 10px;
+        display: inline-flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .stat-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: #f8fafc;
+        color: #334155;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .dashboard-section-title {
+        margin: 6px 0 16px;
+        font-size: 18px;
+        font-weight: 800;
+        color: #0C342C;
+        letter-spacing: -0.01em;
     }
 
     .charts-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-        gap: 25px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 22px;
         margin-bottom: 40px;
     }
 
     .chart-card {
         background: #fff;
-        padding: 25px;
-        border-radius: 16px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        padding: 22px;
+        border-radius: 28px;
+        box-shadow: 0 14px 32px rgba(15, 23, 42, 0.08);
+        border: none;
+        min-height: 340px;
+        transition: transform 0.28s ease, box-shadow 0.28s ease;
+    }
+
+    .chart-card:hover {
+        transform: translateY(-7px);
+        box-shadow: 0 18px 36px rgba(7, 102, 83, 0.16), 0 0 0 1px rgba(227, 239, 38, 0.18);
     }
 
     .chart-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 20px;
-        padding-bottom: 15px;
-        border-bottom: 2px solid #f3f4f6;
+        margin-bottom: 18px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid #eef2f7;
     }
 
     .chart-title {
-        font-size: 18px;
-        font-weight: 700;
-        color: #0C342C;
+        font-size: 17px;
+        font-weight: 800;
+        color: #111827;
     }
 
     .gender-legend {
@@ -150,151 +189,121 @@
         text-align: right;
     }
 
-    .chart-menu {
-        color: #6b7280;
-        cursor: pointer;
-        transition: color 0.3s ease;
-    }
-
-    .chart-menu:hover {
-        color: #076653;
-    }
-
-
-
-    .recent-activity {
-        background: #fff;
-        padding: 25px;
-        border-radius: 16px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    }
-
-    .activity-item {
-        display: flex;
-        align-items: start;
-        gap: 15px;
-        padding: 15px;
-        border-bottom: 1px solid #f3f4f6;
-        transition: background 0.3s ease;
-    }
-
-    .activity-item:hover {
-        background: #f9fafb;
-    }
-
-    .activity-item:last-child {
-        border-bottom: none;
-    }
-
-    .activity-icon {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 16px;
-        flex-shrink: 0;
-    }
-
-    .activity-icon.upload {
-        background: #dbeafe;
-        color: #1e40af;
-    }
-
-    .activity-icon.edit {
-        background: #fef3c7;
-        color: #92400e;
-    }
-
-    .activity-icon.delete {
-        background: #fee2e2;
-        color: #991b1b;
+    .chart-card canvas {
+        width: 100% !important;
+        max-height: 260px !important;
     }
 
     @media (max-width: 768px) {
-        .stats-grid {
+        .stats-grid,
+        .age-grid,
+        .charts-grid {
             grid-template-columns: 1fr;
         }
 
+        .chart-card {
+            min-height: auto;
+        }
+    }
+
+    @media (max-width: 1100px) and (min-width: 769px) {
+        .stats-grid,
+        .age-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
         .charts-grid {
-            grid-template-columns: 1fr;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
         }
     }
 </style>
 @endpush
 
 @section('content')
-<!-- Statistics Cards -->
+@php
+    $totalMeninggalKeluar = (int) (($totalMeninggalKeluar ?? 0) ?: ((($totalMeninggal ?? 0) + ($totalKeluar ?? 0))));
+
+    $summaryCards = [
+        [
+            'label' => 'Jumlah penduduk aktif',
+            'value' => $totalPenduduk ?? 0,
+            'sub' => 'Penduduk yang masih terdata aktif di wilayah layanan.',
+        ],
+        [
+            'label' => 'Jumlah kepala keluarga',
+            'value' => $totalKK ?? 0,
+            'sub' => 'Kepala keluarga aktif yang menjadi acuan administrasi.',
+        ],
+        [
+            'label' => 'Jumlah laki-laki',
+            'value' => $totalLakiLaki ?? 0,
+            'sub' => ($persenLakiLaki ?? 0) . '% dari total penduduk aktif.',
+        ],
+        [
+            'label' => 'Jumlah perempuan',
+            'value' => $totalPerempuan ?? 0,
+            'sub' => ($persenPerempuan ?? 0) . '% dari total penduduk aktif.',
+        ],
+        [
+            'label' => 'Jumlah meninggal dan keluar',
+            'value' => $totalMeninggalKeluar,
+            'sub' => 'Meninggal: ' . number_format($totalMeninggal ?? 0) . ' • Keluar: ' . number_format($totalKeluar ?? 0),
+        ],
+    ];
+
+    $ageCards = [
+        [
+            'label' => 'Jumlah Bayi & Balita (0–5 Tahun)',
+            'value' => $totalBalita ?? 0,
+            'sub' => 'Masa krusial untuk pertumbuhan fisik, perkembangan kognitif, dan pencegahan stunting.',
+        ],
+        [
+            'label' => 'Jumlah Anak-anak (6–11 Tahun)',
+            'value' => $ageValues[1] ?? 0,
+            'sub' => 'Masa usia sekolah dasar, fokus pada pengembangan kemampuan sosial, kognitif, dan perilaku dasar.',
+        ],
+        [
+            'label' => 'Jumlah Remaja (10–19 Tahun)',
+            'value' => $ageValues[2] ?? 0,
+            'sub' => 'Masa pubertas dan pencarian jati diri, penting untuk edukasi kesehatan reproduksi dan mental.',
+        ],
+        [
+            'label' => 'Jumlah Dewasa (19–59 Tahun)',
+            'value' => $totalProduktif ?? 0,
+            'sub' => 'Usia produktif yang fokus pada produktivitas kerja, kesehatan fisik, dan pencegahan penyakit tidak menular.',
+        ],
+        [
+            'label' => 'Jumlah Lansia (60+ Tahun)',
+            'value' => $totalLansia ?? 0,
+            'sub' => 'Fokus pada pemeliharaan kesehatan di usia tua agar tetap mandiri dan memiliki kualitas hidup yang baik.',
+        ],
+    ];
+@endphp
+
 <div class="stats-grid">
-    <div class="stat-card primary">
-        <div class="stat-icon primary">
-            <i class="fas fa-users"></i>
+    @foreach($summaryCards as $card)
+        <div class="stat-card summary-card">
+            <div class="stat-label">{{ $card['label'] }}</div>
+            <div class="stat-value">{{ number_format($card['value'] ?? 0) }}</div>
+            <div class="stat-sub">{{ $card['sub'] }}</div>
         </div>
-        <div class="stat-content">
-            <h3>{{ number_format($totalPenduduk ?? 0) }}</h3>
-            <p>Total Penduduk</p>
-        </div>
-    </div>
-
-    <div class="stat-card success">
-        <div class="stat-icon success">
-            <i class="fas fa-male"></i>
-        </div>
-        <div class="stat-content">
-            <h3>{{ number_format($totalLakiLaki ?? 0) }}</h3>
-            <p>Laki-laki ({{ $persenLakiLaki ?? 0 }}%)</p>
-        </div>
-    </div>
-
-    <div class="stat-card warning">
-        <div class="stat-icon warning">
-            <i class="fas fa-female"></i>
-        </div>
-        <div class="stat-content">
-            <h3>{{ number_format($totalPerempuan ?? 0) }}</h3>
-            <p>Perempuan ({{ $persenPerempuan ?? 0 }}%)</p>
-        </div>
-    </div>
-
-    <div class="stat-card info">
-        <div class="stat-icon info">
-            <i class="fas fa-child"></i>
-        </div>
-        <div class="stat-content">
-            <h3>{{ number_format($totalBalita ?? 0) }}</h3>
-            <p>Balita (0-5 Tahun)</p>
-        </div>
-    </div>
-
-    <div class="stat-card primary">
-        <div class="stat-icon primary">
-            <i class="fas fa-user-friends"></i>
-        </div>
-        <div class="stat-content">
-            <h3>{{ number_format($totalProduktif ?? 0) }}</h3>
-            <p>Usia Produktif</p>
-        </div>
-    </div>
-
-    <div class="stat-card warning">
-        <div class="stat-icon warning">
-            <i class="fas fa-user-clock"></i>
-        </div>
-        <div class="stat-content">
-            <h3>{{ number_format($totalLansia ?? 0) }}</h3>
-            <p>Lansia (>60 Tahun)</p>
-        </div>
-    </div>
+    @endforeach
 </div>
 
-<!-- Charts Grid -->
+<div class="age-grid">
+    @foreach($ageCards as $card)
+        <div class="stat-card age-card">
+            <div class="stat-label">{{ $card['label'] }}</div>
+            <div class="stat-value">{{ number_format($card['value'] ?? 0) }}</div>
+            <div class="stat-sub">{{ $card['sub'] }}</div>
+        </div>
+    @endforeach
+</div>
+
 <div class="charts-grid">
-    <!-- Gender Distribution Chart -->
     <div class="chart-card">
         <div class="chart-header">
-            <h2 class="chart-title">Distribusi Gender</h2>
-            <i class="fas fa-ellipsis-v chart-menu"></i>
+            <h2 class="chart-title">Chart jumlah laki-laki dan perempuan</h2>
         </div>
         <canvas id="genderChart"></canvas>
         <div class="gender-legend">
@@ -309,39 +318,24 @@
         </div>
     </div>
 
-    <!-- Age Distribution Chart -->
     <div class="chart-card">
         <div class="chart-header">
-            <h2 class="chart-title">Distribusi Usia</h2>
-            <i class="fas fa-ellipsis-v chart-menu"></i>
+            <h2 class="chart-title">Kategori Usia</h2>
         </div>
         <canvas id="ageChart"></canvas>
     </div>
 
-    <!-- Education Chart -->
     <div class="chart-card">
         <div class="chart-header">
-            <h2 class="chart-title">Tingkat Pendidikan</h2>
-            <i class="fas fa-ellipsis-v chart-menu"></i>
+            <h2 class="chart-title">Tingkat pendidikan</h2>
         </div>
         <canvas id="educationChart"></canvas>
-    </div>
-
-    <!-- Occupation Chart -->
-    <div class="chart-card">
-        <div class="chart-header">
-            <h2 class="chart-title">Jenis Pekerjaan</h2>
-            <i class="fas fa-ellipsis-v chart-menu"></i>
-        </div>
-        <canvas id="occupationChart"></canvas>
     </div>
 </div>
 @endsection
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
 <script>
 // Chart.js Configuration
@@ -358,9 +352,6 @@ const ageLabels = @json($ageLabels);
 const ageValues = @json($ageValues);
 const educationLabels = @json($educationLabels);
 const educationValues = @json($educationValues);
-const occupationLabels = @json($occupationLabels);
-const occupationValues = @json($occupationValues);
-const dusunData = @json($dusunMapData);
 
 const palette = [
     chartColors.primary,
@@ -448,73 +439,5 @@ new Chart(educationCtx, {
         }
     }
 });
-
-// Occupation Chart
-const occupationCtx = document.getElementById('occupationChart').getContext('2d');
-new Chart(occupationCtx, {
-    type: 'doughnut',
-    data: {
-        labels: occupationLabels,
-        datasets: [{
-            data: occupationValues,
-            backgroundColor: occupationLabels.map((_, index) => palette[index % palette.length]),
-            borderWidth: 0
-        }]
-    },
-    options: {
-        responsive: true,
-        plugins: {
-            legend: {
-                position: 'bottom',
-            }
-        }
-    }
-});
-
-// Leaflet Map
-const map = L.map('map').setView([-7.5, 110.5], 13);
-
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap contributors'
-}).addTo(map);
-
-const bounds = [];
-const baseMarkerStyle = {
-    color: '#0284c7',
-    weight: 2,
-    fillColor: '#38bdf8',
-    fillOpacity: 0.35,
-};
-
-dusunData.forEach(dusun => {
-    const lat = Number(dusun.lat);
-    const lng = Number(dusun.lng);
-
-    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-        return;
-    }
-
-    bounds.push([lat, lng]);
-
-    const radius = Math.max(8, Math.min(26, 8 + Math.sqrt(Number(dusun.total_penduduk || 0))));
-    const marker = L.circleMarker([lat, lng], {
-        ...baseMarkerStyle,
-        radius,
-    }).addTo(map);
-    marker.bindPopup(`
-        <div style="font-family: 'Segoe UI', sans-serif; min-width: 200px;">
-            <h3 style="margin: 0 0 10px 0; color: #0C342C; font-size: 16px;">${dusun.name}</h3>
-            <p style="margin: 5px 0;"><strong>Total Penduduk:</strong> ${dusun.total_penduduk}</p>
-            <p style="margin: 5px 0;"><strong>Laki-laki:</strong> ${dusun.total_laki_laki}</p>
-            <p style="margin: 5px 0;"><strong>Perempuan:</strong> ${dusun.total_perempuan}</p>
-        </div>
-    `);
-});
-
-if (bounds.length === 1) {
-    map.setView(bounds[0], 15);
-} else if (bounds.length > 1) {
-    map.fitBounds(bounds, { padding: [30, 30] });
-}
 </script>
 @endpush
