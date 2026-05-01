@@ -384,10 +384,7 @@
     <p>
         Data ditampilkan dalam bentuk agregat untuk menjaga privasi warga. Tidak ada data individu yang ditampilkan.
     </p>
-    <div class="privacy-note">
-        <i class="fas fa-shield-alt"></i>
-        Kategori dengan jumlah < {{ $privacyThreshold }} digabung ke "Lainnya"
-    </div>
+    
 </section>
 
 <section class="section-wrap">
@@ -582,6 +579,32 @@
             </table>
         </div>
         <div id="publicStatMap"></div>
+        <div class="map-legend" style="margin-top: 14px; padding: 14px; background: #fff; border-radius: 12px; box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);">
+            <p style="margin: 0 0 10px; font-weight: 700; color: #0f172a; font-size: 14px;">Keterangan Peta:</p>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <svg width="24" height="32" viewBox="0 0 24 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 0C5.37258 0 0 5.37258 0 12C0 20 12 32 12 32C12 32 24 20 24 12C24 5.37258 18.6274 0 12 0Z" fill="#FCD34D"/>
+                        <circle cx="12" cy="12" r="4" fill="#fff"/>
+                    </svg>
+                    <span style="font-size: 13px; color: #475569;">Dusun</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <svg width="24" height="32" viewBox="0 0 24 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 0C5.37258 0 0 5.37258 0 12C0 20 12 32 12 32C12 32 24 20 24 12C24 5.37258 18.6274 0 12 0Z" fill="#065F46"/>
+                        <circle cx="12" cy="12" r="4" fill="#fff"/>
+                    </svg>
+                    <span style="font-size: 13px; color: #475569;">RW</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <svg width="24" height="32" viewBox="0 0 24 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 0C5.37258 0 0 5.37258 0 12C0 20 12 32 12 32C12 32 24 20 24 12C24 5.37258 18.6274 0 12 0Z" fill="#1E40AF"/>
+                        <circle cx="12" cy="12" r="4" fill="#fff"/>
+                    </svg>
+                    <span style="font-size: 13px; color: #475569;">RT</span>
+                </div>
+            </div>
+        </div>
     </div>
 </section>
 @endsection
@@ -708,17 +731,57 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap contributors'
 }).addTo(map);
 
-const dusunMapData = @json($dusunPopulationRows);
+// Fungsi untuk membuat location pin SVG dengan warna berbeda
+function createLocationPinMarker(color) {
+    const svg = `
+        <svg width="40" height="52" viewBox="0 0 24 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 0C5.37258 0 0 5.37258 0 12C0 20 12 32 12 32C12 32 24 20 24 12C24 5.37258 18.6274 0 12 0Z" fill="${color}"/>
+            <circle cx="12" cy="12" r="4" fill="#fff"/>
+        </svg>
+    `;
+    
+    return L.divIcon({
+        html: svg,
+        iconSize: [40, 52],
+        iconAnchor: [20, 52],
+        popupAnchor: [0, -52],
+        className: 'custom-location-pin'
+    });
+}
 
+// Marker untuk Dusun (warna kuning)
+const dusunMapData = @json($dusunPopulationRows);
 let hasMarker = false;
+
 dusunMapData.forEach((dusun) => {
     if (dusun.lat === null || dusun.lng === null) {
         return;
     }
-
     hasMarker = true;
-    const marker = L.marker([dusun.lat, dusun.lng]).addTo(map);
-    marker.bindPopup(`<b>${dusun.nama}</b><br>Total Penduduk Aktif: ${dusun.total_penduduk}`);
+    const marker = L.marker([dusun.lat, dusun.lng], { icon: createLocationPinMarker('#FCD34D') }).addTo(map);
+    marker.bindPopup(`<b>${dusun.nama}</b> (Dusun)<br>Latitude: ${dusun.lat}<br>Longitude: ${dusun.lng}`);
+});
+
+// Marker untuk RW (warna biru)
+const rwMapData = @json($rwMapRows);
+rwMapData.forEach((rw) => {
+    if (rw.latitude === null || rw.longitude === null) {
+        return;
+    }
+    hasMarker = true;
+    const marker = L.marker([rw.latitude, rw.longitude], { icon: createLocationPinMarker('#065F46') }).addTo(map);
+    marker.bindPopup(`<b>${rw.nama}</b> (RW ${rw.nomor_rw})<br>Latitude: ${rw.latitude}<br>Longitude: ${rw.longitude}`);
+});
+
+// Marker untuk RT (warna biru gelap)
+const rtMapData = @json($rtMapRows);
+rtMapData.forEach((rt) => {
+    if (rt.latitude === null || rt.longitude === null) {
+        return;
+    }
+    hasMarker = true;
+    const marker = L.marker([rt.latitude, rt.longitude], { icon: createLocationPinMarker('#1E40AF') }).addTo(map);
+    marker.bindPopup(`<b>${rt.nama}</b> (RT ${rt.nomor_rt})<br>Latitude: ${rt.latitude}<br>Longitude: ${rt.longitude}`);
 });
 
 if (!hasMarker) {

@@ -436,6 +436,20 @@ $buildPublicStatisticsData = function () {
         ->whereNotNull('nomor_rt')
         ->get(['id_dusun', 'nomor_rw', 'nomor_rt']);
 
+    // Get RW and RT with coordinates for map
+    $rwMapRows = Wilayah::query()
+        ->where('tipe', 'rw')
+        ->whereNotNull('id_dusun')
+        ->whereNotNull('nomor_rw')
+        ->get(['id_dusun', 'nomor_rw', 'latitude', 'longitude', 'nama']);
+
+    $rtMapRows = Wilayah::query()
+        ->where('tipe', 'rt')
+        ->whereNotNull('id_dusun')
+        ->whereNotNull('nomor_rw')
+        ->whereNotNull('nomor_rt')
+        ->get(['id_dusun', 'nomor_rw', 'nomor_rt', 'latitude', 'longitude', 'nama']);
+
     $wilayahStructureRows = collect($dusunPopulationRows)->map(function ($dusun) use ($rwRows, $rtRows) {
         $dusunId = (int) ($dusun['id'] ?? 0);
         $rwFromMaster = collect($rwRows->get($dusunId, []))
@@ -524,6 +538,8 @@ $buildPublicStatisticsData = function () {
         'wilayahStructureRows' => $wilayahStructureRows,
         'mapCenterLat' => $mapCenterLat,
         'mapCenterLng' => $mapCenterLng,
+        'rwMapRows' => $rwMapRows,
+        'rtMapRows' => $rtMapRows,
     ];
 };
 
