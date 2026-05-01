@@ -54,7 +54,7 @@
         margin: 0 auto 20px;
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 16px;
+        gap: 20px;
         align-items: stretch;
     }
 
@@ -97,6 +97,31 @@
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 8px;
+    }
+
+    .gender-chart-legend {
+        margin: 10px 0 2px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+        font-size: 13px;
+        color: #64748b;
+    }
+
+    .gender-chart-legend-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+    }
+
+    .gender-chart-swatch {
+        width: 44px;
+        height: 12px;
+        border-radius: 999px;
+        display: inline-block;
     }
 
     .gender-pill {
@@ -328,6 +353,7 @@
     @endphp
 
     <div class="kpi-grid">
+        <!-- Row 1 -->
         <div class="kpi-card">
             <div class="kpi-label">Total Penduduk Aktif</div>
             <div class="kpi-value">{{ number_format($totalPendudukAktif) }}</div>
@@ -339,23 +365,14 @@
         </div>
 
         <div class="kpi-card">
-            <div class="kpi-label">Jumlah Penduduk per Gender</div>
-            <div class="kpi-value">{{ number_format(($genderValues[0] ?? 0) + ($genderValues[1] ?? 0)) }}</div>
-            <div class="kpi-sub">Ditampilkan dalam jumlah jiwa (bukan persentase)</div>
-            <div class="gender-counts">
-                <div class="gender-pill male">
-                    Laki-laki: {{ number_format($genderValues[0] ?? 0) }}
-                    <small>Jiwa</small>
-                </div>
-                <div class="gender-pill female">
-                    Perempuan: {{ number_format($genderValues[1] ?? 0) }}
-                    <small>Jiwa</small>
-                </div>
-            </div>
+            <div class="kpi-label">Luas Wilayah Desa</div>
+            <div class="kpi-value">{{ number_format($totalLuasDesaKm2, 2) }} km²</div>
+            <div class="kpi-sub">Kepadatan: {{ number_format($kepadatan, 2) }} jiwa/km²</div>
         </div>
 
+        <!-- Row 2 -->
         <div class="kpi-card">
-            <div class="kpi-label">Jumlah Dusun dan RW per Dusun</div>
+            <div class="kpi-label">Informasi Dusun</div>
             <div class="kpi-value">{{ $totalDusun }} Dusun</div>
             <div class="kpi-sub">Total RW: {{ $totalRw }}</div>
             <div class="list-wrap">
@@ -375,7 +392,7 @@
         </div>
 
         <div class="kpi-card">
-            <div class="kpi-label">Jumlah RW dan RT per RW</div>
+            <div class="kpi-label">Informasi RW</div>
             <div class="kpi-value">{{ $totalRw }} RW</div>
             <div class="kpi-sub">Total RT: {{ $totalRt }}</div>
             <div class="list-wrap">
@@ -388,7 +405,6 @@
                             @else
                                 belum ada RT
                             @endif
-                            ({{ $item['jumlah_rt'] }} RT)
                         </li>
                     @empty
                         <li>Belum ada data relasi RW/RT.</li>
@@ -398,14 +414,48 @@
         </div>
 
         <div class="kpi-card">
-            <div class="kpi-label">Komposisi Gender</div>
+            <div class="kpi-label">Informasi RT</div>
+            <div class="kpi-value">{{ $totalRt }} RT</div>
+            <div class="kpi-sub">Dari {{ $totalRw }} RW</div>
+            <div class="list-wrap">
+                <ul class="mini-list">
+                    @forelse($rwRtDetails as $item)
+                        <li>
+                            {{ $item['dusun'] }} - RW {{ $item['nomor_rw'] }}:
+                            @if(!empty($item['rt_list']))
+                                RT {{ implode(', ', $item['rt_list']) }}
+                            @else
+                                belum ada RT
+                            @endif
+                        </li>
+                    @empty
+                        <li>Belum ada data RT.</li>
+                    @endforelse
+                </ul>
+            </div>
+        </div>
+
+        <!-- Row 3 -->
+        <div class="kpi-card">
+            <div class="kpi-label">Chart Jumlah Laki-laki dan Perempuan</div>
             <canvas id="genderChart"></canvas>
+            <div class="gender-chart-legend" aria-label="Legenda chart gender">
+                <span class="gender-chart-legend-item"><span class="gender-chart-swatch" style="background:#076653;"></span>Laki-laki</span>
+                <span class="gender-chart-legend-item"><span class="gender-chart-swatch" style="background:#f59e0b;"></span>Perempuan</span>
+            </div>
+            <div class="gender-counts" style="margin-top: 16px;">
+                <div class="gender-pill male">
+                    Laki-laki: {{ number_format($genderValues[0] ?? 0) }}
+                </div>
+                <div class="gender-pill female">
+                    Perempuan: {{ number_format($genderValues[1] ?? 0) }}
+                </div>
+            </div>
         </div>
 
         <div class="kpi-card">
-            <div class="kpi-label">Luas Wilayah Desa</div>
-            <div class="kpi-value">{{ number_format($totalLuasDesaKm2, 2) }} km²</div>
-            <div class="kpi-sub">Kepadatan: {{ number_format($kepadatan, 2) }} jiwa/km²</div>
+            <div class="kpi-label">Chart Status Kependudukan</div>
+            <canvas id="statusChart"></canvas>
         </div>
 
         <div class="kpi-card">
@@ -424,11 +474,6 @@
                     <strong>{{ number_format($statusValues[2] ?? 0) }}</strong>
                 </div>
             </div>
-        </div>
-
-        <div class="kpi-card">
-            <div class="kpi-label">Chart Status Kependudukan</div>
-            <canvas id="statusChart"></canvas>
         </div>
     </div>
 
@@ -499,14 +544,14 @@ const c = {
 new Chart(document.getElementById('genderChart').getContext('2d'), {
     type: 'doughnut',
     data: {
-        labels: @json($genderLabels),
+        labels: [@json($genderLabels[1]), @json($genderLabels[0])],
         datasets: [{
-            data: @json($genderValues),
-            backgroundColor: [c.primary, c.warning],
+            data: [@json($genderValues[1]), @json($genderValues[0])],
+            backgroundColor: [c.warning, c.primary],
             borderWidth: 0
         }]
     },
-    options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+    options: { responsive: true, plugins: { legend: { display: false } } }
 });
 
 new Chart(document.getElementById('statusChart').getContext('2d'), {
