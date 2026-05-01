@@ -325,26 +325,43 @@ $buildPublicStatisticsData = function () {
         $educationValues = [0];
     }
 
-    $occupationRows = (clone $pendudukAktif)
-        ->selectRaw("COALESCE(NULLIF(TRIM(pekerjaan), ''), 'Tidak diketahui') as label")
-        ->selectRaw('COUNT(*) as total')
-        ->groupBy('label')
-        ->orderByDesc('total')
-        ->get();
+    // Hitung kategori pekerjaan dengan urutan tetap
+    $occupationRaw = (clone $pendudukAktif)
+        ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('PELAJAR','PELAJAR/MAHASISWA','MAHASISWA') THEN 1 ELSE 0 END) as pelajar")
+        ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('PETANI','PETANI/PETERNAK','PETERNAK') THEN 1 ELSE 0 END) as petani")
+        ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('IRT','IBU RUMAH TANGGA','IBURUNAH TANGGA') THEN 1 ELSE 0 END) as irt")
+        ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('WIRASWASTA','WIRAUSAHA','PENGUSAHA','PEDAGANG') THEN 1 ELSE 0 END) as wiraswasta")
+        ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('GURU','PENDIDIK') THEN 1 ELSE 0 END) as guru")
+        ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('PNS','PEGAWAI NEGERI SIPIL','PEGAWAI NEGERI','ASN','APARATUR SIPIL NEGARA') THEN 1 ELSE 0 END) as pns")
+        ->first();
 
-    $occupationFiltered = $occupationRows->filter(fn ($row) => (int) $row->total >= $privacyThreshold);
-    $occupationOthersTotal = (int) $occupationRows->filter(fn ($row) => (int) $row->total < $privacyThreshold)->sum('total');
+    $occupationFixedOrder = [
+        'Pelajar',
+        'Petani',
+        'IRT',
+        'Wiraswasta',
+        'Guru',
+        'PNS',
+    ];
 
-    $occupationLabels = $occupationFiltered->pluck('label')->take(8)->values()->all();
-    $occupationValues = $occupationFiltered->pluck('total')->take(8)->map(fn ($value) => (int) $value)->values()->all();
+    $occupationValuesMap = [
+        'Pelajar' => (int) ($occupationRaw->pelajar ?? 0),
+        'Petani' => (int) ($occupationRaw->petani ?? 0),
+        'IRT' => (int) ($occupationRaw->irt ?? 0),
+        'Wiraswasta' => (int) ($occupationRaw->wiraswasta ?? 0),
+        'Guru' => (int) ($occupationRaw->guru ?? 0),
+        'PNS' => (int) ($occupationRaw->pns ?? 0),
+    ];
 
-    $occupationTopTotal = array_sum($occupationValues);
-    $occupationRemainingTotal = (int) $occupationFiltered->slice(8)->sum('total');
+    $occupationMatchedTotal = array_sum(array_values($occupationValuesMap));
+    $occupationOthersTotal = max(0, $totalPendudukAktif - $occupationMatchedTotal);
 
-    $occupationOthersCombined = $occupationOthersTotal + $occupationRemainingTotal;
-    if ($occupationOthersCombined > 0) {
+    $occupationLabels = $occupationFixedOrder;
+    $occupationValues = array_map(fn($label) => $occupationValuesMap[$label] ?? 0, $occupationLabels);
+
+    if ($occupationOthersTotal > 0) {
         $occupationLabels[] = 'Lainnya';
-        $occupationValues[] = $occupationOthersCombined;
+        $occupationValues[] = $occupationOthersTotal;
     }
 
     if (empty($occupationLabels)) {
