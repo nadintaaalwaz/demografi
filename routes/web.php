@@ -332,7 +332,10 @@ $buildPublicStatisticsData = function () {
         ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('IRT','IBU RUMAH TANGGA','IBURUNAH TANGGA') THEN 1 ELSE 0 END) as irt")
         ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('WIRASWASTA','WIRAUSAHA','PENGUSAHA','PEDAGANG') THEN 1 ELSE 0 END) as wiraswasta")
         ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('GURU','PENDIDIK') THEN 1 ELSE 0 END) as guru")
+        ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('DOSEN','TENAGA PENGAJAR') THEN 1 ELSE 0 END) as dosen")
         ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('PNS','PEGAWAI NEGERI SIPIL','PEGAWAI NEGERI','ASN','APARATUR SIPIL NEGARA') THEN 1 ELSE 0 END) as pns")
+        ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('TNI','TENTARA NASIONAL INDONESIA','ANGGOTA TNI') THEN 1 ELSE 0 END) as tni")
+        ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('POLRI','POLISI','ANGGOTA POLRI','KEPOLISIAN NEGARA RI') THEN 1 ELSE 0 END) as polri")
         ->first();
 
     $occupationFixedOrder = [
@@ -341,7 +344,10 @@ $buildPublicStatisticsData = function () {
         'IRT',
         'Wiraswasta',
         'Guru',
+        'Dosen',
         'PNS',
+        'TNI',
+        'POLRI',
     ];
 
     $occupationValuesMap = [
@@ -350,7 +356,10 @@ $buildPublicStatisticsData = function () {
         'IRT' => (int) ($occupationRaw->irt ?? 0),
         'Wiraswasta' => (int) ($occupationRaw->wiraswasta ?? 0),
         'Guru' => (int) ($occupationRaw->guru ?? 0),
+        'Dosen' => (int) ($occupationRaw->dosen ?? 0),
         'PNS' => (int) ($occupationRaw->pns ?? 0),
+        'TNI' => (int) ($occupationRaw->tni ?? 0),
+        'POLRI' => (int) ($occupationRaw->polri ?? 0),
     ];
 
     $occupationMatchedTotal = array_sum(array_values($occupationValuesMap));

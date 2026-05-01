@@ -194,6 +194,102 @@
         max-height: 260px !important;
     }
 
+    .occupation-section {
+        background: #fff;
+        padding: 28px;
+        border-radius: 28px;
+        box-shadow: 0 14px 32px rgba(15, 23, 42, 0.08);
+        border: none;
+        transition: transform 0.28s ease, box-shadow 0.28s ease;
+        margin-bottom: 40px;
+    }
+
+    .occupation-section:hover {
+        transform: translateY(-7px);
+        box-shadow: 0 18px 36px rgba(7, 102, 83, 0.16), 0 0 0 1px rgba(227, 239, 38, 0.18);
+    }
+
+    .occupation-header {
+        margin-bottom: 24px;
+        padding-bottom: 16px;
+        border-bottom: 2px solid #eef2f7;
+    }
+
+    .occupation-title {
+        font-size: 18px;
+        font-weight: 800;
+        color: #0C342C;
+        letter-spacing: -0.01em;
+    }
+
+    .occupation-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .occupation-table thead tr {
+        background: #f8fafc;
+        border-bottom: 2px solid #e2e8f0;
+    }
+
+    .occupation-table th {
+        padding: 14px 16px;
+        text-align: left;
+        font-size: 13px;
+        font-weight: 800;
+        color: #475569;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+
+    .occupation-table tbody tr {
+        border-bottom: 1px solid #f1f5f9;
+        transition: background-color 0.15s ease;
+    }
+
+    .occupation-table tbody tr:hover {
+        background-color: #f8fafc;
+    }
+
+    .occupation-table td {
+        padding: 16px;
+        font-size: 15px;
+        color: #334155;
+    }
+
+    .occupation-table td:first-child {
+        font-weight: 600;
+        color: #076653;
+    }
+
+    .occupation-number {
+        font-weight: 700;
+        color: #0C342C;
+        font-size: 16px;
+    }
+
+    .occupation-percentage {
+        font-size: 13px;
+        color: #64748b;
+        margin-top: 4px;
+    }
+
+    .occupation-bar {
+        width: 100%;
+        height: 6px;
+        background: #e2e8f0;
+        border-radius: 3px;
+        overflow: hidden;
+        margin-top: 8px;
+    }
+
+    .occupation-bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #076653 0%, #0C342C 100%);
+        border-radius: 3px;
+        transition: width 0.3s ease;
+    }
+
     @media (max-width: 768px) {
         .stats-grid,
         .age-grid,
@@ -203,6 +299,15 @@
 
         .chart-card {
             min-height: auto;
+        }
+
+        .occupation-table {
+            font-size: 13px;
+        }
+
+        .occupation-table th,
+        .occupation-table td {
+            padding: 10px 12px;
         }
     }
 
@@ -331,6 +436,51 @@
         </div>
         <canvas id="educationChart"></canvas>
     </div>
+</div>
+
+<!-- Occupation Section -->
+<div class="occupation-section">
+    <div class="occupation-header">
+        <h2 class="occupation-title">Informasi Pekerjaan Penduduk Aktif</h2>
+    </div>
+    <table class="occupation-table">
+        <thead>
+            <tr>
+                <th style="width: 25%;">Jenis Pekerjaan</th>
+                <th style="width: 15%; text-align: center;">Jumlah</th>
+                <th style="width: 60%;">Persentase</th>
+            </tr>
+        </thead>
+        <tbody>
+            @php
+                $totalOccupation = array_sum($occupationValues ?? []);
+            @endphp
+            @forelse($occupationLabels as $index => $label)
+                @php
+                    $count = $occupationValues[$index] ?? 0;
+                    $percentage = $totalOccupation > 0 ? round(($count / $totalOccupation) * 100, 1) : 0;
+                @endphp
+                <tr>
+                    <td>{{ $label }}</td>
+                    <td style="text-align: center;">
+                        <div class="occupation-number">{{ number_format($count) }}</div>
+                    </td>
+                    <td>
+                        <div class="occupation-bar">
+                            <div class="occupation-bar-fill" style="width: {{ $percentage }}%"></div>
+                        </div>
+                        <div class="occupation-percentage">{{ $percentage }}% dari {{ number_format($totalOccupation) }} penduduk aktif</div>
+                    </td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="3" style="text-align: center; color: #94a3b8; padding: 24px;">
+                        Data pekerjaan tidak tersedia
+                    </td>
+                </tr>
+            @endforelse
+        </tbody>
+    </table>
 </div>
 @endsection
 
