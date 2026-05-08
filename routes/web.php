@@ -9,6 +9,7 @@ use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\WilayahController;
 use App\Http\Controllers\PendudukController;
 use App\Http\Controllers\DinamikaPendudukController;
+use App\Http\Controllers\ReportController;
 use App\Models\Penduduk;
 use App\Models\User;
 use App\Models\Wilayah;
@@ -953,6 +954,12 @@ Route::prefix('kasi')->name('kasi.')->middleware(['auth', 'role:kasi'])->group(f
         return redirect()->route('kasi.penduduk.index')->with('success', 'Data berhasil dihapus');
     })->name('penduduk.destroy');
     
+    // Laporan Demografi & Dinamika
+    Route::get('/laporan', [ReportController::class, 'index'])->name('laporan.index');
+    Route::post('/laporan/data', [ReportController::class, 'getData'])->name('laporan.data');
+    Route::post('/laporan/export-excel', [ReportController::class, 'exportExcel'])->name('laporan.export-excel');
+    Route::post('/laporan/export-pdf', [ReportController::class, 'exportPdf'])->name('laporan.export-pdf');
+    
     // Upload Data Bank KK
     Route::get('/upload', [PendudukController::class, 'uploadForm'])->name('upload.form');
     Route::post('/upload/process', [PendudukController::class, 'upload'])->name('upload.process');
@@ -973,11 +980,6 @@ Route::prefix('kasi')->name('kasi.')->middleware(['auth', 'role:kasi'])->group(f
     // Dinamika Penduduk (Monitoring)
     Route::get('/dinamika-penduduk', [DinamikaPendudukController::class, 'index'])->name('dinamika');
     Route::post('/dinamika-penduduk', [DinamikaPendudukController::class, 'store'])->name('dinamika.store');
-    
-    // Laporan
-    Route::get('/laporan', function () {
-        return view('kasi.laporan');
-    })->name('laporan');
     
     // Manajemen User Kasun
     Route::get('/users', [UserManagementController::class, 'index'])->name('users.index');

@@ -515,7 +515,7 @@
                 </a>
             </li>
             <li class="menu-item">
-                <a href="{{ route('kasi.laporan') }}" class="menu-link {{ request()->routeIs('kasi.laporan') ? 'active' : '' }}">
+                <a href="{{ route('kasi.laporan.index') }}" class="menu-link {{ request()->routeIs('kasi.laporan.*') ? 'active' : '' }}">
                     <i class="fas fa-file-alt"></i>
                     <span>Pelaporan</span>
                 </a>
