@@ -676,7 +676,20 @@ new Chart(document.getElementById('occupationChart').getContext('2d'), {
             borderRadius: 8
         }]
     },
-    options: { responsive: true, indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true } } }
+    options: {
+        responsive: true,
+        indexAxis: 'y',
+        plugins: { legend: { display: false } },
+        scales: {
+            x: { beginAtZero: true },
+            y: {
+                ticks: {
+                    autoSkip: false,
+                    font: { size: 11 }
+                }
+            }
+        }
+    }
 });
 
 new Chart(document.getElementById('dynamicsChart').getContext('2d'), {

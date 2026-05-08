@@ -67,10 +67,10 @@ $buildPublicDashboardData = function () {
 
     // Statistik pendidikan: tetap menggunakan urutan yang dispesifikasikan
     $educationRaw = (clone $pendudukAktif)
-        ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('SD','TAMAT SD','SEKOLAH DASAR') THEN 1 ELSE 0 END) as tamat_sd")
+        ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('SD','TAMAT SD','SEKOLAH DASAR','TAMAT SD / SEDERAJAT','TAMAT SD/SEDERAJAT','SD/SEDERAJAT') THEN 1 ELSE 0 END) as tamat_sd")
         ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('SMP','TAMAT SMP','SEKOLAH MENENGAH PERTAMA') THEN 1 ELSE 0 END) as smp")
         ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('SMA','SMK','SLTA','TAMAT SMA') THEN 1 ELSE 0 END) as sma")
-        ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('D3','D-3','DIII','DIPLOMA III','DIPLOMA 3') THEN 1 ELSE 0 END) as diploma_iii")
+        ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('D3','D-3','DIII','DIPLOMA III','DIPLOMA 3','AKADEMI/ DIPLOMA III/S. MUDA','AKADEMI/DIPLOMA III/S. MUDA','AKADEMI / DIPLOMA III / S. MUDA','AKADEMI') THEN 1 ELSE 0 END) as diploma_iii")
         ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('D4','D-4','DIV','DIPLOMA IV','DIPLOMA 4','S1','STRATA I','STRATA 1') THEN 1 ELSE 0 END) as diploma_iv_s1")
         ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('S2','STRATA II','STRATA 2','MAGISTER') THEN 1 ELSE 0 END) as strata_ii")
         ->first();
@@ -284,10 +284,10 @@ $buildPublicStatisticsData = function () {
 
     // Hitung kategori pendidikan dengan urutan tetap
     $educationRaw = (clone $pendudukAktif)
-        ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('SD','TAMAT SD','SEKOLAH DASAR','SDA') THEN 1 ELSE 0 END) as tamat_sd")
+        ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('SD','TAMAT SD','SEKOLAH DASAR','SDA','TAMAT SD / SEDERAJAT','TAMAT SD/SEDERAJAT','SD/SEDERAJAT') THEN 1 ELSE 0 END) as tamat_sd")
         ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('SMP','TAMAT SMP','SEKOLAH MENENGAH PERTAMA') THEN 1 ELSE 0 END) as smp")
         ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('SMA','SMK','SLTA','TAMAT SMA','SEKOLAH MENENGAH ATAS','MA') THEN 1 ELSE 0 END) as sma")
-        ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('D3','D-3','DIII','DIPLOMA III','DIPLOMA 3') THEN 1 ELSE 0 END) as diploma_iii")
+        ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('D3','D-3','DIII','DIPLOMA III','DIPLOMA 3','AKADEMI/ DIPLOMA III/S. MUDA','AKADEMI/DIPLOMA III/S. MUDA','AKADEMI / DIPLOMA III / S. MUDA','AKADEMI') THEN 1 ELSE 0 END) as diploma_iii")
         ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('D4','D-4','DIV','DIPLOMA IV','DIPLOMA 4','S1','STRATA I','STRATA 1') THEN 1 ELSE 0 END) as diploma_iv_s1")
         ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('S2','STRATA II','STRATA 2','MAGISTER') THEN 1 ELSE 0 END) as strata_ii")
         ->first();
@@ -334,8 +334,8 @@ $buildPublicStatisticsData = function () {
         ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('WIRASWASTA','WIRAUSAHA','PENGUSAHA','PEDAGANG') THEN 1 ELSE 0 END) as wiraswasta")
         ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('GURU','PENDIDIK') THEN 1 ELSE 0 END) as guru")
         ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('DOSEN','TENAGA PENGAJAR') THEN 1 ELSE 0 END) as dosen")
-        ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('PNS','PEGAWAI NEGERI SIPIL','PEGAWAI NEGERI','ASN','APARATUR SIPIL NEGARA') THEN 1 ELSE 0 END) as pns")
-        ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('TNI','TENTARA NASIONAL INDONESIA','ANGGOTA TNI') THEN 1 ELSE 0 END) as tni")
+        ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('PNS','PEGAWAI NEGERI SIPIL','PEGAWAI NEGERI','ASN','APARATUR SIPIL NEGARA','PEGAWAI NEGERI SIPIL (PNS)') THEN 1 ELSE 0 END) as pns")
+        ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('TNI','TENTARA NASIONAL INDONESIA','ANGGOTA TNI','TENTARA NASIONAL INDONESIA (TNI)') THEN 1 ELSE 0 END) as tni")
         ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('POLRI','POLISI','ANGGOTA POLRI','KEPOLISIAN NEGARA RI') THEN 1 ELSE 0 END) as polri")
         ->first();
 
@@ -812,10 +812,10 @@ Route::prefix('kasi')->name('kasi.')->middleware(['auth', 'role:kasi'])->group(f
 
         // Hitung kategori pendidikan dengan urutan tetap untuk kasi
         $educationRaw = (clone $pendudukAktif)
-            ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('SD','TAMAT SD','SEKOLAH DASAR') THEN 1 ELSE 0 END) as tamat_sd")
+            ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('SD','TAMAT SD','SEKOLAH DASAR','TAMAT SD / SEDERAJAT','TAMAT SD/SEDERAJAT','SD/SEDERAJAT') THEN 1 ELSE 0 END) as tamat_sd")
             ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('SMP','TAMAT SMP','SEKOLAH MENENGAH PERTAMA') THEN 1 ELSE 0 END) as smp")
             ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('SMA','SMK','SLTA','TAMAT SMA','SEKOLAH MENENGAH ATAS','MA') THEN 1 ELSE 0 END) as sma")
-            ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('D3','D-3','DIII','DIPLOMA III','DIPLOMA 3') THEN 1 ELSE 0 END) as diploma_iii")
+            ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('D3','D-3','DIII','DIPLOMA III','DIPLOMA 3','AKADEMI/ DIPLOMA III/S. MUDA','AKADEMI/DIPLOMA III/S. MUDA','AKADEMI / DIPLOMA III / S. MUDA','AKADEMI') THEN 1 ELSE 0 END) as diploma_iii")
             ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('D4','D-4','DIV','DIPLOMA IV','DIPLOMA 4','S1','STRATA I','STRATA 1') THEN 1 ELSE 0 END) as diploma_iv_s1")
             ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('S2','STRATA II','STRATA 2','MAGISTER') THEN 1 ELSE 0 END) as strata_ii")
             ->first();
@@ -1051,10 +1051,10 @@ Route::prefix('kasun')->name('kasun.')->middleware(['auth', 'role:kasun'])->grou
         ];
 
         $educationRaw = (clone $pendudukDusunQuery)
-            ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('SD', 'TAMAT SD', 'SEKOLAH DASAR') THEN 1 ELSE 0 END) as tamat_sd")
+            ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('SD', 'TAMAT SD', 'SEKOLAH DASAR', 'TAMAT SD / SEDERAJAT', 'TAMAT SD/SEDERAJAT', 'SD/SEDERAJAT') THEN 1 ELSE 0 END) as tamat_sd")
             ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('SMP', 'SLTP', 'TAMAT SMP', 'SEKOLAH MENENGAH PERTAMA') THEN 1 ELSE 0 END) as smp")
             ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('SMA', 'SMA/SMK', 'SMK', 'SLTA', 'MA', 'TAMAT SMA', 'SEKOLAH MENENGAH ATAS') THEN 1 ELSE 0 END) as sma")
-            ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('D3', 'D-3', 'D III', 'D-III', 'DIPLOMA III', 'DIPLOMA 3') THEN 1 ELSE 0 END) as diploma_iii")
+            ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('D3', 'D-3', 'D III', 'D-III', 'DIPLOMA III', 'DIPLOMA 3', 'AKADEMI/ DIPLOMA III/S. MUDA', 'AKADEMI/DIPLOMA III/S. MUDA', 'AKADEMI / DIPLOMA III / S. MUDA', 'AKADEMI') THEN 1 ELSE 0 END) as diploma_iii")
             ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('D4', 'D-4', 'D IV', 'D-IV', 'DIPLOMA IV', 'DIPLOMA 4', 'S1', 'STRATA 1', 'STRATA I', 'DIPLOMA IV/STRATA 1') THEN 1 ELSE 0 END) as diploma_iv_s1")
             ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('S2', 'STRATA 2', 'STRATA II', 'MAGISTER') THEN 1 ELSE 0 END) as strata_ii")
             ->first();
