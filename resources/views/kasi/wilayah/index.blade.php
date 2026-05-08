@@ -350,11 +350,11 @@ Manajemen Wilayah
         background: #E3EF26;
     }
 
-    .legend-dot.rt {
+    .legend-dot.rw {
         background: #10b981;
     }
 
-    .legend-dot.rw {
+    .legend-dot.rt {
         background: #3b82f6;
     }
 
@@ -585,7 +585,7 @@ Manajemen Wilayah
                             <tr data-tipe="{{ $item->tipe }}" data-lat="{{ $item->latitude }}" data-lng="{{ $item->longitude }}" data-nama="{{ $item->nama }}">
                                 <td>
                                     <div class="wilayah-name">
-                                        <div class="wilayah-dot {{ $item->tipe === 'dusun' ? 'yellow' : ($item->tipe === 'rt' ? 'green' : 'blue') }}"></div>
+                                        <div class="wilayah-dot {{ $item->tipe === 'dusun' ? 'yellow' : ($item->tipe === 'rt' ? 'blue' : 'green') }}"></div>
                                         <div>
                                             <span>{{ $item->nama }}</span>
                                             @if($item->tipe === 'rt' && $item->nomor_rt)
@@ -665,8 +665,8 @@ Manajemen Wilayah
         <div id="map"></div>
         <div class="map-legend">
             <span><i class="legend-dot dusun"></i>Dusun</span>
-            <span><i class="legend-dot rt"></i>RT (pin hijau)</span>
-            <span><i class="legend-dot rw"></i>RW (pin biru)</span>
+            <span><i class="legend-dot rw"></i>RW (pin hijau)</span>
+            <span><i class="legend-dot rt"></i>RT (pin biru)</span>
             <span><i class="legend-dot dusun"></i>Ukuran lingkaran dusun = jumlah penduduk</span>
         </div>
         <div class="map-hint">
@@ -737,8 +737,8 @@ Manajemen Wilayah
         if (item.latitude && item.longitude) {
             let markerColor = '';
             if (item.tipe === 'dusun') markerColor = '#E3EF26';
-            else if (item.tipe === 'rt') markerColor = '#10b981';
-            else markerColor = '#3b82f6';
+            else if (item.tipe === 'rt') markerColor = '#3b82f6';
+            else markerColor = '#10b981';
 
             let marker;
             if (item.tipe === 'dusun') {
