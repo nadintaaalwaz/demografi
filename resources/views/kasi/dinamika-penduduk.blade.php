@@ -314,7 +314,7 @@
     <div class="dinamika-header">
         <div class="dinamika-title">
             <h2><i class="fas fa-wave-square"></i> Dinamika Penduduk</h2>
-            <p>Monitoring data kelahiran, kematian, dan perpindahan penduduk secara real-time.</p>
+            <p>Monitoring data kelahiran, kematian, dan perpindahan penduduk.</p>
         </div>
 
         <div class="dinamika-actions">
