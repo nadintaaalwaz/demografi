@@ -44,21 +44,52 @@
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        background: rgba(227, 239, 38, 0.15);
-        color: #f5ff96;
-        border: 1px solid rgba(227, 239, 38, 0.35);
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.08));
+        color: #f8fffb;
+        border: 1px solid rgba(255, 255, 255, 0.18);
         border-radius: 10px;
         padding: 0 12px;
         height: 38px;
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(8px);
     }
 
     .year-select select {
         border: none;
         background: transparent;
-        color: #f5ff96;
+        color: #ffffff;
         font-weight: 600;
         outline: none;
         cursor: pointer;
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        min-width: 118px;
+        padding-right: 8px;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+    }
+
+    .year-select select option {
+        background: #0b4f45;
+        color: #ffffff;
+    }
+
+    .year-select select:focus {
+        outline: none;
+    }
+
+    .year-select select:hover {
+        color: #ffffff;
+    }
+
+    .year-select .year-caret {
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.92);
+        pointer-events: none;
+    }
+
+    .year-select i.fa-calendar-alt {
+        color: #d7ffe7;
     }
 
     .dinamika-actions {
@@ -299,6 +330,7 @@
                         </option>
                     @endforeach
                 </select>
+                <i class="fas fa-chevron-down year-caret"></i>
             </div>
         </div>
     </div>

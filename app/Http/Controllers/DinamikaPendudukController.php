@@ -11,16 +11,42 @@ class DinamikaPendudukController extends Controller
     {
         $selectedYear = (int) $request->query('tahun', now()->year);
 
-        if ($selectedYear < 2000 || $selectedYear > ((int) now()->year + 5)) {
-            $selectedYear = (int) now()->year;
+        $yearRange = DinamikaPenduduk::query()
+            ->selectRaw('MIN(tahun) as min_year, MAX(tahun) as max_year')
+            ->first();
+
+        $minYear = (int) ($yearRange->min_year ?? (now()->year - 3));
+        $maxYear = (int) ($yearRange->max_year ?? now()->year);
+
+        if ($minYear > $maxYear) {
+            $minYear = (int) now()->year;
+            $maxYear = (int) now()->year;
         }
 
-        $yearOptions = range((int) now()->year - 3, (int) now()->year + 1);
-        rsort($yearOptions);
+        $yearOptions = range($maxYear, $minYear);
 
-        $monthlyRows = DinamikaPenduduk::query()
+        if ($selectedYear < $minYear || $selectedYear > $maxYear) {
+            $selectedYear = $maxYear;
+        }
+
+        $hasDusunSpecificData = DinamikaPenduduk::query()
             ->where('tahun', $selectedYear)
-            ->whereNull('id_dusun')
+            ->whereNotNull('id_dusun')
+            ->exists();
+
+        $scopeQuery = function () use ($selectedYear, $hasDusunSpecificData) {
+            $query = DinamikaPenduduk::query()->where('tahun', $selectedYear);
+
+            if ($hasDusunSpecificData) {
+                $query->whereNotNull('id_dusun');
+            } else {
+                $query->whereNull('id_dusun');
+            }
+
+            return $query;
+        };
+
+        $monthlyRows = $scopeQuery()
             ->select('bulan')
             ->selectRaw('SUM(jumlah_lahir) as jumlah_lahir')
             ->selectRaw('SUM(jumlah_meninggal) as jumlah_meninggal')
@@ -56,9 +82,18 @@ class DinamikaPendudukController extends Controller
         $totalMigrasiKeluar = array_sum($migrasiKeluarSeries);
 
         $previousYear = $selectedYear - 1;
+        $previousHasDusunSpecificData = DinamikaPenduduk::query()
+            ->where('tahun', $previousYear)
+            ->whereNotNull('id_dusun')
+            ->exists();
+
         $previousYearTotal = DinamikaPenduduk::query()
             ->where('tahun', $previousYear)
-            ->whereNull('id_dusun')
+            ->when(
+                $previousHasDusunSpecificData,
+                fn ($query) => $query->whereNotNull('id_dusun'),
+                fn ($query) => $query->whereNull('id_dusun')
+            )
             ->selectRaw('SUM(jumlah_lahir) as jumlah_lahir')
             ->selectRaw('SUM(jumlah_meninggal) as jumlah_meninggal')
             ->selectRaw('SUM(jumlah_masuk) as jumlah_masuk')
@@ -86,7 +121,11 @@ class DinamikaPendudukController extends Controller
         $yearStart = $selectedYear - 4;
         $yearlyRows = DinamikaPenduduk::query()
             ->whereBetween('tahun', [$yearStart, $selectedYear])
-            ->whereNull('id_dusun')
+            ->when(
+                $hasDusunSpecificData,
+                fn ($query) => $query->whereNotNull('id_dusun'),
+                fn ($query) => $query->whereNull('id_dusun')
+            )
             ->select('tahun')
             ->selectRaw('SUM(jumlah_lahir) as jumlah_lahir')
             ->selectRaw('SUM(jumlah_meninggal) as jumlah_meninggal')
