@@ -784,5 +784,16 @@
         form.submit();
         document.body.removeChild(form);
     }
+
+    // Load initial report from server so the page is usable without waiting for AJAX
+    currentFilters = {
+        tahun: document.getElementById('tahun')?.value || '{{ $currentYear }}',
+        bulan: document.getElementById('bulan')?.value || null,
+        dusun_id: document.getElementById('dusun')?.value || null,
+    };
+
+    @if(!empty($initialDemografiData))
+        renderDemografiReport(@json($initialDemografiData));
+    @endif
 </script>
 @endpush

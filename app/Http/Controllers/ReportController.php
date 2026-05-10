@@ -17,6 +17,7 @@ class ReportController extends Controller
     {
         $currentYear = now()->year;
         $currentMonth = now()->month;
+        $currentDusunId = null;
 
         // Get dusun list for filter
         $dusunList = Wilayah::where('tipe', 'dusun')
@@ -26,11 +27,14 @@ class ReportController extends Controller
         // Generate tahun list (misal 5 tahun terakhir)
         $yearList = collect(range(2022, $currentYear))->reverse();
 
+        $initialDemografiData = $this->buildDemografiData($currentYear, $currentDusunId);
+
         return view('kasi.reports', [
             'currentYear' => $currentYear,
             'currentMonth' => $currentMonth,
             'yearList' => $yearList,
             'dusunList' => $dusunList,
+            'initialDemografiData' => $initialDemografiData,
         ]);
     }
 
@@ -64,6 +68,14 @@ class ReportController extends Controller
      */
     private function getDemografiData($tahun, $dusunId = null)
     {
+        return response()->json($this->buildDemografiData($tahun, $dusunId));
+    }
+
+    /**
+     * Build data demografi (snapshot penduduk aktif)
+     */
+    private function buildDemografiData($tahun, $dusunId = null): array
+    {
         // Base query: penduduk aktif
         $query = Penduduk::where('status', 'Aktif');
 
@@ -82,8 +94,8 @@ class ReportController extends Controller
 
         // Pendidikan breakdown
         $educationData = (clone $query)
-            ->selectRaw("COALESCE(tingkat_pendidikan, 'Tidak Terdata') as kategori, COUNT(*) as total")
-            ->groupBy('tingkat_pendidikan')
+            ->selectRaw("COALESCE(pendidikan, 'Tidak Terdata') as kategori, COUNT(*) as total")
+            ->groupBy('pendidikan')
             ->orderByDesc('total')
             ->pluck('total', 'kategori')
             ->toArray();
@@ -94,7 +106,7 @@ class ReportController extends Controller
         // Breakdown per dusun
         $dusunBreakdown = $this->getDusunDemografiBreakdown($tahun, $dusunId);
 
-        return response()->json([
+        return [
             'type' => 'demografi',
             'summary' => [
                 'totalPenduduk' => $totalPenduduk,
@@ -116,13 +128,21 @@ class ReportController extends Controller
                 'data' => [$totalLakiLaki, $totalPerempuan],
             ],
             'dusunBreakdown' => $dusunBreakdown,
-        ]);
+        ];
     }
 
     /**
      * Get data dinamika (kelahiran, kematian, migrasi)
      */
     private function getDinamikaData($tahun, $bulan = null, $dusunId = null)
+    {
+        return response()->json($this->buildDinamikaData($tahun, $bulan, $dusunId));
+    }
+
+    /**
+     * Build data dinamika (kelahiran, kematian, migrasi)
+     */
+    private function buildDinamikaData($tahun, $bulan = null, $dusunId = null): array
     {
         // Base query: dinamika penduduk
         $query = DinamikaPenduduk::where('tahun', $tahun);
@@ -167,7 +187,7 @@ class ReportController extends Controller
             $dusunBreakdown = $this->getDusunDinamikaBreakdown($tahun, $bulan);
         }
 
-        return response()->json([
+        return [
             'type' => 'dinamika',
             'summary' => [
                 'totalLahir' => $totalLahir,
@@ -183,7 +203,7 @@ class ReportController extends Controller
                 'keluar' => array_column($perBulanData, 'keluar'),
             ],
             'dusunBreakdown' => $dusunBreakdown,
-        ]);
+        ];
     }
 
     /**
