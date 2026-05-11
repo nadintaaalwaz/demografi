@@ -473,11 +473,7 @@ class ReportController extends Controller
 
         $query = Penduduk::where('status', 'Aktif');
         if ($dusunId) {
-            $query->whereHas('wilayah', function ($q) use ($dusunId) {
-                $q->where('id', $dusunId)->orWhereHas('parent', function ($p) use ($dusunId) {
-                    $p->where('id', $dusunId);
-                });
-            });
+            $query->where('id_dusun', $dusunId);
         }
 
         $totalPenduduk = (clone $query)->count();
@@ -682,12 +678,17 @@ class ReportController extends Controller
 
     private function simpanArsipLaporan(string $jenisLaporan, int $tahun, ?int $bulan, string $filePath, string $namaFile): void
     {
+        $user = Auth::user();
+        if (!$user) {
+            return;
+        }
+
         $data = [
             'jenis_laporan' => $jenisLaporan,
             'bulan' => $bulan,
             'tahun' => $tahun,
             'file_path' => $filePath,
-            'dibuat_oleh' => Auth::id(),
+            'dibuat_oleh' => (int) $user->id,
             'created_at' => now(),
             'updated_at' => now(),
         ];

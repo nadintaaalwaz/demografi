@@ -370,6 +370,17 @@
                     </select>
                 </div>
                 <div class="manual-form-field">
+                    <label for="id_dusun">Dusun (Opsional)</label>
+                    <select id="id_dusun" name="id_dusun">
+                        <option value="">-- Semua Dusun / Gabungan --</option>
+                        @foreach(($dusunList ?? []) as $dusunId => $dusunNama)
+                            <option value="{{ $dusunId }}" {{ old('id_dusun') == $dusunId ? 'selected' : '' }}>
+                                {{ $dusunNama }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="manual-form-field">
                     <label for="jumlah_lahir">Jumlah Lahir</label>
                     <input type="number" id="jumlah_lahir" name="jumlah_lahir" min="0" value="{{ old('jumlah_lahir', 0) }}" required>
                 </div>
@@ -386,7 +397,7 @@
                     <input type="number" id="jumlah_keluar" name="jumlah_keluar" min="0" value="{{ old('jumlah_keluar', 0) }}" required>
                 </div>
             </div>
-            <p class="manual-note">Input dinamika dilakukan manual sebagai rekap bulanan (bukan dari file Excel penduduk).</p>
+            <p class="manual-note">Input dinamika dilakukan manual sebagai rekap bulanan (bukan dari file Excel penduduk). Pilih dusun jika input per-dusun, atau kosongkan untuk data gabungan seluruh desa.</p>
             <div class="manual-form-footer">
                 <button type="submit" class="btn-save-dinamika">
                     <i class="fas fa-save"></i> Simpan Rekap

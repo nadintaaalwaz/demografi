@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\DinamikaPenduduk;
+use App\Models\Wilayah;
 use Illuminate\Http\Request;
 
 class DinamikaPendudukController extends Controller
@@ -150,9 +151,15 @@ class DinamikaPendudukController extends Controller
             $yearlyKeluar[] = (int) ($row->jumlah_keluar ?? 0);
         }
 
+        // Load dusun list untuk dropdown form
+        $dusunList = Wilayah::where('tipe', 'dusun')
+            ->orderBy('nama')
+            ->pluck('nama', 'id');
+
         return view('kasi.dinamika-penduduk', [
             'selectedYear' => $selectedYear,
             'yearOptions' => $yearOptions,
+            'dusunList' => $dusunList,
             'totalKelahiran' => $totalKelahiran,
             'totalKematian' => $totalKematian,
             'totalMigrasiMasuk' => $totalMigrasiMasuk,
@@ -179,6 +186,7 @@ class DinamikaPendudukController extends Controller
         $validated = $request->validate([
             'tahun' => 'required|integer|min:2000|max:2100',
             'bulan' => 'required|integer|min:1|max:12',
+            'id_dusun' => 'nullable|integer|exists:wilayah,id',
             'jumlah_lahir' => 'required|integer|min:0',
             'jumlah_meninggal' => 'required|integer|min:0',
             'jumlah_masuk' => 'required|integer|min:0',
@@ -186,13 +194,14 @@ class DinamikaPendudukController extends Controller
         ], [
             'tahun.required' => 'Tahun wajib diisi.',
             'bulan.required' => 'Bulan wajib dipilih.',
+            'id_dusun.exists' => 'Dusun yang dipilih tidak valid.',
         ]);
 
         DinamikaPenduduk::updateOrCreate(
             [
                 'tahun' => $validated['tahun'],
                 'bulan' => $validated['bulan'],
-                'id_dusun' => null,
+                'id_dusun' => $validated['id_dusun'] ?? null,
             ],
             [
                 'jumlah_lahir' => $validated['jumlah_lahir'],
