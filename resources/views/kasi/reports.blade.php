@@ -4,6 +4,8 @@
 @section('page-title', 'Laporan Demografi & Dinamika Penduduk')
 
 @push('styles')
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 <style>
     .report-container {
         max-width: 1400px;
@@ -58,84 +60,53 @@
 
     .filter-actions {
         display: flex;
-        gap: 12px;
-        flex-wrap: wrap;
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
     }
 
-    .btn {
-        padding: 10px 20px;
-        border-radius: 8px;
-        border: none;
-        font-size: 14px;
-        font-weight: 700;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
+    .filter-actions .btn {
+        min-width: 190px;
     }
 
-    .btn-primary {
-        background: #076653;
-        color: white;
+    @media (min-width: 768px) {
+        .filter-actions {
+            margin-left: auto;
+            align-items: flex-end;
+            width: auto;
+        }
     }
 
-    .btn-primary:hover {
-        background: #0C342C;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(7, 102, 83, 0.3);
+    .hidden {
+        display: none !important;
     }
 
-    .btn-secondary {
-        background: #f1f5f9;
-        color: #475569;
+    .report-panel {
+        background: #fff;
+        border-radius: 14px;
+        box-shadow: 0 3px 12px rgba(15, 23, 42, 0.08);
+        padding: 20px;
+    }
+
+    .summary-stat {
         border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 16px;
+        background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+        height: 100%;
     }
 
-    .btn-secondary:hover {
-        background: #e2e8f0;
-    }
-
-    .btn-small {
-        padding: 8px 14px;
-        font-size: 12px;
-    }
-
-    .report-tabs {
-        display: flex;
-        gap: 12px;
-        margin-bottom: 24px;
-        border-bottom: 2px solid #f1f5f9;
-    }
-
-    .tab-button {
-        padding: 12px 20px;
-        background: none;
-        border: none;
-        border-bottom: 3px solid transparent;
-        cursor: pointer;
-        font-size: 14px;
-        font-weight: 700;
-        color: #64748b;
-        transition: all 0.2s ease;
-        position: relative;
-        bottom: -2px;
-    }
-
-    .tab-button.active {
-        color: #076653;
-        border-bottom-color: #076653;
-    }
-
-    .tab-button:hover {
-        color: #0C342C;
-    }
-
-    .tab-content {
-        display: none;
-    }
-
-    .tab-content.active {
-        display: block;
+    .summary-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        margin-bottom: 10px;
+        background: #ecfeff;
+        color: #0f766e;
     }
 
     .content-section {
@@ -263,13 +234,45 @@
         flex-wrap: wrap;
     }
 
+    .chart-card {
+        background: #fff;
+        padding: 22px;
+        border-radius: 28px;
+        box-shadow: 0 14px 32px rgba(15, 23, 42, 0.08);
+        border: none;
+        min-height: 340px;
+        transition: transform 0.28s ease, box-shadow 0.28s ease;
+        margin-bottom: 22px;
+    }
+
+    .chart-card:hover {
+        transform: translateY(-7px);
+        box-shadow: 0 18px 36px rgba(7, 102, 83, 0.16), 0 0 0 1px rgba(227, 239, 38, 0.18);
+    }
+
+    .chart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 18px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid #eef2f7;
+    }
+
+    .chart-title {
+        font-size: 17px;
+        font-weight: 800;
+        color: #111827;
+    }
+
+    .chart-card canvas {
+        width: 100% !important;
+        max-height: 260px !important;
+    }
+
     @media (max-width: 768px) {
         .filter-row {
             grid-template-columns: 1fr;
-        }
-
-        .report-tabs {
-            flex-wrap: wrap;
         }
 
         .summary-grid {
@@ -279,22 +282,33 @@
         .chart-container {
             height: 250px;
         }
+
+        .chart-card {
+            min-height: auto;
+        }
     }
 </style>
 @endpush
 
 @section('content')
 <div class="report-container">
-    <!-- Filter Section -->
     <div class="filter-section">
         <h3 style="margin-top: 0; margin-bottom: 20px; font-size: 16px; font-weight: 800; color: #0C342C;">
             Filter Laporan
         </h3>
 
-        <form id="filterForm" class="filter-row">
+        <form id="filterForm" class="row g-3 align-items-end">
             @csrf
 
-            <div class="form-group">
+            <div class="form-group col-12 col-md-3">
+                <label>Jenis Laporan <span style="color: #ef4444;">*</span></label>
+                <select id="laporanTipe" name="laporan_tipe" required>
+                    <option value="demografi" selected>Demografi</option>
+                    <option value="dinamika">Dinamika</option>
+                </select>
+            </div>
+
+            <div class="form-group col-12 col-md-2 hidden" id="tahunGroup">
                 <label>Tahun <span style="color: #ef4444;">*</span></label>
                 <select id="tahun" name="tahun" required>
                     @foreach($yearList as $year)
@@ -305,7 +319,7 @@
                 </select>
             </div>
 
-            <div class="form-group">
+            <div class="form-group col-12 col-md-2 hidden" id="bulanGroup">
                 <label>Bulan <span style="color: #94a3b8; font-weight: 400;">(Opsional)</span></label>
                 <select id="bulan" name="bulan">
                     <option value="">Semua Bulan</option>
@@ -324,7 +338,7 @@
                 </select>
             </div>
 
-            <div class="form-group">
+            <div class="form-group col-12 col-md-3">
                 <label>Dusun <span style="color: #94a3b8; font-weight: 400;">(Opsional)</span></label>
                 <select id="dusun" name="dusun_id">
                     <option value="">Semua Dusun</option>
@@ -334,44 +348,27 @@
                 </select>
             </div>
 
-            <div class="filter-actions">
-                <button type="submit" class="btn btn-primary">
+            <div class="filter-actions col-12 col-md-auto ms-md-auto">
+                <button type="submit" class="btn btn-success w-100">
+                    <i class="bi bi-funnel-fill me-1"></i>
                     Tampilkan Laporan
                 </button>
-                <button type="reset" class="btn btn-secondary">
-                    Reset
+                <button type="button" onclick="exportToPdf()" class="btn btn-outline-danger w-100">
+                    <i class="bi bi-file-earmark-pdf-fill me-1"></i>
+                    Download PDF
+                </button>
+                <button type="button" onclick="exportToExcel()" class="btn btn-outline-success w-100">
+                    <i class="bi bi-file-earmark-excel-fill me-1"></i>
+                    Download Excel
                 </button>
             </div>
         </form>
     </div>
 
-    <!-- Report Tabs -->
-    <div class="report-tabs">
-        <button class="tab-button active" data-tab="demografi">
-            📊 Demografi Penduduk
-        </button>
-        <button class="tab-button" data-tab="dinamika">
-            📈 Dinamika Penduduk
-        </button>
-    </div>
-
-    <!-- Demografi Tab -->
-    <div id="demografi" class="tab-content active">
-        <div id="demografiContent">
-            <div class="loading">
-                <div class="loading-spinner"></div>
-                <p>Memuat data demografi...</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Dinamika Tab -->
-    <div id="dinamika" class="tab-content">
-        <div id="dinamikaContent">
-            <div class="loading">
-                <div class="loading-spinner"></div>
-                <p>Memuat data dinamika...</p>
-            </div>
+    <div id="reportContent">
+        <div class="loading">
+            <div class="loading-spinner"></div>
+            <p>Memuat data laporan...</p>
         </div>
     </div>
 </div>
@@ -385,39 +382,59 @@
     let currentReportType = 'demografi';
     let currentFilters = {};
 
-    // Tab switching
-    document.querySelectorAll('.tab-button').forEach(button => {
-        button.addEventListener('click', function () {
-            const tabName = this.dataset.tab;
+    function updateFilterVisibility() {
+        const tahunGroup = document.getElementById('tahunGroup');
+        const bulanGroup = document.getElementById('bulanGroup');
 
-            // Update active tab
-            document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
+        if (currentReportType === 'demografi') {
+            tahunGroup.classList.add('hidden');
+            bulanGroup.classList.add('hidden');
+            document.getElementById('bulan').value = '';
+        } else {
+            tahunGroup.classList.remove('hidden');
+            bulanGroup.classList.remove('hidden');
+        }
+    }
 
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-            document.getElementById(tabName).classList.add('active');
-
-            currentReportType = tabName;
-
-            // Load data if filters exist
-            if (Object.keys(currentFilters).length > 0) {
-                loadReportData();
+    function destroyDemografiCharts() {
+        ['genderChart', 'educationChart', 'occupationChart'].forEach(chartName => {
+            if (charts[chartName]) {
+                charts[chartName].destroy();
+                charts[chartName] = null;
             }
         });
+    }
+
+    function destroyDinamikaChart() {
+        if (charts.dinamikaChart) {
+            charts.dinamikaChart.destroy();
+            charts.dinamikaChart = null;
+        }
+    }
+
+    function syncCurrentFiltersFromForm() {
+        currentFilters = {
+            tahun: currentReportType === 'demografi'
+                ? '{{ $currentYear }}'
+                : document.getElementById('tahun').value,
+            bulan: currentReportType === 'demografi'
+                ? null
+                : (document.getElementById('bulan').value || null),
+            dusun_id: document.getElementById('dusun').value || null,
+        };
+    }
+
+    document.getElementById('laporanTipe').addEventListener('change', function () {
+        currentReportType = this.value;
+        updateFilterVisibility();
+        syncCurrentFiltersFromForm();
+        loadReportData();
     });
 
-    // Form submission
     document.getElementById('filterForm').addEventListener('submit', function (e) {
         e.preventDefault();
 
-        currentFilters = {
-            tahun: document.getElementById('tahun').value,
-            bulan: document.getElementById('bulan').value || null,
-            dusun_id: document.getElementById('dusun').value || null,
-        };
-
-        // Reset to demografi tab
-        document.querySelectorAll('.tab-button')[0].click();
+        syncCurrentFiltersFromForm();
 
         loadReportData();
     });
@@ -428,8 +445,7 @@
             laporan_tipe: currentReportType,
         };
 
-        const contentDiv = currentReportType === 'demografi' ? 'demografiContent' : 'dinamikaContent';
-        document.getElementById(contentDiv).innerHTML = `
+        document.getElementById('reportContent').innerHTML = `
             <div class="loading">
                 <div class="loading-spinner"></div>
                 <p>Memuat data ${currentReportType}...</p>
@@ -450,14 +466,16 @@
             })
             .then(data => {
                 if (currentReportType === 'demografi') {
+                    destroyDinamikaChart();
                     renderDemografiReport(data);
                 } else {
+                    destroyDemografiCharts();
                     renderDinamikaReport(data);
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                document.getElementById(contentDiv).innerHTML = `
+                document.getElementById('reportContent').innerHTML = `
                     <div class="error-message">
                         Gagal memuat data laporan. Silakan coba lagi.
                     </div>
@@ -466,88 +484,62 @@
     }
 
     function renderDemografiReport(data) {
+        const palette = ['#076653', '#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#14b8a6', '#ec4899', '#06b6d4', '#84cc16'];
+
         const html = `
-            <div class="content-section">
-                <div class="section-title">Ringkasan Demografi</div>
-                <div class="summary-grid">
-                    <div class="summary-card">
-                        <div class="summary-label">Total Penduduk Aktif</div>
-                        <div class="summary-value">${data.summary.totalPenduduk.toLocaleString('id-ID')}</div>
+            <div class="report-panel mb-4">
+                <div class="section-title mb-3"><i class="bi bi-people-fill me-2"></i>Ringkasan Demografi Penduduk</div>
+                <div class="row g-3">
+                    <div class="col-12 col-md-4">
+                        <div class="summary-stat">
+                            <div class="summary-icon"><i class="bi bi-people"></i></div>
+                            <div class="summary-label">Total Penduduk Aktif</div>
+                            <div class="summary-value">${data.summary.totalPenduduk.toLocaleString('id-ID')}</div>
+                        </div>
                     </div>
-                    <div class="summary-card">
-                        <div class="summary-label">Laki-laki</div>
-                        <div class="summary-value">${data.summary.totalLakiLaki.toLocaleString('id-ID')}</div>
-                        <div style="font-size: 12px; color: #64748b; margin-top: 4px;">${data.summary.persenLakiLaki}%</div>
+                    <div class="col-12 col-md-4">
+                        <div class="summary-stat">
+                            <div class="summary-icon"><i class="bi bi-gender-male"></i></div>
+                            <div class="summary-label">Laki-laki</div>
+                            <div class="summary-value">${data.summary.totalLakiLaki.toLocaleString('id-ID')}</div>
+                            <div class="text-muted small mt-1">${data.summary.persenLakiLaki}%</div>
+                        </div>
                     </div>
-                    <div class="summary-card">
-                        <div class="summary-label">Perempuan</div>
-                        <div class="summary-value">${data.summary.totalPerempuan.toLocaleString('id-ID')}</div>
-                        <div style="font-size: 12px; color: #64748b; margin-top: 4px;">${data.summary.persenPerempuan}%</div>
+                    <div class="col-12 col-md-4">
+                        <div class="summary-stat">
+                            <div class="summary-icon"><i class="bi bi-gender-female"></i></div>
+                            <div class="summary-label">Perempuan</div>
+                            <div class="summary-value">${data.summary.totalPerempuan.toLocaleString('id-ID')}</div>
+                            <div class="text-muted small mt-1">${data.summary.persenPerempuan}%</div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="content-section">
-                <div class="section-title">Distribusi Jenis Kelamin</div>
+            <div class="report-panel mb-4">
+                <div class="section-title"><i class="bi bi-pie-chart-fill me-2"></i>Grafik Jenis Kelamin</div>
                 <div class="chart-container">
                     <canvas id="genderChart"></canvas>
                 </div>
             </div>
 
-            <div class="content-section">
-                <div class="section-title">Distribusi Pendidikan</div>
-                <div class="chart-container">
-                    <canvas id="educationChart"></canvas>
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h2 class="chart-title"><i class="bi bi-mortarboard-fill me-2"></i>Tingkat Pendidikan</h2>
                 </div>
+                <canvas id="educationChart"></canvas>
             </div>
 
-            <div class="content-section">
-                <div class="section-title">Distribusi Pekerjaan</div>
+            <div class="report-panel mb-4">
+                <div class="section-title"><i class="bi bi-briefcase-fill me-2"></i>Grafik Pekerjaan</div>
                 <div class="chart-container">
                     <canvas id="occupationChart"></canvas>
                 </div>
             </div>
-
-            <div class="content-section">
-                <div class="section-title">Breakdown per Dusun</div>
-                <table class="breakdown-table">
-                    <thead>
-                        <tr>
-                            <th>Dusun</th>
-                            <th class="text-right">Total</th>
-                            <th class="text-right">Laki-laki</th>
-                            <th class="text-right">Perempuan</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${data.dusunBreakdown.map(row => `
-                            <tr>
-                                <td>${row.dusun}</td>
-                                <td class="text-right"><strong>${row.total.toLocaleString('id-ID')}</strong></td>
-                                <td class="text-right">${row.laki_laki.toLocaleString('id-ID')}</td>
-                                <td class="text-right">${row.perempuan.toLocaleString('id-ID')}</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="export-buttons">
-                <button onclick="exportToExcel('demografi')" class="btn btn-secondary">
-                    📥 Download Excel
-                </button>
-                <button onclick="exportToPdf('demografi')" class="btn btn-secondary">
-                    📥 Download PDF
-                </button>
-            </div>
         `;
 
-        document.getElementById('demografiContent').innerHTML = html;
+        document.getElementById('reportContent').innerHTML = html;
 
-        // Render charts
-        const palette = ['#076653', '#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#14b8a6', '#ec4899', '#06b6d4', '#84cc16'];
-
-        // Gender chart
         if (charts.genderChart) charts.genderChart.destroy();
         charts.genderChart = new Chart(document.getElementById('genderChart'), {
             type: 'doughnut',
@@ -558,39 +550,48 @@
                     backgroundColor: ['#076653', '#f59e0b'],
                     borderWidth: 2,
                     borderColor: '#fff',
-                }]
+                }],
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: { position: 'bottom' }
-                }
-            }
+                    legend: {
+                        position: 'bottom',
+                        reverse: true,
+                    },
+                },
+            },
         });
 
-        // Education chart
         if (charts.educationChart) charts.educationChart.destroy();
         charts.educationChart = new Chart(document.getElementById('educationChart'), {
             type: 'bar',
             data: {
                 labels: data.educationChart.labels,
                 datasets: [{
-                    label: 'Jumlah Penduduk',
+                    label: 'Jumlah',
                     data: data.educationChart.data,
-                    backgroundColor: palette,
-                    borderRadius: 6,
-                }]
+                    backgroundColor: data.educationChart.labels.map((_, index) => palette[index % palette.length]),
+                    borderRadius: 8
+                }],
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: { y: { beginAtZero: true } }
-            }
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            },
         });
 
-        // Occupation chart
         if (charts.occupationChart) charts.occupationChart.destroy();
         charts.occupationChart = new Chart(document.getElementById('occupationChart'), {
             type: 'bar',
@@ -601,50 +602,62 @@
                     data: data.occupationChart.data,
                     backgroundColor: palette,
                     borderRadius: 6,
-                }]
+                }],
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
-                scales: { y: { beginAtZero: true } }
-            }
+                scales: { y: { beginAtZero: true } },
+            },
         });
     }
 
     function renderDinamikaReport(data) {
         const html = `
-            <div class="content-section">
-                <div class="section-title">Ringkasan Dinamika Penduduk</div>
-                <div class="summary-grid">
-                    <div class="summary-card">
-                        <div class="summary-label">Total Kelahiran</div>
-                        <div class="summary-value">${data.summary.totalLahir.toLocaleString('id-ID')}</div>
+            <div class="report-panel mb-4">
+                <div class="section-title mb-3"><i class="bi bi-activity me-2"></i>Ringkasan Dinamika Penduduk</div>
+                <div class="row g-3">
+                    <div class="col-12 col-md-3">
+                        <div class="summary-stat">
+                            <div class="summary-icon"><i class="bi bi-heart-fill"></i></div>
+                            <div class="summary-label">Total Kelahiran</div>
+                            <div class="summary-value">${data.summary.totalLahir.toLocaleString('id-ID')}</div>
+                        </div>
                     </div>
-                    <div class="summary-card">
-                        <div class="summary-label">Total Kematian</div>
-                        <div class="summary-value">${data.summary.totalMeninggal.toLocaleString('id-ID')}</div>
+                    <div class="col-12 col-md-3">
+                        <div class="summary-stat">
+                            <div class="summary-icon"><i class="bi bi-emoji-frown-fill"></i></div>
+                            <div class="summary-label">Total Kematian</div>
+                            <div class="summary-value">${data.summary.totalMeninggal.toLocaleString('id-ID')}</div>
+                        </div>
                     </div>
-                    <div class="summary-card">
-                        <div class="summary-label">Total Masuk</div>
-                        <div class="summary-value">${data.summary.totalMasuk.toLocaleString('id-ID')}</div>
+                    <div class="col-12 col-md-3">
+                        <div class="summary-stat">
+                            <div class="summary-icon"><i class="bi bi-box-arrow-in-down"></i></div>
+                            <div class="summary-label">Total Masuk</div>
+                            <div class="summary-value">${data.summary.totalMasuk.toLocaleString('id-ID')}</div>
+                        </div>
                     </div>
-                    <div class="summary-card">
-                        <div class="summary-label">Total Keluar</div>
-                        <div class="summary-value">${data.summary.totalKeluar.toLocaleString('id-ID')}</div>
+                    <div class="col-12 col-md-3">
+                        <div class="summary-stat">
+                            <div class="summary-icon"><i class="bi bi-box-arrow-up-right"></i></div>
+                            <div class="summary-label">Total Keluar</div>
+                            <div class="summary-value">${data.summary.totalKeluar.toLocaleString('id-ID')}</div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="content-section">
-                <div class="section-title">Grafik Dinamika per Bulan</div>
+            <div class="report-panel mb-4">
+                <div class="section-title"><i class="bi bi-bar-chart-fill me-2"></i>Grafik Dinamika per Bulan</div>
                 <div class="chart-container">
                     <canvas id="dinamikaChart"></canvas>
                 </div>
             </div>
 
-            <div class="content-section">
-                <div class="section-title">Breakdown per Dusun</div>
+            <div class="report-panel mb-4">
+                <div class="section-title"><i class="bi bi-table me-2"></i>Breakdown per Dusun</div>
                 <table class="breakdown-table">
                     <thead>
                         <tr>
@@ -669,17 +682,9 @@
                 </table>
             </div>
 
-            <div class="export-buttons">
-                <button onclick="exportToExcel('dinamika')" class="btn btn-secondary">
-                    📥 Download Excel
-                </button>
-                <button onclick="exportToPdf('dinamika')" class="btn btn-secondary">
-                    📥 Download PDF
-                </button>
-            </div>
         `;
 
-        document.getElementById('dinamikaContent').innerHTML = html;
+        document.getElementById('reportContent').innerHTML = html;
 
         // Render dinamika chart (line/bar dengan multiple datasets)
         if (charts.dinamikaChart) charts.dinamikaChart.destroy();
@@ -727,10 +732,12 @@
         });
     }
 
-    function exportToExcel(type) {
+    function exportToExcel() {
+        syncCurrentFiltersFromForm();
+
         const filters = {
             ...currentFilters,
-            laporan_tipe: type,
+            laporan_tipe: currentReportType,
         };
 
         const form = document.createElement('form');
@@ -756,10 +763,12 @@
         document.body.removeChild(form);
     }
 
-    function exportToPdf(type) {
+    function exportToPdf() {
+        syncCurrentFiltersFromForm();
+
         const filters = {
             ...currentFilters,
-            laporan_tipe: type,
+            laporan_tipe: currentReportType,
         };
 
         const form = document.createElement('form');
@@ -787,13 +796,19 @@
 
     // Load initial report from server so the page is usable without waiting for AJAX
     currentFilters = {
-        tahun: document.getElementById('tahun')?.value || '{{ $currentYear }}',
-        bulan: document.getElementById('bulan')?.value || null,
+        tahun: '{{ $currentYear }}',
+        bulan: null,
         dusun_id: document.getElementById('dusun')?.value || null,
     };
+
+    updateFilterVisibility();
 
     @if(!empty($initialDemografiData))
         renderDemografiReport(@json($initialDemografiData));
     @endif
 </script>
+@endpush
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 @endpush

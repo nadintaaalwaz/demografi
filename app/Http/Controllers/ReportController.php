@@ -5,11 +5,18 @@ namespace App\Http\Controllers;
 use App\Models\Penduduk;
 use App\Models\DinamikaPenduduk;
 use App\Models\Wilayah;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 
 class ReportController extends Controller
 {
+    private const MALE_VALUES = ['LAKI-LAKI', 'LAKI LAKI', 'LAKI', 'L', 'PRIA', 'MALE'];
+    private const FEMALE_VALUES = ['PEREMPUAN', 'WANITA', 'P', 'FEMALE'];
+
     /**
      * Render laporan view dengan data default (tahun & bulan sekarang)
      */
@@ -79,26 +86,30 @@ class ReportController extends Controller
         // Base query: penduduk aktif
         $query = Penduduk::where('status', 'Aktif');
 
-        // Filter dusun jika dipilih
+        // Filter dusun jika dipilih (gunakan relasi dusun yang benar)
         if ($dusunId) {
-            $query->whereHas('wilayah', function ($q) use ($dusunId) {
-                $q->where('id', $dusunId)->orWhereHas('parent', function ($p) use ($dusunId) {
-                    $p->where('id', $dusunId);
-                });
-            });
+            $query->where('id_dusun', $dusunId);
         }
 
         $totalPenduduk = (clone $query)->count();
-        $totalLakiLaki = (clone $query)->where('jenis_kelamin', 'Laki-laki')->count();
-        $totalPerempuan = (clone $query)->where('jenis_kelamin', 'Perempuan')->count();
+        $totalLakiLaki = (clone $query)
+            ->whereRaw("UPPER(TRIM(COALESCE(jenis_kelamin, ''))) IN ('" . implode("','", self::MALE_VALUES) . "')")
+            ->count();
+        $totalPerempuan = (clone $query)
+            ->whereRaw("UPPER(TRIM(COALESCE(jenis_kelamin, ''))) IN ('" . implode("','", self::FEMALE_VALUES) . "')")
+            ->count();
 
-        // Pendidikan breakdown
-        $educationData = (clone $query)
-            ->selectRaw("COALESCE(pendidikan, 'Tidak Terdata') as kategori, COUNT(*) as total")
-            ->groupBy('pendidikan')
-            ->orderByDesc('total')
-            ->pluck('total', 'kategori')
-            ->toArray();
+        // Age distribution
+        $ageRaw = (clone $query)
+            ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 0 AND 5 THEN 1 ELSE 0 END) as usia_bayi_balita')
+            ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 6 AND 11 THEN 1 ELSE 0 END) as usia_anak')
+            ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 12 AND 18 THEN 1 ELSE 0 END) as usia_remaja')
+            ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 19 AND 59 THEN 1 ELSE 0 END) as usia_dewasa')
+            ->selectRaw('SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) >= 60 THEN 1 ELSE 0 END) as usia_lansia')
+            ->first();
+
+        // Pendidikan breakdown (ordered sesuai kebutuhan laporan)
+        $educationData = $this->getOrderedEducationBreakdown($query);
 
         // Pekerjaan breakdown (using same mapping as dashboard)
         $occupationData = $this->getOccupationBreakdown($query);
@@ -115,9 +126,19 @@ class ReportController extends Controller
                 'persenLakiLaki' => $totalPenduduk > 0 ? round(($totalLakiLaki / $totalPenduduk) * 100, 1) : 0,
                 'persenPerempuan' => $totalPenduduk > 0 ? round(($totalPerempuan / $totalPenduduk) * 100, 1) : 0,
             ],
+            'ageChart' => [
+                'labels' => ['Bayi & Balita (0–5)', 'Anak-anak (6–11)', 'Remaja (12–18)', 'Dewasa (19–59)', 'Lansia (60+)'],
+                'data' => [
+                    (int) ($ageRaw->usia_bayi_balita ?? 0),
+                    (int) ($ageRaw->usia_anak ?? 0),
+                    (int) ($ageRaw->usia_remaja ?? 0),
+                    (int) ($ageRaw->usia_dewasa ?? 0),
+                    (int) ($ageRaw->usia_lansia ?? 0),
+                ],
+            ],
             'educationChart' => [
-                'labels' => array_keys($educationData),
-                'data' => array_values($educationData),
+                'labels' => $educationData['labels'],
+                'data' => $educationData['values'],
             ],
             'occupationChart' => [
                 'labels' => $occupationData['labels'],
@@ -215,30 +236,38 @@ class ReportController extends Controller
             $query = Penduduk::where('status', 'Aktif');
         }
 
-        $occupationRaw = (clone $query)
-            ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('PELAJAR','PELAJAR/MAHASISWA','MAHASISWA') THEN 1 ELSE 0 END) as pelajar")
-            ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('PETANI','PETANI/PETERNAK','PETERNAK') THEN 1 ELSE 0 END) as petani")
-            ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('IRT','IBU RUMAH TANGGA','IBURUNAH TANGGA') THEN 1 ELSE 0 END) as irt")
-            ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('WIRASWASTA','WIRAUSAHA','PENGUSAHA','PEDAGANG') THEN 1 ELSE 0 END) as wiraswasta")
-            ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('GURU','PENDIDIK') THEN 1 ELSE 0 END) as guru")
-            ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('DOSEN','TENAGA PENGAJAR') THEN 1 ELSE 0 END) as dosen")
-            ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('PNS','PEGAWAI NEGERI SIPIL','PEGAWAI NEGERI','ASN','APARATUR SIPIL NEGARA') THEN 1 ELSE 0 END) as pns")
-            ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('TNI','TENTARA NASIONAL INDONESIA','ANGGOTA TNI') THEN 1 ELSE 0 END) as tni")
-            ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('POLRI','POLISI','ANGGOTA POLRI','KEPOLISIAN NEGARA RI') THEN 1 ELSE 0 END) as polri")
-            ->first();
-
         $labels = ['Pelajar', 'Petani', 'IRT', 'Wiraswasta', 'Guru', 'Dosen', 'PNS', 'TNI', 'POLRI'];
-        $values = [
-            (int) ($occupationRaw->pelajar ?? 0),
-            (int) ($occupationRaw->petani ?? 0),
-            (int) ($occupationRaw->irt ?? 0),
-            (int) ($occupationRaw->wiraswasta ?? 0),
-            (int) ($occupationRaw->guru ?? 0),
-            (int) ($occupationRaw->dosen ?? 0),
-            (int) ($occupationRaw->pns ?? 0),
-            (int) ($occupationRaw->tni ?? 0),
-            (int) ($occupationRaw->polri ?? 0),
-        ];
+        $buckets = array_fill_keys($labels, 0);
+
+        $allRecords = (clone $query)->select('pekerjaan')->get();
+
+        foreach ($allRecords as $record) {
+            $normalized = strtoupper(trim((string) $record->pekerjaan));
+            $normalized = preg_replace('/\s*\/\s*/', '/', $normalized);
+            $normalized = preg_replace('/\s+/', ' ', $normalized);
+
+            if (in_array($normalized, ['PELAJAR', 'PELAJAR/MAHASISWA', 'MAHASISWA'], true)) {
+                $buckets['Pelajar']++;
+            } elseif (in_array($normalized, ['PETANI', 'PETANI/PETERNAK', 'PETERNAK'], true)) {
+                $buckets['Petani']++;
+            } elseif (in_array($normalized, ['IRT', 'IBU RUMAH TANGGA', 'IBURUMAH TANGGA', 'IBURUNAH TANGGA'], true)) {
+                $buckets['IRT']++;
+            } elseif (in_array($normalized, ['WIRASWASTA', 'WIRAUSAHA', 'PENGUSAHA', 'PEDAGANG'], true)) {
+                $buckets['Wiraswasta']++;
+            } elseif (in_array($normalized, ['GURU', 'PENDIDIK'], true)) {
+                $buckets['Guru']++;
+            } elseif (in_array($normalized, ['DOSEN', 'TENAGA PENGAJAR'], true)) {
+                $buckets['Dosen']++;
+            } elseif (str_contains($normalized, 'PEGAWAI NEGERI SIPIL') || str_contains($normalized, 'PNS') || str_contains($normalized, 'ASN') || str_contains($normalized, 'APARATUR SIPIL NEGARA') || str_contains($normalized, 'PEGAWAI NEGERI')) {
+                $buckets['PNS']++;
+            } elseif (str_contains($normalized, 'TENTARA NASIONAL INDONESIA') || str_contains($normalized, 'TNI') || str_contains($normalized, 'ANGGOTA TNI')) {
+                $buckets['TNI']++;
+            } elseif (in_array($normalized, ['POLRI', 'POLISI', 'ANGGOTA POLRI', 'KEPOLISIAN NEGARA RI'], true)) {
+                $buckets['POLRI']++;
+            }
+        }
+
+        $values = array_values($buckets);
 
         $totalMatched = array_sum($values);
         $totalActive = (clone $query)->count();
@@ -256,6 +285,68 @@ class ReportController extends Controller
     }
 
     /**
+     * Get education breakdown dengan urutan kategori baku
+     */
+    private function getOrderedEducationBreakdown($query): array
+    {
+        // Get all active penduduk education data
+        $allRecords = (clone $query)->select('pendidikan')->get();
+
+        // Ordered labels sesuai permintaan user
+        $orderedLabels = [
+            'TAMAT SD/SEDERAJAT',
+            'SMP',
+            'SMA',
+            'AKADEMI/DIPLOMA III/S. MUDA',
+            'DIPLOMA IV/STRATA I',
+            'STRATA II',
+        ];
+
+        // Initialize buckets
+        $buckets = array_fill_keys($orderedLabels, 0);
+        $otherCount = 0;
+
+        // Process each record
+        foreach ($allRecords as $record) {
+            $normalized = strtoupper(trim((string) $record->pendidikan));
+            // Remove extra spaces around slashes and normalize whitespace
+            $normalized = preg_replace('/\s*\/\s*/', '/', $normalized);
+            $normalized = preg_replace('/\s+/', ' ', $normalized);
+
+            if (in_array($normalized, ['SD', 'SEKOLAH DASAR', 'TAMAT SD', 'TAMAT SD/SEDERAJAT', 'SD/SEDERAJAT'], true)) {
+                $buckets['TAMAT SD/SEDERAJAT']++;
+            } elseif (in_array($normalized, ['SMP', 'SLTP', 'SEKOLAH MENENGAH PERTAMA'], true)) {
+                $buckets['SMP']++;
+            } elseif (in_array($normalized, ['SMA', 'SMK', 'SLTA', 'SEKOLAH MENENGAH ATAS', 'SEKOLAH MENENGAH KEJURUAN'], true)) {
+                $buckets['SMA']++;
+            } elseif (in_array($normalized, ['AKADEMI/DIPLOMA III/S. MUDA', 'AKADEMI', 'DIPLOMA III', 'D3', 'D-3', 'DIII', 'DIPLOMA 3', 'S. MUDA', 'SARJANA MUDA'], true)) {
+                $buckets['AKADEMI/DIPLOMA III/S. MUDA']++;
+            } elseif (in_array($normalized, ['DIPLOMA IV/STRATA I', 'DIPLOMA IV', 'D4', 'D-4', 'DIV', 'DIPLOMA 4', 'STRATA I', 'STRATA 1', 'S1', 'SARJANA'], true)) {
+                $buckets['DIPLOMA IV/STRATA I']++;
+            } elseif (in_array($normalized, ['STRATA II', 'STRATA 2', 'S2', 'MAGISTER'], true)) {
+                $buckets['STRATA II']++;
+            } else {
+                $otherCount++;
+            }
+        }
+
+        // Build final output
+        $labels = array_keys($buckets);
+        $values = array_values($buckets);
+
+        // Add LAINNYA if there are unmatched records
+        if ($otherCount > 0) {
+            $labels[] = 'LAINNYA';
+            $values[] = $otherCount;
+        }
+
+        return [
+            'labels' => $labels,
+            'values' => $values,
+        ];
+    }
+
+    /**
      * Get dusun breakdown untuk demografi
      */
     private function getDusunDemografiBreakdown($tahun, $dusunId = null)
@@ -264,8 +355,8 @@ class ReportController extends Controller
             ->selectRaw("
                 wilayah.nama as dusun,
                 COUNT(*) as total,
-                SUM(CASE WHEN penduduk.jenis_kelamin = 'Laki-laki' THEN 1 ELSE 0 END) as laki_laki,
-                SUM(CASE WHEN penduduk.jenis_kelamin = 'Perempuan' THEN 1 ELSE 0 END) as perempuan
+                SUM(CASE WHEN UPPER(TRIM(COALESCE(penduduk.jenis_kelamin, ''))) IN ('LAKI-LAKI','LAKI LAKI','LAKI','L','PRIA','MALE') THEN 1 ELSE 0 END) as laki_laki,
+                SUM(CASE WHEN UPPER(TRIM(COALESCE(penduduk.jenis_kelamin, ''))) IN ('PEREMPUAN','WANITA','P','FEMALE') THEN 1 ELSE 0 END) as perempuan
             ")
             ->leftJoin('wilayah', function ($join) {
                 $join->on('penduduk.id_dusun', '=', 'wilayah.id')
@@ -390,8 +481,12 @@ class ReportController extends Controller
         }
 
         $totalPenduduk = (clone $query)->count();
-        $totalLakiLaki = (clone $query)->where('jenis_kelamin', 'Laki-laki')->count();
-        $totalPerempuan = (clone $query)->where('jenis_kelamin', 'Perempuan')->count();
+        $totalLakiLaki = (clone $query)
+            ->whereRaw("UPPER(TRIM(COALESCE(jenis_kelamin, ''))) IN ('" . implode("','", self::MALE_VALUES) . "')")
+            ->count();
+        $totalPerempuan = (clone $query)
+            ->whereRaw("UPPER(TRIM(COALESCE(jenis_kelamin, ''))) IN ('" . implode("','", self::FEMALE_VALUES) . "')")
+            ->count();
 
         $sheet->setCellValue('A5', 'Total Penduduk Aktif');
         $sheet->setCellValue('B5', $totalPenduduk);
@@ -428,13 +523,21 @@ class ReportController extends Controller
         }
 
         $filename = 'Laporan_Demografi_' . $tahun . '_' . now()->format('YmdHis') . '.xlsx';
+        $relativePath = 'laporan/' . $filename;
+        $absolutePath = storage_path('app/public/' . $relativePath);
+
+        if (!Storage::disk('public')->exists('laporan')) {
+            Storage::disk('public')->makeDirectory('laporan');
+        }
+
         $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $writer->save($absolutePath);
 
-        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        $this->simpanArsipLaporan('Demografi', $tahun, null, $relativePath, $filename);
 
-        $writer->save('php://output');
-        exit;
+        return response()->download($absolutePath, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ]);
     }
 
     /**
@@ -508,22 +611,228 @@ class ReportController extends Controller
         }
 
         $filename = 'Laporan_Dinamika_' . $tahun . '_' . now()->format('YmdHis') . '.xlsx';
+        $relativePath = 'laporan/' . $filename;
+        $absolutePath = storage_path('app/public/' . $relativePath);
+
+        if (!Storage::disk('public')->exists('laporan')) {
+            Storage::disk('public')->makeDirectory('laporan');
+        }
+
         $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $writer->save($absolutePath);
 
-        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        $this->simpanArsipLaporan('Dinamika', $tahun, $bulan, $relativePath, $filename);
 
-        $writer->save('php://output');
-        exit;
+        return response()->download($absolutePath, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ]);
     }
 
     /**
-     * Export ke PDF (optional - basic implementation)
+     * Export ke PDF
      */
     public function exportPdf(Request $request)
     {
-        // Placeholder - bisa dikembangkan dengan dompdf atau mpdf
-        return response()->json(['message' => 'PDF export belum tersedia'], 501);
+        $validated = $request->validate([
+            'tahun' => 'required|integer|min:2020|max:2099',
+            'bulan' => 'nullable|integer|min:1|max:12',
+            'dusun_id' => 'nullable|integer',
+            'laporan_tipe' => 'required|in:demografi,dinamika',
+        ]);
+
+        $tahun = (int) $validated['tahun'];
+        $bulan = $validated['bulan'] ?? null;
+        $dusunId = $validated['dusun_id'] ?? null;
+        $laporanTipe = $validated['laporan_tipe'];
+
+        if ($laporanTipe === 'demografi') {
+            $data = $this->buildDemografiData($tahun, $dusunId);
+            $judul = 'Laporan Demografi Penduduk';
+            $subjudul = 'Desa Sebalor - Tahun ' . $tahun;
+            $html = $this->buildDemografiPdfHtml($data, $judul, $subjudul);
+            $filename = 'Laporan_Demografi_' . $tahun . '_' . now()->format('YmdHis') . '.pdf';
+            $jenisLaporan = 'Demografi';
+        } else {
+            $data = $this->buildDinamikaData($tahun, $bulan, $dusunId);
+            $judul = 'Laporan Dinamika Penduduk';
+            $subjudul = $bulan
+                ? 'Desa Sebalor - ' . $this->getBulanNama($bulan) . ' ' . $tahun
+                : 'Desa Sebalor - Tahun ' . $tahun;
+            $html = $this->buildDinamikaPdfHtml($data, $judul, $subjudul);
+            $filename = 'Laporan_Dinamika_' . $tahun . '_' . now()->format('YmdHis') . '.pdf';
+            $jenisLaporan = 'Dinamika';
+        }
+
+        $relativePath = 'laporan/' . $filename;
+        $absolutePath = storage_path('app/public/' . $relativePath);
+
+        if (!Storage::disk('public')->exists('laporan')) {
+            Storage::disk('public')->makeDirectory('laporan');
+        }
+
+        $pdf = Pdf::loadHTML($html)->setPaper('a4', 'portrait');
+        Storage::disk('public')->put($relativePath, $pdf->output());
+
+        $this->simpanArsipLaporan($jenisLaporan, $tahun, $bulan, $relativePath, $filename);
+
+        return response()->download($absolutePath, $filename, [
+            'Content-Type' => 'application/pdf',
+        ]);
+    }
+
+    private function simpanArsipLaporan(string $jenisLaporan, int $tahun, ?int $bulan, string $filePath, string $namaFile): void
+    {
+        $data = [
+            'jenis_laporan' => $jenisLaporan,
+            'bulan' => $bulan,
+            'tahun' => $tahun,
+            'file_path' => $filePath,
+            'dibuat_oleh' => Auth::id(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ];
+
+        if (Schema::hasColumn('laporan_arsip', 'nama_file')) {
+            $data['nama_file'] = $namaFile;
+        }
+
+        DB::table('laporan_arsip')->insert($data);
+    }
+
+    private function buildDemografiPdfHtml(array $data, string $judul, string $subjudul): string
+    {
+        $rowsDusun = collect($data['dusunBreakdown'] ?? [])->map(function ($row) {
+            return '<tr>'
+                . '<td>' . e($row['dusun']) . '</td>'
+                . '<td style="text-align:right;">' . number_format((int) $row['total'], 0, ',', '.') . '</td>'
+                . '<td style="text-align:right;">' . number_format((int) $row['laki_laki'], 0, ',', '.') . '</td>'
+                . '<td style="text-align:right;">' . number_format((int) $row['perempuan'], 0, ',', '.') . '</td>'
+                . '</tr>';
+        })->implode('');
+
+        return '
+            <html>
+            <head>
+                <style>
+                    body { font-family: DejaVu Sans, sans-serif; font-size: 12px; color: #111827; }
+                    h1 { font-size: 18px; margin: 0; }
+                    h2 { font-size: 13px; margin: 4px 0 20px 0; font-weight: normal; color: #4b5563; }
+                    table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+                    th, td { border: 1px solid #d1d5db; padding: 8px; }
+                    th { background: #f3f4f6; text-align: left; }
+                    .right { text-align: right; }
+                </style>
+            </head>
+            <body>
+                <h1>' . e($judul) . '</h1>
+                <h2>' . e($subjudul) . '</h2>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Kategori</th>
+                            <th class="right">Jumlah</th>
+                            <th class="right">Persentase</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Total Penduduk Aktif</td>
+                            <td class="right">' . number_format((int) ($data['summary']['totalPenduduk'] ?? 0), 0, ',', '.') . '</td>
+                            <td class="right">100%</td>
+                        </tr>
+                        <tr>
+                            <td>Laki-laki</td>
+                            <td class="right">' . number_format((int) ($data['summary']['totalLakiLaki'] ?? 0), 0, ',', '.') . '</td>
+                            <td class="right">' . ($data['summary']['persenLakiLaki'] ?? 0) . '%</td>
+                        </tr>
+                        <tr>
+                            <td>Perempuan</td>
+                            <td class="right">' . number_format((int) ($data['summary']['totalPerempuan'] ?? 0), 0, ',', '.') . '</td>
+                            <td class="right">' . ($data['summary']['persenPerempuan'] ?? 0) . '%</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Dusun</th>
+                            <th class="right">Total</th>
+                            <th class="right">Laki-laki</th>
+                            <th class="right">Perempuan</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ' . $rowsDusun . '
+                    </tbody>
+                </table>
+            </body>
+            </html>
+        ';
+    }
+
+    private function buildDinamikaPdfHtml(array $data, string $judul, string $subjudul): string
+    {
+        $rowsDusun = collect($data['dusunBreakdown'] ?? [])->map(function ($row) {
+            return '<tr>'
+                . '<td>' . e($row['dusun']) . '</td>'
+                . '<td style="text-align:right;">' . number_format((int) $row['lahir'], 0, ',', '.') . '</td>'
+                . '<td style="text-align:right;">' . number_format((int) $row['meninggal'], 0, ',', '.') . '</td>'
+                . '<td style="text-align:right;">' . number_format((int) $row['masuk'], 0, ',', '.') . '</td>'
+                . '<td style="text-align:right;">' . number_format((int) $row['keluar'], 0, ',', '.') . '</td>'
+                . '</tr>';
+        })->implode('');
+
+        return '
+            <html>
+            <head>
+                <style>
+                    body { font-family: DejaVu Sans, sans-serif; font-size: 12px; color: #111827; }
+                    h1 { font-size: 18px; margin: 0; }
+                    h2 { font-size: 13px; margin: 4px 0 20px 0; font-weight: normal; color: #4b5563; }
+                    table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+                    th, td { border: 1px solid #d1d5db; padding: 8px; }
+                    th { background: #f3f4f6; text-align: left; }
+                    .right { text-align: right; }
+                </style>
+            </head>
+            <body>
+                <h1>' . e($judul) . '</h1>
+                <h2>' . e($subjudul) . '</h2>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Kategori</th>
+                            <th class="right">Jumlah</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Kelahiran</td><td class="right">' . number_format((int) ($data['summary']['totalLahir'] ?? 0), 0, ',', '.') . '</td></tr>
+                        <tr><td>Kematian</td><td class="right">' . number_format((int) ($data['summary']['totalMeninggal'] ?? 0), 0, ',', '.') . '</td></tr>
+                        <tr><td>Migrasi Masuk</td><td class="right">' . number_format((int) ($data['summary']['totalMasuk'] ?? 0), 0, ',', '.') . '</td></tr>
+                        <tr><td>Migrasi Keluar</td><td class="right">' . number_format((int) ($data['summary']['totalKeluar'] ?? 0), 0, ',', '.') . '</td></tr>
+                    </tbody>
+                </table>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Dusun</th>
+                            <th class="right">Lahir</th>
+                            <th class="right">Meninggal</th>
+                            <th class="right">Masuk</th>
+                            <th class="right">Keluar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ' . $rowsDusun . '
+                    </tbody>
+                </table>
+            </body>
+            </html>
+        ';
     }
 }
 
