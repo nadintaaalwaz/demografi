@@ -193,7 +193,7 @@ class DinamikaPendudukController extends Controller
             'jumlah_keluar' => 'required|integer|min:0',
         ], [
             'tahun.required' => 'Tahun wajib diisi.',
-            'bulan.required' => 'Bulan wajib dipilih.',
+            'bulan.required' => 'Maaf anda belum memilih bulan.',
             'id_dusun.exists' => 'Dusun yang dipilih tidak valid.',
         ]);
 

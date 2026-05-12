@@ -115,7 +115,7 @@
         background: rgba(9, 100, 85, 0.72);
         border: 1px solid rgba(96, 225, 194, 0.25);
         border-radius: 14px;
-        padding: 14px;
+        padding: 18px;
         margin-bottom: 12px;
     }
 
@@ -126,8 +126,26 @@
     .manual-form-grid {
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 10px;
+        gap: 12px 14px;
         margin-top: 10px;
+    }
+
+    .manual-form-field {
+        min-width: 0;
+    }
+
+    .manual-select-wrap {
+        position: relative;
+    }
+
+    .manual-select-icon {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        pointer-events: none;
+        color: rgba(230, 255, 251, 0.88);
+        font-size: 12px;
     }
 
     .manual-form-field label {
@@ -141,12 +159,27 @@
     .manual-form-field select {
         width: 100%;
         height: 38px;
+        box-sizing: border-box;
         border-radius: 8px;
         border: 1px solid rgba(96, 225, 194, 0.35);
         background: rgba(5, 74, 63, 0.75);
         color: #e6fffb;
-        padding: 0 10px;
+        padding: 0 14px;
         outline: none;
+    }
+
+    .manual-form-field select {
+        padding-right: 42px;
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        text-overflow: ellipsis;
+    }
+
+    .form-error-text {
+        margin: 6px 0 0;
+        font-size: 12px;
+        color: #ffb3b3;
     }
 
     .manual-form-footer {
@@ -345,7 +378,9 @@
                 </div>
                 <div class="manual-form-field">
                     <label for="bulan">Bulan</label>
-                    <select id="bulan" name="bulan" required>
+                    <div class="manual-select-wrap">
+                        <select id="bulan" name="bulan">
+                            <option value="">Pilih Bulan...</option>
                         @php
                             $namaBulanIndonesia = [
                                 1 => 'Januari',
@@ -362,23 +397,31 @@
                                 12 => 'Desember',
                             ];
                         @endphp
-                        @foreach($namaBulanIndonesia as $nomorBulan => $labelBulan)
-                            <option value="{{ $nomorBulan }}" {{ (int) old('bulan', now()->month) === $nomorBulan ? 'selected' : '' }}>
-                                {{ $labelBulan }}
-                            </option>
-                        @endforeach
-                    </select>
+                            @foreach($namaBulanIndonesia as $nomorBulan => $labelBulan)
+                                <option value="{{ $nomorBulan }}" {{ (string) old('bulan') === (string) $nomorBulan ? 'selected' : '' }}>
+                                    {{ $labelBulan }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <i class="fas fa-chevron-down manual-select-icon"></i>
+                    </div>
+                    @error('bulan')
+                        <p class="form-error-text">{{ $message }}</p>
+                    @enderror
                 </div>
                 <div class="manual-form-field">
                     <label for="id_dusun">Dusun (Opsional)</label>
-                    <select id="id_dusun" name="id_dusun">
-                        <option value="">-- Semua Dusun / Gabungan --</option>
-                        @foreach(($dusunList ?? []) as $dusunId => $dusunNama)
-                            <option value="{{ $dusunId }}" {{ old('id_dusun') == $dusunId ? 'selected' : '' }}>
-                                {{ $dusunNama }}
-                            </option>
-                        @endforeach
-                    </select>
+                    <div class="manual-select-wrap">
+                        <select id="id_dusun" name="id_dusun">
+                            <option value="">-- Semua Dusun / Gabungan --</option>
+                            @foreach(($dusunList ?? []) as $dusunId => $dusunNama)
+                                <option value="{{ $dusunId }}" {{ old('id_dusun') == $dusunId ? 'selected' : '' }}>
+                                    {{ $dusunNama }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <i class="fas fa-chevron-down manual-select-icon"></i>
+                    </div>
                 </div>
                 <div class="manual-form-field">
                     <label for="jumlah_lahir">Jumlah Lahir</label>
@@ -484,6 +527,8 @@
     const toggleManualFormBtn = document.getElementById('toggleManualFormBtn');
     const manualFormCard = document.getElementById('manualFormCard');
     const yearSelect = document.getElementById('yearSelect');
+    const manualForm = manualFormCard?.querySelector('form');
+    const bulanSelect = document.getElementById('bulan');
 
     if (toggleManualFormBtn && manualFormCard) {
         toggleManualFormBtn.addEventListener('click', function () {
@@ -500,6 +545,22 @@
             const url = new URL(window.location.href);
             url.searchParams.set('tahun', this.value);
             window.location.href = url.toString();
+        });
+    }
+
+    if (manualForm && bulanSelect) {
+        manualForm.addEventListener('submit', function (event) {
+            if (!bulanSelect.value) {
+                event.preventDefault();
+                bulanSelect.focus();
+                bulanSelect.setCustomValidity('Maaf anda belum memilih bulan.');
+                bulanSelect.reportValidity();
+                bulanSelect.setCustomValidity('');
+            }
+        });
+
+        bulanSelect.addEventListener('change', function () {
+            this.setCustomValidity('');
         });
     }
 
