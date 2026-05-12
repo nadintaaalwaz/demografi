@@ -54,7 +54,7 @@ class ReportController extends Controller
         $validated = $request->validate([
             'tahun' => 'required|integer|min:2020|max:2099',
             'bulan' => 'nullable|integer|min:1|max:12',
-            'dusun_id' => 'nullable|integer',
+            'dusun_id' => 'nullable|integer|exists:wilayah,id',
             'laporan_tipe' => 'required|in:demografi,dinamika',
         ]);
 
@@ -176,20 +176,20 @@ class ReportController extends Controller
             $query->where('id_dusun', $dusunId);
         }
 
+        $filteredRecordCount = (clone $query)->count();
+
         // Aggregate total per kategori
         $totalLahir = (clone $query)->sum('jumlah_lahir');
         $totalMeninggal = (clone $query)->sum('jumlah_meninggal');
         $totalMasuk = (clone $query)->sum('jumlah_masuk');
         $totalKeluar = (clone $query)->sum('jumlah_keluar');
 
-        // Per bulan breakdown (hanya untuk laporan tahunan tanpa bulan terpilih)
+        // Per bulan breakdown hanya ditampilkan jika tidak ada filter bulan dan tidak ada filter dusun
+        $showPerBulanChart = !$bulan && !$dusunId;
         $perBulanData = [];
-        if (!$bulan) {
+        if ($showPerBulanChart) {
             for ($m = 1; $m <= 12; $m++) {
                 $bulanQuery = DinamikaPenduduk::where('tahun', $tahun)->where('bulan', $m);
-                if ($dusunId) {
-                    $bulanQuery->where('id_dusun', $dusunId);
-                }
 
                 $perBulanData[] = [
                     'bulan' => $m,
@@ -202,11 +202,8 @@ class ReportController extends Controller
             }
         }
 
-        // Breakdown per dusun (jika tidak dipilih dusun spesifik)
-        $dusunBreakdown = [];
-        if (!$dusunId) {
-            $dusunBreakdown = $this->getDusunDinamikaBreakdown($tahun, $bulan);
-        }
+        // Breakdown per dusun selalu mengikuti filter yang dipilih
+        $dusunBreakdown = $this->getDusunDinamikaBreakdown($tahun, $bulan, $dusunId);
 
         return [
             'type' => 'dinamika',
@@ -224,6 +221,13 @@ class ReportController extends Controller
                 'keluar' => array_column($perBulanData, 'keluar'),
             ],
             'dusunBreakdown' => $dusunBreakdown,
+            'meta' => [
+                'showPerBulanChart' => $showPerBulanChart,
+                'hasBulanFilter' => (bool) $bulan,
+                'hasDusunFilter' => (bool) $dusunId,
+                'hasData' => $filteredRecordCount > 0,
+                'filteredRecordCount' => $filteredRecordCount,
+            ],
         ];
     }
 
@@ -383,12 +387,16 @@ class ReportController extends Controller
     /**
      * Get dusun breakdown untuk dinamika
      */
-    private function getDusunDinamikaBreakdown($tahun, $bulan = null)
+    private function getDusunDinamikaBreakdown($tahun, $bulan = null, $dusunId = null)
     {
         $query = DinamikaPenduduk::where('tahun', $tahun);
 
         if ($bulan) {
             $query->where('bulan', $bulan);
+        }
+
+        if ($dusunId) {
+            $query->where('dinamika_penduduk.id_dusun', $dusunId);
         }
 
         $query->selectRaw("
@@ -437,7 +445,7 @@ class ReportController extends Controller
         $validated = $request->validate([
             'tahun' => 'required|integer|min:2020|max:2099',
             'bulan' => 'nullable|integer|min:1|max:12',
-            'dusun_id' => 'nullable|integer',
+            'dusun_id' => 'nullable|integer|exists:wilayah,id',
             'laporan_tipe' => 'required|in:demografi,dinamika',
         ]);
 
@@ -581,7 +589,7 @@ class ReportController extends Controller
         $sheet->setCellValue('A10', 'BREAKDOWN PER DUSUN');
         $sheet->getStyle('A10')->getFont()->setBold(true);
 
-        $dusunData = $this->getDusunDinamikaBreakdown($tahun, $bulan);
+        $dusunData = $this->getDusunDinamikaBreakdown($tahun, $bulan, $dusunId);
 
         $sheet->setCellValue('A11', 'Dusun');
         $sheet->setCellValue('B11', 'Lahir');
@@ -632,7 +640,7 @@ class ReportController extends Controller
         $validated = $request->validate([
             'tahun' => 'required|integer|min:2020|max:2099',
             'bulan' => 'nullable|integer|min:1|max:12',
-            'dusun_id' => 'nullable|integer',
+            'dusun_id' => 'nullable|integer|exists:wilayah,id',
             'laporan_tipe' => 'required|in:demografi,dinamika',
         ]);
 

@@ -614,9 +614,46 @@
     }
 
     function renderDinamikaReport(data) {
+        const showPerBulanChart = !!(data.meta && data.meta.showPerBulanChart);
+        const hasData = !!(data.meta && data.meta.hasData);
+        const noDataMessage = !hasData
+            ? `<div class="alert alert-warning py-2 px-3 mb-3">Maaf, data dinamika penduduk tidak ditemukan untuk filter yang dipilih.</div>`
+            : '';
+        const filterInfo = (!showPerBulanChart)
+            ? `<div class="text-muted small mb-2">Grafik per bulan disembunyikan karena filter bulan/dusun sedang aktif.</div>`
+            : '';
+
+        const chartSection = showPerBulanChart
+            ? `
+                <div class="report-panel mb-4">
+                    <div class="section-title"><i class="bi bi-bar-chart-fill me-2"></i>Grafik Dinamika per Bulan</div>
+                    <div class="chart-container">
+                        <canvas id="dinamikaChart"></canvas>
+                    </div>
+                </div>
+            `
+            : '';
+
+        const breakdownRows = (data.dusunBreakdown && data.dusunBreakdown.length)
+            ? data.dusunBreakdown.map(row => `
+                <tr>
+                    <td>${row.dusun}</td>
+                    <td class="text-right"><strong>${row.lahir.toLocaleString('id-ID')}</strong></td>
+                    <td class="text-right">${row.meninggal.toLocaleString('id-ID')}</td>
+                    <td class="text-right">${row.masuk.toLocaleString('id-ID')}</td>
+                    <td class="text-right">${row.keluar.toLocaleString('id-ID')}</td>
+                </tr>
+            `).join('')
+            : `
+                <tr>
+                    <td colspan="5" class="text-center text-muted">Tidak ada data dinamika pada filter yang dipilih.</td>
+                </tr>
+            `;
+
         const html = `
             <div class="report-panel mb-4">
                 <div class="section-title mb-3"><i class="bi bi-activity me-2"></i>Ringkasan Dinamika Penduduk</div>
+                ${noDataMessage}
                 <div class="row g-3">
                     <div class="col-12 col-md-3">
                         <div class="summary-stat">
@@ -649,15 +686,11 @@
                 </div>
             </div>
 
-            <div class="report-panel mb-4">
-                <div class="section-title"><i class="bi bi-bar-chart-fill me-2"></i>Grafik Dinamika per Bulan</div>
-                <div class="chart-container">
-                    <canvas id="dinamikaChart"></canvas>
-                </div>
-            </div>
+            ${chartSection}
 
             <div class="report-panel mb-4">
                 <div class="section-title"><i class="bi bi-table me-2"></i>Breakdown per Dusun</div>
+                ${filterInfo}
                 <table class="breakdown-table">
                     <thead>
                         <tr>
@@ -669,15 +702,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        ${data.dusunBreakdown.map(row => `
-                            <tr>
-                                <td>${row.dusun}</td>
-                                <td class="text-right"><strong>${row.lahir.toLocaleString('id-ID')}</strong></td>
-                                <td class="text-right">${row.meninggal.toLocaleString('id-ID')}</td>
-                                <td class="text-right">${row.masuk.toLocaleString('id-ID')}</td>
-                                <td class="text-right">${row.keluar.toLocaleString('id-ID')}</td>
-                            </tr>
-                        `).join('')}
+                        ${breakdownRows}
                     </tbody>
                 </table>
             </div>
@@ -686,50 +711,56 @@
 
         document.getElementById('reportContent').innerHTML = html;
 
-        // Render dinamika chart (line/bar dengan multiple datasets)
-        if (charts.dinamikaChart) charts.dinamikaChart.destroy();
-        charts.dinamikaChart = new Chart(document.getElementById('dinamikaChart'), {
-            type: 'bar',
-            data: {
-                labels: data.perBulanChart.labels,
-                datasets: [
-                    {
-                        label: 'Kelahiran',
-                        data: data.perBulanChart.lahir,
-                        backgroundColor: '#10b981',
-                        borderRadius: 4,
-                    },
-                    {
-                        label: 'Kematian',
-                        data: data.perBulanChart.meninggal,
-                        backgroundColor: '#ef4444',
-                        borderRadius: 4,
-                    },
-                    {
-                        label: 'Masuk',
-                        data: data.perBulanChart.masuk,
-                        backgroundColor: '#3b82f6',
-                        borderRadius: 4,
-                    },
-                    {
-                        label: 'Keluar',
-                        data: data.perBulanChart.keluar,
-                        backgroundColor: '#f59e0b',
-                        borderRadius: 4,
-                    },
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { position: 'bottom' }
+        if (charts.dinamikaChart) {
+            charts.dinamikaChart.destroy();
+            charts.dinamikaChart = null;
+        }
+
+        if (showPerBulanChart && document.getElementById('dinamikaChart')) {
+            // Render dinamika chart (line/bar dengan multiple datasets)
+            charts.dinamikaChart = new Chart(document.getElementById('dinamikaChart'), {
+                type: 'bar',
+                data: {
+                    labels: data.perBulanChart.labels,
+                    datasets: [
+                        {
+                            label: 'Kelahiran',
+                            data: data.perBulanChart.lahir,
+                            backgroundColor: '#10b981',
+                            borderRadius: 4,
+                        },
+                        {
+                            label: 'Kematian',
+                            data: data.perBulanChart.meninggal,
+                            backgroundColor: '#ef4444',
+                            borderRadius: 4,
+                        },
+                        {
+                            label: 'Masuk',
+                            data: data.perBulanChart.masuk,
+                            backgroundColor: '#3b82f6',
+                            borderRadius: 4,
+                        },
+                        {
+                            label: 'Keluar',
+                            data: data.perBulanChart.keluar,
+                            backgroundColor: '#f59e0b',
+                            borderRadius: 4,
+                        },
+                    ]
                 },
-                scales: {
-                    y: { beginAtZero: true }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
                 }
-            }
-        });
+            });
+        }
     }
 
     function exportToExcel() {
