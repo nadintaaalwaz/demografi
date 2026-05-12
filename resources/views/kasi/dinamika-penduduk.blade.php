@@ -278,12 +278,14 @@
         grid-template-columns: 2fr 1fr;
         gap: 12px;
         margin-bottom: 12px;
+        align-items: stretch;
     }
 
     .charts-grid-bottom {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 12px;
+        align-items: stretch;
     }
 
     .chart-card {
@@ -291,6 +293,9 @@
         border: 1px solid rgba(96, 225, 194, 0.25);
         border-radius: 14px;
         padding: 14px;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
     }
 
     .chart-title {
@@ -308,11 +313,11 @@
 
     .chart-canvas {
         width: 100%;
-        height: 210px !important;
+        height: 220px !important;
     }
 
     .chart-canvas.chart-tall {
-        height: 230px !important;
+        height: 240px !important;
     }
 
     @media (max-width: 1200px) {
@@ -326,6 +331,18 @@
     }
 
     @media (max-width: 768px) {
+        .chart-card {
+            padding: 12px 10px 14px;
+        }
+
+        .chart-canvas {
+            height: 180px !important;
+        }
+
+        .chart-canvas.chart-tall {
+            height: 190px !important;
+        }
+
         .stats-grid,
         .charts-grid-bottom {
             grid-template-columns: 1fr;
@@ -337,6 +354,29 @@
 
         .dinamika-title h2 {
             font-size: 23px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .chart-card {
+            padding: 10px 8px 12px;
+        }
+
+        .chart-title {
+            font-size: 16px;
+        }
+
+        .chart-subtitle {
+            font-size: 11px;
+            margin-bottom: 8px;
+        }
+
+        .chart-canvas {
+            height: 165px !important;
+        }
+
+        .chart-canvas.chart-tall {
+            height: 175px !important;
         }
     }
 </style>
@@ -529,6 +569,7 @@
     const yearSelect = document.getElementById('yearSelect');
     const manualForm = manualFormCard?.querySelector('form');
     const bulanSelect = document.getElementById('bulan');
+    const isMobile = window.matchMedia('(max-width: 768px)').matches;
 
     if (toggleManualFormBtn && manualFormCard) {
         toggleManualFormBtn.addEventListener('click', function () {
@@ -580,14 +621,32 @@
 
     const baseScales = {
         x: {
-            ticks: { color: textColor, font: { size: 11 } },
+            ticks: {
+                color: textColor,
+                font: { size: isMobile ? 10 : 11 },
+                maxRotation: 0,
+                autoSkip: true,
+                autoSkipPadding: isMobile ? 10 : 8
+            },
             grid: { color: gridColor }
         },
         y: {
-            ticks: { color: textColor, font: { size: 11 } },
+            ticks: { color: textColor, font: { size: isMobile ? 10 : 11 } },
             grid: { color: gridColor },
             beginAtZero: true
         }
+    };
+
+    const chartLegend = {
+        labels: {
+            color: textColor,
+            boxWidth: isMobile ? 18 : 30,
+            boxHeight: 10,
+            padding: isMobile ? 12 : 18,
+            font: { size: isMobile ? 10 : 12 }
+        },
+        position: isMobile ? 'bottom' : 'top',
+        align: isMobile ? 'center' : 'end'
     };
 
     new Chart(document.getElementById('trendChart'), {
@@ -618,7 +677,8 @@
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { legend: { labels: { color: textColor } } },
+            layout: { padding: { top: 4, right: 4, bottom: isMobile ? 0 : 4, left: 0 } },
+            plugins: { legend: chartLegend },
             scales: baseScales
         }
     });
@@ -640,7 +700,8 @@
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { legend: { labels: { color: textColor } } },
+            layout: { padding: { top: 4, right: 4, bottom: isMobile ? 0 : 4, left: 0 } },
+            plugins: { legend: chartLegend },
             scales: baseScales
         }
     });
@@ -673,7 +734,8 @@
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { legend: { labels: { color: textColor } } },
+            layout: { padding: { top: 4, right: 4, bottom: isMobile ? 0 : 4, left: 0 } },
+            plugins: { legend: chartLegend },
             scales: baseScales
         }
     });
@@ -716,7 +778,8 @@
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { legend: { labels: { color: textColor } } },
+            layout: { padding: { top: 4, right: 4, bottom: isMobile ? 0 : 4, left: 0 } },
+            plugins: { legend: chartLegend },
             scales: baseScales
         }
     });
