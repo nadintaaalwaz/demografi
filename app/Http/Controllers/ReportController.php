@@ -493,8 +493,8 @@ class ReportController extends Controller
         $sheet->setCellValue('A7', 'Perempuan');
         $sheet->setCellValue('B7', $totalPerempuan);
 
-        // Data chart jenis kelamin
-        $sheet->setCellValue('A9', 'DATA GRAFIK JENIS KELAMIN');
+        // Data tabel pendukung untuk export Excel
+        $sheet->setCellValue('A9', 'DATA JENIS KELAMIN');
         $sheet->setCellValue('A10', 'Kategori');
         $sheet->setCellValue('B10', 'Jumlah');
         $sheet->setCellValue('A11', 'Laki-laki');
@@ -503,8 +503,8 @@ class ReportController extends Controller
         $sheet->setCellValue('B12', $totalPerempuan);
         $sheet->getStyle('A9:B10')->getFont()->setBold(true);
 
-        // Data chart pendidikan
-        $sheet->setCellValue('D9', 'DATA GRAFIK TINGKAT PENDIDIKAN');
+        // Data tingkat pendidikan
+        $sheet->setCellValue('D9', 'DATA TINGKAT PENDIDIKAN');
         $sheet->setCellValue('D10', 'Tingkat Pendidikan');
         $sheet->setCellValue('E10', 'Jumlah');
         $educationLabels = $demografi['educationChart']['labels'] ?? [];
@@ -517,8 +517,8 @@ class ReportController extends Controller
         }
         $sheet->getStyle('D9:E10')->getFont()->setBold(true);
 
-        // Data chart pekerjaan
-        $sheet->setCellValue('H9', 'DATA GRAFIK TINGKAT PEKERJAAN');
+        // Data tingkat pekerjaan
+        $sheet->setCellValue('H9', 'DATA TINGKAT PEKERJAAN');
         $sheet->setCellValue('H10', 'Pekerjaan');
         $sheet->setCellValue('I10', 'Jumlah');
         $occupationLabels = $demografi['occupationChart']['labels'] ?? [];
@@ -530,91 +530,6 @@ class ReportController extends Controller
             $sheet->setCellValue('I' . $row, (int) ($occupationValues[$i] ?? 0));
         }
         $sheet->getStyle('H9:I10')->getFont()->setBold(true);
-
-        // Chart: Jenis Kelamin (Pie)
-        $genderLabel = [new \PhpOffice\PhpSpreadsheet\Chart\DataSeriesValues('String', "'{$sheetTitle}'!\$B\$10", null, 1)];
-        $genderCategories = [new \PhpOffice\PhpSpreadsheet\Chart\DataSeriesValues('String', "'{$sheetTitle}'!\$A\$11:\$A\$12", null, 2)];
-        $genderValues = [new \PhpOffice\PhpSpreadsheet\Chart\DataSeriesValues('Number', "'{$sheetTitle}'!\$B\$11:\$B\$12", null, 2)];
-        $genderSeries = new \PhpOffice\PhpSpreadsheet\Chart\DataSeries(
-            \PhpOffice\PhpSpreadsheet\Chart\DataSeries::TYPE_PIECHART,
-            null,
-            range(0, count($genderValues) - 1),
-            $genderLabel,
-            $genderCategories,
-            $genderValues
-        );
-        $genderPlot = new \PhpOffice\PhpSpreadsheet\Chart\PlotArea(null, [$genderSeries]);
-        $genderChart = new \PhpOffice\PhpSpreadsheet\Chart\Chart(
-            'gender_chart',
-            new \PhpOffice\PhpSpreadsheet\Chart\Title('Grafik Jenis Kelamin'),
-            new \PhpOffice\PhpSpreadsheet\Chart\Legend(\PhpOffice\PhpSpreadsheet\Chart\Legend::POSITION_RIGHT, null, false),
-            $genderPlot,
-            true,
-            0,
-            null,
-            null
-        );
-        $genderChart->setTopLeftPosition('A14');
-        $genderChart->setBottomRightPosition('D28');
-        $sheet->addChart($genderChart);
-
-        // Chart: Tingkat Pendidikan (Bar)
-        $educationEnd = $educationStart + max(count($educationLabels) - 1, 0);
-        $educationLabel = [new \PhpOffice\PhpSpreadsheet\Chart\DataSeriesValues('String', "'{$sheetTitle}'!\$E\$10", null, 1)];
-        $educationCategories = [new \PhpOffice\PhpSpreadsheet\Chart\DataSeriesValues('String', "'{$sheetTitle}'!\$D\${educationStart}:\$D\${educationEnd}", null, max(count($educationLabels), 1))];
-        $educationDataValues = [new \PhpOffice\PhpSpreadsheet\Chart\DataSeriesValues('Number', "'{$sheetTitle}'!\$E\${educationStart}:\$E\${educationEnd}", null, max(count($educationValues), 1))];
-        $educationSeries = new \PhpOffice\PhpSpreadsheet\Chart\DataSeries(
-            \PhpOffice\PhpSpreadsheet\Chart\DataSeries::TYPE_BARCHART,
-            \PhpOffice\PhpSpreadsheet\Chart\DataSeries::GROUPING_CLUSTERED,
-            range(0, count($educationDataValues) - 1),
-            $educationLabel,
-            $educationCategories,
-            $educationDataValues
-        );
-        $educationSeries->setPlotDirection(\PhpOffice\PhpSpreadsheet\Chart\DataSeries::DIRECTION_COL);
-        $educationPlot = new \PhpOffice\PhpSpreadsheet\Chart\PlotArea(null, [$educationSeries]);
-        $educationChart = new \PhpOffice\PhpSpreadsheet\Chart\Chart(
-            'education_chart',
-            new \PhpOffice\PhpSpreadsheet\Chart\Title('Grafik Tingkat Pendidikan'),
-            new \PhpOffice\PhpSpreadsheet\Chart\Legend(\PhpOffice\PhpSpreadsheet\Chart\Legend::POSITION_BOTTOM, null, false),
-            $educationPlot,
-            true,
-            0,
-            new \PhpOffice\PhpSpreadsheet\Chart\Title('Kategori'),
-            new \PhpOffice\PhpSpreadsheet\Chart\Title('Jumlah')
-        );
-        $educationChart->setTopLeftPosition('E14');
-        $educationChart->setBottomRightPosition('J28');
-        $sheet->addChart($educationChart);
-
-        // Chart: Tingkat Pekerjaan (Bar)
-        $occupationEnd = $occupationStart + max(count($occupationLabels) - 1, 0);
-        $occupationLabel = [new \PhpOffice\PhpSpreadsheet\Chart\DataSeriesValues('String', "'{$sheetTitle}'!\$I\$10", null, 1)];
-        $occupationCategories = [new \PhpOffice\PhpSpreadsheet\Chart\DataSeriesValues('String', "'{$sheetTitle}'!\$H\${occupationStart}:\$H\${occupationEnd}", null, max(count($occupationLabels), 1))];
-        $occupationDataValues = [new \PhpOffice\PhpSpreadsheet\Chart\DataSeriesValues('Number', "'{$sheetTitle}'!\$I\${occupationStart}:\$I\${occupationEnd}", null, max(count($occupationValues), 1))];
-        $occupationSeries = new \PhpOffice\PhpSpreadsheet\Chart\DataSeries(
-            \PhpOffice\PhpSpreadsheet\Chart\DataSeries::TYPE_BARCHART,
-            \PhpOffice\PhpSpreadsheet\Chart\DataSeries::GROUPING_CLUSTERED,
-            range(0, count($occupationDataValues) - 1),
-            $occupationLabel,
-            $occupationCategories,
-            $occupationDataValues
-        );
-        $occupationSeries->setPlotDirection(\PhpOffice\PhpSpreadsheet\Chart\DataSeries::DIRECTION_COL);
-        $occupationPlot = new \PhpOffice\PhpSpreadsheet\Chart\PlotArea(null, [$occupationSeries]);
-        $occupationChart = new \PhpOffice\PhpSpreadsheet\Chart\Chart(
-            'occupation_chart',
-            new \PhpOffice\PhpSpreadsheet\Chart\Title('Grafik Tingkat Pekerjaan'),
-            new \PhpOffice\PhpSpreadsheet\Chart\Legend(\PhpOffice\PhpSpreadsheet\Chart\Legend::POSITION_BOTTOM, null, false),
-            $occupationPlot,
-            true,
-            0,
-            new \PhpOffice\PhpSpreadsheet\Chart\Title('Kategori'),
-            new \PhpOffice\PhpSpreadsheet\Chart\Title('Jumlah')
-        );
-        $occupationChart->setTopLeftPosition('K14');
-        $occupationChart->setBottomRightPosition('P28');
-        $sheet->addChart($occupationChart);
 
         // Breakdown per Dusun
         $sheet->setCellValue('A31', 'BREAKDOWN PER DUSUN');
@@ -652,7 +567,6 @@ class ReportController extends Controller
         }
 
         $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
-        $writer->setIncludeCharts(true);
         $writer->save($absolutePath);
 
         $this->simpanArsipLaporan('Demografi', $tahun, null, $relativePath, $filename);

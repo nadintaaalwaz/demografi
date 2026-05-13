@@ -638,10 +638,10 @@
             ? data.dusunBreakdown.map(row => `
                 <tr>
                     <td>${row.dusun}</td>
-                    <td class="text-right"><strong>${row.lahir.toLocaleString('id-ID')}</strong></td>
-                    <td class="text-right">${row.meninggal.toLocaleString('id-ID')}</td>
-                    <td class="text-right">${row.masuk.toLocaleString('id-ID')}</td>
-                    <td class="text-right">${row.keluar.toLocaleString('id-ID')}</td>
+                    <td class="text-center"><strong>${row.lahir.toLocaleString('id-ID')}</strong></td>
+                    <td class="text-center">${row.meninggal.toLocaleString('id-ID')}</td>
+                    <td class="text-center">${row.masuk.toLocaleString('id-ID')}</td>
+                    <td class="text-center">${row.keluar.toLocaleString('id-ID')}</td>
                 </tr>
             `).join('')
             : `
@@ -695,10 +695,10 @@
                     <thead>
                         <tr>
                             <th>Dusun</th>
-                            <th class="text-right">Lahir</th>
-                            <th class="text-right">Meninggal</th>
-                            <th class="text-right">Masuk</th>
-                            <th class="text-right">Keluar</th>
+                            <th class="text-center">Lahir</th>
+                            <th class="text-center">Meninggal</th>
+                            <th class="text-center">Masuk</th>
+                            <th class="text-center">Keluar</th>
                         </tr>
                     </thead>
                     <tbody>
