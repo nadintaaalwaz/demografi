@@ -359,7 +359,7 @@
     $ageCards = [
         [
             'label' => 'Jumlah Bayi & Balita (0–5 Tahun)',
-            'value' => $totalBalita ?? 0,
+            'value' => $ageValues[0] ?? 0,
             'sub' => 'Masa krusial untuk pertumbuhan fisik, perkembangan kognitif, dan pencegahan stunting.',
         ],
         [
@@ -368,18 +368,18 @@
             'sub' => 'Masa usia sekolah dasar, fokus pada pengembangan kemampuan sosial, kognitif, dan perilaku dasar.',
         ],
         [
-            'label' => 'Jumlah Remaja (10–19 Tahun)',
+            'label' => 'Jumlah Remaja (12–18 Tahun)',
             'value' => $ageValues[2] ?? 0,
             'sub' => 'Masa pubertas dan pencarian jati diri, penting untuk edukasi kesehatan reproduksi dan mental.',
         ],
         [
             'label' => 'Jumlah Dewasa (19–59 Tahun)',
-            'value' => $totalProduktif ?? 0,
+            'value' => $ageValues[3] ?? 0,
             'sub' => 'Usia produktif yang fokus pada produktivitas kerja, kesehatan fisik, dan pencegahan penyakit tidak menular.',
         ],
         [
             'label' => 'Jumlah Lansia (60+ Tahun)',
-            'value' => $totalLansia ?? 0,
+            'value' => $ageValues[4] ?? 0,
             'sub' => 'Fokus pada pemeliharaan kesehatan di usia tua agar tetap mandiri dan memiliki kualitas hidup yang baik.',
         ],
     ];
