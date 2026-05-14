@@ -634,6 +634,21 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap contributors'
 }).addTo(publicMap);
 
+function createYellowDusunPin() {
+    return L.divIcon({
+        html: `
+            <svg width="40" height="52" viewBox="0 0 24 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 0C5.37258 0 0 5.37258 0 12C0 20 12 32 12 32C12 32 24 20 24 12C24 5.37258 18.6274 0 12 0Z" fill="#FCD34D"/>
+                <circle cx="12" cy="12" r="4" fill="#fff"/>
+            </svg>
+        `,
+        iconSize: [40, 52],
+        iconAnchor: [20, 52],
+        popupAnchor: [0, -52],
+        className: 'custom-dusun-pin'
+    });
+}
+
 // Dusun markers
 const dusunData = @json($dusunMapData ?? []);
 
@@ -642,7 +657,7 @@ dusunData.forEach(dusun => {
         return;
     }
 
-    const marker = L.marker([dusun.lat, dusun.lng]).addTo(publicMap);
+    const marker = L.marker([dusun.lat, dusun.lng], { icon: createYellowDusunPin() }).addTo(publicMap);
     marker.bindPopup(`
         <div style="font-family: 'Inter', sans-serif; min-width: 180px;">
             <h3 style="margin: 0 0 10px 0; color: #0C342C; font-size: 15px; font-weight: 700;">${dusun.name}</h3>

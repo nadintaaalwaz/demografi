@@ -331,6 +331,11 @@ Dashboard {{ Auth::user()->dusun_name ?? "Dusun" }}
         line-height: 1.6;
     }
 
+    .custom-map-pin {
+        background: transparent;
+        border: none;
+    }
+
     @media (max-width: 768px) {
         .charts-row,
         .dinamika-grid {
@@ -670,34 +675,24 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 const bounds = [[mapLat, mapLng]];
 
 // Custom icon for Dusun (yellow)
-const dusunIcon = L.icon({
-    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-gold.png',
-    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowSize: [41, 41]
-});
+function createPinIcon(color) {
+    return L.divIcon({
+        html: `
+            <svg width="24" height="32" viewBox="0 0 24 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 0C5.37258 0 0 5.37258 0 12C0 20 12 32 12 32C12 32 24 20 24 12C24 5.37258 18.6274 0 12 0Z" fill="${color}"/>
+                <circle cx="12" cy="12" r="4" fill="#fff"/>
+            </svg>
+        `,
+        iconSize: [24, 32],
+        iconAnchor: [12, 32],
+        popupAnchor: [0, -30],
+        className: 'custom-map-pin'
+    });
+}
 
-// Custom icon for RW (blue)
-const rwIcon = L.icon({
-    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
-    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowSize: [41, 41]
-});
-
-// Custom icon for RT (green)
-const rtIcon = L.icon({
-    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
-    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowSize: [41, 41]
-});
+const dusunIcon = createPinIcon('#FCD34D');
+const rwIcon = createPinIcon('#065F46');
+const rtIcon = createPinIcon('#1E40AF');
 
 // Dusun marker
 const dusunMarker = L.marker([mapLat, mapLng], { icon: dusunIcon }).addTo(dusunMap);
