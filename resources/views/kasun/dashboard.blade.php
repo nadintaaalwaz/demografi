@@ -9,27 +9,24 @@ Dashboard {{ Auth::user()->dusun_name ?? "Dusun" }}
 @push('styles')
 <style>
     .stats-grid {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        align-items: stretch;
+        display: grid;
+        grid-template-columns: repeat(1, 1fr);
         gap: 16px;
         margin-bottom: 28px;
     }
 
     .stat-card {
         background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-        padding: 20px;
+        padding: 18px 20px;
         width: 100%;
-        max-width: 286px;
-        min-height: 220px;
+        min-height: 140px;
         display: flex;
         flex-direction: column;
         justify-content: center;
-        border-radius: 16px;
-        box-shadow: 0 8px 22px rgba(12, 52, 44, 0.08);
+        border-radius: 14px;
+        box-shadow: 0 8px 18px rgba(12, 52, 44, 0.06);
         text-align: center;
-        transition: all 0.3s ease;
+        transition: transform 0.22s ease, box-shadow 0.22s ease;
         border-bottom: 4px solid transparent;
     }
 
@@ -75,16 +72,17 @@ Dashboard {{ Auth::user()->dusun_name ?? "Dusun" }}
     }
 
     .stat-card h3 {
-        font-size: 36px;
-        font-weight: 700;
-            border-radius: 16px;
-            box-shadow: 0 12px 30px rgba(12, 52, 44, 0.08);
-            border: none;
+        font-size: 28px;
+        font-weight: 800;
+        margin: 6px 0 4px;
+        color: #0C342C;
+    }
 
     .stat-card p {
-        font-size: 14px;
+        font-size: 13px;
         color: #6b7280;
-        font-weight: 500;
+        font-weight: 600;
+        margin: 0;
     }
 
     .stat-card .percentage {
@@ -122,9 +120,10 @@ Dashboard {{ Auth::user()->dusun_name ?? "Dusun" }}
 
     .charts-row {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        grid-template-columns: repeat(1, 1fr);
         gap: 16px;
         margin-bottom: 24px;
+        align-items: start;
     }
 
     .chart-card {
@@ -133,11 +132,23 @@ Dashboard {{ Auth::user()->dusun_name ?? "Dusun" }}
         border-radius: 16px;
         box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
         border: none;
+        display: flex;
+        flex-direction: column;
+        min-height: 320px;
+    }
+
+    .chart-container {
+        height: 180px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 6px 0;
     }
 
     .chart-card canvas {
         width: 100% !important;
-        max-height: 170px !important;
+        height: 100% !important;
+        max-height: 220px !important;
     }
 
     .chart-header {
@@ -158,7 +169,7 @@ Dashboard {{ Auth::user()->dusun_name ?? "Dusun" }}
     .gender-legend {
         margin-top: 14px;
         display: flex;
-        justify-content: space-between;
+        justify-content: center;
         align-items: center;
         font-size: 13px;
         font-weight: 700;
@@ -168,7 +179,7 @@ Dashboard {{ Auth::user()->dusun_name ?? "Dusun" }}
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        min-width: 120px;
+        min-width: auto;
     }
 
     .gender-legend-dot {
@@ -201,7 +212,7 @@ Dashboard {{ Auth::user()->dusun_name ?? "Dusun" }}
     }
 
     #dusunMap {
-        height: 400px;
+        height: 300px;
         border-radius: 12px;
         margin-top: 20px;
     }
@@ -289,9 +300,9 @@ Dashboard {{ Auth::user()->dusun_name ?? "Dusun" }}
     .dusun-total-table th,
     .dusun-total-table td {
         text-align: left;
-        padding: 12px 14px;
+        padding: 10px 12px;
         border-bottom: 1px solid #e5e7eb;
-        font-size: 14px;
+        font-size: 13px;
     }
 
     .dusun-total-table th {
@@ -327,11 +338,10 @@ Dashboard {{ Auth::user()->dusun_name ?? "Dusun" }}
         }
 
         .stats-grid {
-            justify-content: stretch;
+            grid-template-columns: repeat(1, 1fr);
         }
 
         .stat-card {
-            max-width: 100%;
             min-height: auto;
         }
 
@@ -343,6 +353,16 @@ Dashboard {{ Auth::user()->dusun_name ?? "Dusun" }}
         .info-banner-icon {
             margin-top: 20px;
         }
+    }
+
+    @media (min-width: 768px) {
+        .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        .charts-row { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (min-width: 1200px) {
+        .stats-grid { grid-template-columns: repeat(4, 1fr); }
+        .charts-row { grid-template-columns: repeat(3, 1fr); }
     }
 </style>
 @endpush
@@ -404,7 +424,9 @@ Dashboard {{ Auth::user()->dusun_name ?? "Dusun" }}
         <div class="chart-header">
             <h2 class="chart-title">Distribusi Gender</h2>
         </div>
-        <canvas id="genderChart"></canvas>
+        <div class="chart-container">
+            <canvas id="genderChart"></canvas>
+        </div>
         <div class="gender-legend">
             <span class="gender-legend-item female-label">
                 <span class="gender-legend-dot" style="background:#f59e0b;"></span>
@@ -422,7 +444,9 @@ Dashboard {{ Auth::user()->dusun_name ?? "Dusun" }}
         <div class="chart-header">
             <h2 class="chart-title">Distribusi Usia</h2>
         </div>
-        <canvas id="ageChart"></canvas>
+        <div class="chart-container">
+            <canvas id="ageChart"></canvas>
+        </div>
     </div>
 
     <!-- Education -->
@@ -430,16 +454,12 @@ Dashboard {{ Auth::user()->dusun_name ?? "Dusun" }}
         <div class="chart-header">
             <h2 class="chart-title">Tingkat Pendidikan</h2>
         </div>
-        <canvas id="educationChart"></canvas>
+        <div class="chart-container">
+            <canvas id="educationChart"></canvas>
+        </div>
     </div>
 
-    <!-- Occupation -->
-    <div class="chart-card">
-        <div class="chart-header">
-            <h2 class="chart-title">Jenis Pekerjaan</h2>
-        </div>
-        <canvas id="occupationChart"></canvas>
-    </div>
+    <!-- Occupation removed per request -->
 </div>
 
 <!-- Map -->
@@ -494,7 +514,7 @@ Dashboard {{ Auth::user()->dusun_name ?? "Dusun" }}
     <ul class="age-note-list">
         <li>Bayi & Balita (0-5 Tahun): Masa krusial untuk pertumbuhan fisik, perkembangan kognitif, dan pencegahan stunting.</li>
         <li>Anak-anak (6-11 Tahun): Masa usia sekolah dasar, fokus pada pengembangan kemampuan sosial, kognitif, dan perilaku dasar.</li>
-        <li>Remaja (10-19 Tahun): Masa pubertas dan pencarian jati diri, penting untuk edukasi kesehatan reproduksi dan mental.</li>
+        <li>Remaja (12-18 Tahun): Masa pubertas dan pencarian jati diri, penting untuk edukasi kesehatan reproduksi dan mental.</li>
         <li>Dewasa (19-59 Tahun): Usia produktif yang fokus pada produktivitas kerja, kesehatan fisik, dan pencegahan penyakit tidak menular.</li>
         <li>Lansia (60+ Tahun): Fokus pada pemeliharaan kesehatan di usia tua agar tetap mandiri dan memiliki kualitas hidup yang baik.</li>
     </ul>
@@ -505,7 +525,7 @@ Dashboard {{ Auth::user()->dusun_name ?? "Dusun" }}
     <div class="chart-header">
         <h2 class="chart-title">Dinamika Penduduk Bulan Ini</h2>
     </div>
-    
+
     <div class="dinamika-grid">
         <div class="dinamika-card birth">
             <i class="fas fa-baby"></i>
@@ -530,6 +550,49 @@ Dashboard {{ Auth::user()->dusun_name ?? "Dusun" }}
             <h4>{{ $migrasiKeluar }}</h4>
             <p>Migrasi Keluar</p>
         </div>
+    </div>
+
+    <div class="table-responsive" style="margin-top:18px;">
+        <table class="dusun-total-table" style="width:100%;">
+            <thead>
+                <tr>
+                    <th>Jenis</th>
+                    <th class="text-right">Jumlah</th>
+                    <th class="text-right">Persentase</th>
+                </tr>
+            </thead>
+            <tbody>
+                @php
+                    $dinTotal = max(1, $totalPenduduk);
+                    $net = ($kelahiran + $migrasiMasuk) - ($kematian + $migrasiKeluar);
+                @endphp
+                <tr>
+                    <td>Kelahiran</td>
+                    <td class="text-right">{{ number_format($kelahiran) }}</td>
+                    <td class="text-right">{{ $totalPenduduk > 0 ? round(($kelahiran / $dinTotal) * 100, 1) : 0 }}%</td>
+                </tr>
+                <tr>
+                    <td>Kematian</td>
+                    <td class="text-right">{{ number_format($kematian) }}</td>
+                    <td class="text-right">{{ $totalPenduduk > 0 ? round(($kematian / $dinTotal) * 100, 1) : 0 }}%</td>
+                </tr>
+                <tr>
+                    <td>Migrasi Masuk</td>
+                    <td class="text-right">{{ number_format($migrasiMasuk) }}</td>
+                    <td class="text-right">{{ $totalPenduduk > 0 ? round(($migrasiMasuk / $dinTotal) * 100, 1) : 0 }}%</td>
+                </tr>
+                <tr>
+                    <td>Migrasi Keluar</td>
+                    <td class="text-right">{{ number_format($migrasiKeluar) }}</td>
+                    <td class="text-right">{{ $totalPenduduk > 0 ? round(($migrasiKeluar / $dinTotal) * 100, 1) : 0 }}%</td>
+                </tr>
+                <tr class="highlight-row">
+                    <td><strong>Perubahan Bersih</strong></td>
+                    <td class="text-right"><strong>{{ number_format($net) }}</strong></td>
+                    <td class="text-right"><strong>{{ $totalPenduduk > 0 ? round(($net / $dinTotal) * 100, 1) : 0 }}%</strong></td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 </div>
 @endsection
@@ -562,6 +625,7 @@ new Chart(genderCtx, {
     },
     options: {
         responsive: true,
+        maintainAspectRatio: false,
         plugins: {
             legend: { display: false }
         }
@@ -583,6 +647,7 @@ new Chart(ageCtx, {
     },
     options: {
         responsive: true,
+        maintainAspectRatio: false,
         plugins: {
             legend: {
                 display: false
@@ -611,6 +676,7 @@ new Chart(educationCtx, {
     },
     options: {
         responsive: true,
+        maintainAspectRatio: false,
         indexAxis: 'y',
         plugins: {
             legend: {
@@ -625,33 +691,7 @@ new Chart(educationCtx, {
     }
 });
 
-// Occupation Chart
-const occupationCtx = document.getElementById('occupationChart').getContext('2d');
-new Chart(occupationCtx, {
-    type: 'pie',
-    data: {
-        labels: @json($occupationLabels),
-        datasets: [{
-            data: @json($occupationValues),
-            backgroundColor: [
-                chartColors.primary,
-                chartColors.success,
-                '#3b82f6',
-                chartColors.warning,
-                '#6366f1'
-            ],
-            borderWidth: 0
-        }]
-    },
-    options: {
-        responsive: true,
-        plugins: {
-            legend: {
-                position: 'bottom',
-            }
-        }
-    }
-});
+// Occupation chart removed (per request)
 
 // Leaflet Map
 const mapLat = {{ (float) $mapLat }};
