@@ -71,7 +71,7 @@ $buildPublicDashboardData = function () {
         ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('SMP','TAMAT SMP','SEKOLAH MENENGAH PERTAMA') THEN 1 ELSE 0 END) as smp")
         ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('SMA','SMK','SLTA','TAMAT SMA') THEN 1 ELSE 0 END) as sma")
         ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('D3','D-3','DIII','DIPLOMA III','DIPLOMA 3','AKADEMI/ DIPLOMA III/S. MUDA','AKADEMI/DIPLOMA III/S. MUDA','AKADEMI / DIPLOMA III / S. MUDA','AKADEMI') THEN 1 ELSE 0 END) as diploma_iii")
-        ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('D4','D-4','DIV','DIPLOMA IV','DIPLOMA 4','S1','STRATA I','STRATA 1') THEN 1 ELSE 0 END) as diploma_iv_s1")
+        ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('D4','D-4','DIV','D IV','D.IV','DIPLOMA IV','DIPLOMA 4','DIPLOMA IV/STRATA I','DIPLOMA IV / STRATA I','DIPLOMA IV/ STRATA I','DIPLOMA IV /STRATA I','S1','S-1','S 1','S.1','STRATA I','STRATA 1','SARJANA') THEN 1 ELSE 0 END) as diploma_iv_s1")
         ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('S2','STRATA II','STRATA 2','MAGISTER') THEN 1 ELSE 0 END) as strata_ii")
         ->first();
 
@@ -288,7 +288,7 @@ $buildPublicStatisticsData = function () {
         ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('SMP','TAMAT SMP','SEKOLAH MENENGAH PERTAMA') THEN 1 ELSE 0 END) as smp")
         ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('SMA','SMK','SLTA','TAMAT SMA','SEKOLAH MENENGAH ATAS','MA') THEN 1 ELSE 0 END) as sma")
         ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('D3','D-3','DIII','DIPLOMA III','DIPLOMA 3','AKADEMI/ DIPLOMA III/S. MUDA','AKADEMI/DIPLOMA III/S. MUDA','AKADEMI / DIPLOMA III / S. MUDA','AKADEMI') THEN 1 ELSE 0 END) as diploma_iii")
-        ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('D4','D-4','DIV','DIPLOMA IV','DIPLOMA 4','S1','STRATA I','STRATA 1') THEN 1 ELSE 0 END) as diploma_iv_s1")
+        ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('D4','D-4','DIV','D IV','D.IV','DIPLOMA IV','DIPLOMA 4','DIPLOMA IV/STRATA I','DIPLOMA IV / STRATA I','DIPLOMA IV/ STRATA I','DIPLOMA IV /STRATA I','S1','S-1','S 1','S.1','STRATA I','STRATA 1','SARJANA') THEN 1 ELSE 0 END) as diploma_iv_s1")
         ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('S2','STRATA II','STRATA 2','MAGISTER') THEN 1 ELSE 0 END) as strata_ii")
         ->first();
 
@@ -328,15 +328,15 @@ $buildPublicStatisticsData = function () {
 
     // Hitung kategori pekerjaan dengan urutan tetap
     $occupationRaw = (clone $pendudukAktif)
-        ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('PELAJAR','PELAJAR/MAHASISWA','MAHASISWA') THEN 1 ELSE 0 END) as pelajar")
-        ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('PETANI','PETANI/PETERNAK','PETERNAK') THEN 1 ELSE 0 END) as petani")
-        ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('IRT','IBU RUMAH TANGGA','IBURUNAH TANGGA') THEN 1 ELSE 0 END) as irt")
-        ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('WIRASWASTA','WIRAUSAHA','PENGUSAHA','PEDAGANG') THEN 1 ELSE 0 END) as wiraswasta")
-        ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('GURU','PENDIDIK') THEN 1 ELSE 0 END) as guru")
-        ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('DOSEN','TENAGA PENGAJAR') THEN 1 ELSE 0 END) as dosen")
-        ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('PNS','PEGAWAI NEGERI SIPIL','PEGAWAI NEGERI','ASN','APARATUR SIPIL NEGARA','PEGAWAI NEGERI SIPIL (PNS)') THEN 1 ELSE 0 END) as pns")
-        ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('TNI','TENTARA NASIONAL INDONESIA','ANGGOTA TNI','TENTARA NASIONAL INDONESIA (TNI)') THEN 1 ELSE 0 END) as tni")
-        ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('POLRI','POLISI','ANGGOTA POLRI','KEPOLISIAN NEGARA RI') THEN 1 ELSE 0 END) as polri")
+        ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('PELAJAR','PELAJAR/MAHASISWA','PELAJAR / MAHASISWA','PELAJAR/ MAHASISWA','PELAJAR /MAHASISWA','MAHASISWA','PELAJAR/SISWA','SISWA') THEN 1 ELSE 0 END) as pelajar")
+        ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('PETANI','PETANI/PETERNAK','PETANI / PETERNAK','PETANI/ PETERNAK','PETANI /PETERNAK','PETERNAK','PETANI/NELAYAN','NELAYAN') THEN 1 ELSE 0 END) as petani")
+        ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('IRT','IBU RUMAH TANGGA','IBU RUMAH TANGGA (IRT)','IBU / RUMAH TANGGA','IBU/ RUMAH TANGGA','IBURUNAH TANGGA','IBURUMAHTANGGA') THEN 1 ELSE 0 END) as irt")
+        ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('WIRASWASTA','WIRAUSAHA','WIRA SWASTA','WIRA/SWASTA','PENGUSAHA','PEDAGANG','PEDAGANG/WIRASWASTA','PEDAGANG / WIRASWASTA') THEN 1 ELSE 0 END) as wiraswasta")
+        ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('GURU','GURU/PENDIDIK','GURU / PENDIDIK','PENDIDIK','TENAGA PENDIDIK') THEN 1 ELSE 0 END) as guru")
+        ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('DOSEN','DOSEN/TENAGA PENGAJAR','DOSEN / TENAGA PENGAJAR','TENAGA PENGAJAR','TENAGA PENGAJAR PERGURUAN TINGGI') THEN 1 ELSE 0 END) as dosen")
+        ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('PNS','PEGAWAI NEGERI SIPIL','PEGAWAI NEGERI SIPIL (PNS)','PEGAWAI NEGERI','PNS/PEGAWAI NEGERI SIPIL','ASN','APARATUR SIPIL NEGARA','APARATUR SIPIL NEGARA (ASN)') THEN 1 ELSE 0 END) as pns")
+        ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('TNI','TENTARA NASIONAL INDONESIA','TENTARA NASIONAL INDONESIA (TNI)','ANGGOTA TNI','TNI/TENTARA NASIONAL INDONESIA','MILITER') THEN 1 ELSE 0 END) as tni")
+        ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('POLRI','POLISI','POLISI NEGARA RI','ANGGOTA POLRI','KEPOLISIAN NEGARA RI','POLRI/ANGGOTA POLRI','POLRI / ANGGOTA POLRI') THEN 1 ELSE 0 END) as polri")
         ->first();
 
     $occupationFixedOrder = [
@@ -816,7 +816,7 @@ Route::prefix('kasi')->name('kasi.')->middleware(['auth', 'role:kasi'])->group(f
             ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('SMP','TAMAT SMP','SEKOLAH MENENGAH PERTAMA') THEN 1 ELSE 0 END) as smp")
             ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('SMA','SMK','SLTA','TAMAT SMA','SEKOLAH MENENGAH ATAS','MA') THEN 1 ELSE 0 END) as sma")
             ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('D3','D-3','DIII','DIPLOMA III','DIPLOMA 3','AKADEMI/ DIPLOMA III/S. MUDA','AKADEMI/DIPLOMA III/S. MUDA','AKADEMI / DIPLOMA III / S. MUDA','AKADEMI') THEN 1 ELSE 0 END) as diploma_iii")
-            ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('D4','D-4','DIV','DIPLOMA IV','DIPLOMA 4','S1','STRATA I','STRATA 1') THEN 1 ELSE 0 END) as diploma_iv_s1")
+            ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('D4','D-4','DIV','DIPLOMA IV','DIPLOMA 4','DIPLOMA IV/STRATA I','DIPLOMA IV / STRATA I','DIPLOMA IV/ STRATA I','DIPLOMA IV /STRATA I','S1','STRATA I','STRATA 1') THEN 1 ELSE 0 END) as diploma_iv_s1")
             ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pendidikan, ''))) IN ('S2','STRATA II','STRATA 2','MAGISTER') THEN 1 ELSE 0 END) as strata_ii")
             ->first();
 
@@ -854,22 +854,52 @@ Route::prefix('kasi')->name('kasi.')->middleware(['auth', 'role:kasi'])->group(f
             $educationValues = [0];
         }
 
-        $occupationRows = (clone $pendudukAktif)
-            ->selectRaw("COALESCE(NULLIF(TRIM(pekerjaan), ''), 'Tidak diketahui') as label")
-            ->selectRaw('COUNT(*) as total')
-            ->groupBy('label')
-            ->orderByDesc('total')
-            ->get();
+        // Hitung kategori pekerjaan dengan urutan tetap untuk kasi
+        $occupationRaw = (clone $pendudukAktif)
+            ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('PELAJAR','PELAJAR/MAHASISWA','PELAJAR / MAHASISWA','PELAJAR/ MAHASISWA','PELAJAR /MAHASISWA','MAHASISWA','PELAJAR/SISWA','SISWA') THEN 1 ELSE 0 END) as pelajar")
+            ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('PETANI','PETANI/PETERNAK','PETANI / PETERNAK','PETANI/ PETERNAK','PETANI /PETERNAK','PETERNAK','PETANI/NELAYAN','NELAYAN') THEN 1 ELSE 0 END) as petani")
+            ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('IRT','IBU RUMAH TANGGA','IBU RUMAH TANGGA (IRT)','IBU / RUMAH TANGGA','IBU/ RUMAH TANGGA','IBURUNAH TANGGA','IBURUMAHTANGGA') THEN 1 ELSE 0 END) as irt")
+            ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('WIRASWASTA','WIRAUSAHA','WIRA SWASTA','WIRA/SWASTA','PENGUSAHA','PEDAGANG','PEDAGANG/WIRASWASTA','PEDAGANG / WIRASWASTA') THEN 1 ELSE 0 END) as wiraswasta")
+            ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('GURU','GURU/PENDIDIK','GURU / PENDIDIK','PENDIDIK','TENAGA PENDIDIK') THEN 1 ELSE 0 END) as guru")
+            ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('DOSEN','DOSEN/TENAGA PENGAJAR','DOSEN / TENAGA PENGAJAR','TENAGA PENGAJAR','TENAGA PENGAJAR PERGURUAN TINGGI') THEN 1 ELSE 0 END) as dosen")
+            ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('PNS','PEGAWAI NEGERI SIPIL','PEGAWAI NEGERI SIPIL (PNS)','PEGAWAI NEGERI','PNS/PEGAWAI NEGERI SIPIL','ASN','APARATUR SIPIL NEGARA','APARATUR SIPIL NEGARA (ASN)') THEN 1 ELSE 0 END) as pns")
+            ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('TNI','TENTARA NASIONAL INDONESIA','TENTARA NASIONAL INDONESIA (TNI)','ANGGOTA TNI','TNI/TENTARA NASIONAL INDONESIA','MILITER') THEN 1 ELSE 0 END) as tni")
+            ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('POLRI','POLISI','POLISI NEGARA RI','ANGGOTA POLRI','KEPOLISIAN NEGARA RI','POLRI/ANGGOTA POLRI','POLRI / ANGGOTA POLRI') THEN 1 ELSE 0 END) as polri")
+            ->first();
 
-        $topOccupation = $occupationRows->take(5)->values();
-        $otherOccupationTotal = (int) $occupationRows->slice(5)->sum('total');
+        $occupationFixedOrder = [
+            'Pelajar',
+            'Petani',
+            'IRT',
+            'Wiraswasta',
+            'Guru',
+            'Dosen',
+            'PNS',
+            'TNI',
+            'POLRI',
+        ];
 
-        $occupationLabels = $topOccupation->pluck('label')->values()->all();
-        $occupationValues = $topOccupation->pluck('total')->map(fn ($value) => (int) $value)->values()->all();
+        $occupationValuesMap = [
+            'Pelajar' => (int) ($occupationRaw->pelajar ?? 0),
+            'Petani' => (int) ($occupationRaw->petani ?? 0),
+            'IRT' => (int) ($occupationRaw->irt ?? 0),
+            'Wiraswasta' => (int) ($occupationRaw->wiraswasta ?? 0),
+            'Guru' => (int) ($occupationRaw->guru ?? 0),
+            'Dosen' => (int) ($occupationRaw->dosen ?? 0),
+            'PNS' => (int) ($occupationRaw->pns ?? 0),
+            'TNI' => (int) ($occupationRaw->tni ?? 0),
+            'POLRI' => (int) ($occupationRaw->polri ?? 0),
+        ];
 
-        if ($otherOccupationTotal > 0) {
+        $occupationMatchedTotal = array_sum(array_values($occupationValuesMap));
+        $occupationOthersTotal = max(0, $totalPenduduk - $occupationMatchedTotal);
+
+        $occupationLabels = $occupationFixedOrder;
+        $occupationValues = array_map(fn($label) => $occupationValuesMap[$label] ?? 0, $occupationLabels);
+
+        if ($occupationOthersTotal > 0) {
             $occupationLabels[] = 'Lainnya';
-            $occupationValues[] = $otherOccupationTotal;
+            $occupationValues[] = $occupationOthersTotal;
         }
 
         if (empty($occupationLabels)) {
