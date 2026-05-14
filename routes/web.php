@@ -203,6 +203,12 @@ $buildPublicProfileData = function () {
 
 $buildPublicStatisticsData = function () {
     $privacyThreshold = 5;
+    $analysisYear = (int) request()->query('tahun_analisis', now()->year);
+
+    $tahunOptions = [];
+    for ($y = now()->year; $y >= now()->year - 3; $y--) {
+        $tahunOptions[$y] = $y;
+    }
 
     $pendudukAktif = Penduduk::query()->where('status', 'Aktif');
     $pendudukSemuaStatus = Penduduk::query();
@@ -379,9 +385,8 @@ $buildPublicStatisticsData = function () {
         $occupationValues = [0];
     }
 
-    $periodStart = now()->subMonths(5);
     $dynamicRows = DB::table('dinamika_penduduk')
-        ->whereBetween('tahun', [$periodStart->year, now()->year])
+        ->where('tahun', $analysisYear)
         ->select('tahun', 'bulan')
         ->selectRaw('SUM(jumlah_lahir) as jumlah_lahir')
         ->selectRaw('SUM(jumlah_meninggal) as jumlah_meninggal')
@@ -390,16 +395,21 @@ $buildPublicStatisticsData = function () {
         ->groupBy('tahun', 'bulan')
         ->get()
         ->keyBy(fn ($row) => sprintf('%04d-%02d', (int) $row->tahun, (int) $row->bulan));
+
+    $bulanLabels = [
+        1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'Mei', 6 => 'Jun',
+        7 => 'Jul', 8 => 'Agu', 9 => 'Sep', 10 => 'Okt', 11 => 'Nov', 12 => 'Des',
+    ];
+
     $trendLabels = [];
     $kelahiranSeries = [];
     $kematianSeries = [];
     $migrasiMasukSeries = [];
     $migrasiKeluarSeries = [];
 
-    for ($i = 5; $i >= 0; $i--) {
-        $month = now()->subMonths($i);
-        $period = $month->format('Y-m');
-        $trendLabels[] = $month->format('M');
+    for ($m = 1; $m <= 12; $m++) {
+        $period = sprintf('%04d-%02d', $analysisYear, $m);
+        $trendLabels[] = $bulanLabels[$m];
 
         $row = $dynamicRows->get($period);
 
@@ -544,6 +554,8 @@ $buildPublicStatisticsData = function () {
         'kematianSeries' => $kematianSeries,
         'migrasiMasukSeries' => $migrasiMasukSeries,
         'migrasiKeluarSeries' => $migrasiKeluarSeries,
+        'analysisYear' => $analysisYear,
+        'tahunOptions' => $tahunOptions,
         'dusunPopulationRows' => $dusunPopulationRows,
         'wilayahStructureRows' => $wilayahStructureRows,
         'mapCenterLat' => $mapCenterLat,

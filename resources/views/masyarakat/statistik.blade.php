@@ -547,7 +547,17 @@
         </div>
 
         <div class="panel">
-            <h3>Analisis Dinamika Penduduk</h3>
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+                <h3 style="margin:0;">Analisis Dinamika Penduduk</h3>
+                <form method="GET" action="{{ route('public.statistik') }}" style="display:flex; align-items:center; gap:10px;">
+                    <label for="tahun_analisis" style="font-size:13px; color:#475569; font-weight:600;">Tahun</label>
+                    <select id="tahun_analisis" name="tahun_analisis" onchange="this.form.submit()" style="padding:8px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px; background:#fff;">
+                        @foreach($tahunOptions as $value => $label)
+                            <option value="{{ $value }}" {{ (int) $value === (int) $analysisYear ? 'selected' : '' }}>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </form>
+            </div>
             <canvas id="dynamicsChart"></canvas>
         </div>
     </div>
