@@ -470,84 +470,46 @@ Dashboard {{ Auth::user()->dusun_name ?? "Dusun" }}
     <div id="dusunMap"></div>
 </div>
 
-<!-- Kategori Usia per Dusun -->
-<div class="dusun-total-section">
-    <div class="chart-header">
-        <h2 class="chart-title">Kategori Usia per Dusun</h2>
-    </div>
-
-    <div class="table-responsive">
-        <table class="dusun-total-table">
-            <thead>
-                <tr>
-                    <th style="width: 60px;">No</th>
-                    <th>Nama Dusun</th>
-                    <th class="text-center">Bayi & Balita (0-5)</th>
-                    <th class="text-center">Anak-anak (6-11)</th>
-                    <th class="text-center">Remaja (10-19)</th>
-                    <th class="text-center">Dewasa (19-59)</th>
-                    <th class="text-center">Lansia (60+)</th>
-                    <th class="text-right">Total Penduduk Aktif</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($kategoriUsiaPerDusun as $index => $item)
-                    <tr class="{{ (int) $item->id === (int) (Auth::user()->id_dusun ?? 0) ? 'highlight-row' : '' }}">
-                        <td>{{ $index + 1 }}</td>
-                        <td>{{ $item->nama }}</td>
-                        <td class="text-center">{{ number_format($item->bayi_balita) }}</td>
-                        <td class="text-center">{{ number_format($item->anak_anak) }}</td>
-                        <td class="text-center">{{ number_format($item->remaja) }}</td>
-                        <td class="text-center">{{ number_format($item->dewasa) }}</td>
-                        <td class="text-center">{{ number_format($item->lansia) }}</td>
-                        <td class="text-right">{{ number_format($item->total_penduduk) }}</td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="8">Belum ada data dusun.</td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
-
-    <ul class="age-note-list">
-        <li>Bayi & Balita (0-5 Tahun): Masa krusial untuk pertumbuhan fisik, perkembangan kognitif, dan pencegahan stunting.</li>
-        <li>Anak-anak (6-11 Tahun): Masa usia sekolah dasar, fokus pada pengembangan kemampuan sosial, kognitif, dan perilaku dasar.</li>
-        <li>Remaja (12-18 Tahun): Masa pubertas dan pencarian jati diri, penting untuk edukasi kesehatan reproduksi dan mental.</li>
-        <li>Dewasa (19-59 Tahun): Usia produktif yang fokus pada produktivitas kerja, kesehatan fisik, dan pencegahan penyakit tidak menular.</li>
-        <li>Lansia (60+ Tahun): Fokus pada pemeliharaan kesehatan di usia tua agar tetap mandiri dan memiliki kualitas hidup yang baik.</li>
-    </ul>
-</div>
-
 <!-- Dinamika Penduduk -->
 <div class="dinamika-section">
     <div class="chart-header">
-        <h2 class="chart-title">Dinamika Penduduk Bulan Ini</h2>
+        <h2 class="chart-title">Dinamika Penduduk</h2>
+        <div style="display: flex; gap: 12px;">
+            <select id="filterBulan" style="padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; cursor: pointer;">
+                @foreach($bulanOptions as $val => $label)
+                    <option value="{{ $val }}" {{ $val == $bulanSelected ? 'selected' : '' }}>{{ $label }}</option>
+                @endforeach
+            </select>
+            <select id="filterTahun" style="padding: 8px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; cursor: pointer;">
+                @foreach($tahunOptions as $val => $label)
+                    <option value="{{ $val }}" {{ $val == $tahunSelected ? 'selected' : '' }}>{{ $label }}</option>
+                @endforeach
+            </select>
+        </div>
     </div>
 
     <div class="dinamika-grid">
         <div class="dinamika-card birth">
             <i class="fas fa-baby"></i>
-            <h4>{{ $kelahiran }}</h4>
+            <h4 id="countKelahiran">{{ $kelahiran }}</h4>
             <p>Kelahiran</p>
         </div>
 
         <div class="dinamika-card death">
             <i class="fas fa-cross"></i>
-            <h4>{{ $kematian }}</h4>
+            <h4 id="countKematian">{{ $kematian }}</h4>
             <p>Kematian</p>
         </div>
 
         <div class="dinamika-card in">
             <i class="fas fa-sign-in-alt"></i>
-            <h4>{{ $migrasiMasuk }}</h4>
+            <h4 id="countMigrasiMasuk">{{ $migrasiMasuk }}</h4>
             <p>Migrasi Masuk</p>
         </div>
 
         <div class="dinamika-card out">
             <i class="fas fa-sign-out-alt"></i>
-            <h4>{{ $migrasiKeluar }}</h4>
+            <h4 id="countMigrasiKeluar">{{ $migrasiKeluar }}</h4>
             <p>Migrasi Keluar</p>
         </div>
     </div>
@@ -568,28 +530,28 @@ Dashboard {{ Auth::user()->dusun_name ?? "Dusun" }}
                 @endphp
                 <tr>
                     <td>Kelahiran</td>
-                    <td class="text-right">{{ number_format($kelahiran) }}</td>
-                    <td class="text-right">{{ $totalPenduduk > 0 ? round(($kelahiran / $dinTotal) * 100, 1) : 0 }}%</td>
+                    <td class="text-right" id="tableKelahiran">{{ number_format($kelahiran) }}</td>
+                    <td class="text-right" id="tablePersenKelahiran">{{ $totalPenduduk > 0 ? round(($kelahiran / $dinTotal) * 100, 1) : 0 }}%</td>
                 </tr>
                 <tr>
                     <td>Kematian</td>
-                    <td class="text-right">{{ number_format($kematian) }}</td>
-                    <td class="text-right">{{ $totalPenduduk > 0 ? round(($kematian / $dinTotal) * 100, 1) : 0 }}%</td>
+                    <td class="text-right" id="tableKematian">{{ number_format($kematian) }}</td>
+                    <td class="text-right" id="tablePersenKematian">{{ $totalPenduduk > 0 ? round(($kematian / $dinTotal) * 100, 1) : 0 }}%</td>
                 </tr>
                 <tr>
                     <td>Migrasi Masuk</td>
-                    <td class="text-right">{{ number_format($migrasiMasuk) }}</td>
-                    <td class="text-right">{{ $totalPenduduk > 0 ? round(($migrasiMasuk / $dinTotal) * 100, 1) : 0 }}%</td>
+                    <td class="text-right" id="tableMigrasiMasuk">{{ number_format($migrasiMasuk) }}</td>
+                    <td class="text-right" id="tablePersenMigrasiMasuk">{{ $totalPenduduk > 0 ? round(($migrasiMasuk / $dinTotal) * 100, 1) : 0 }}%</td>
                 </tr>
                 <tr>
                     <td>Migrasi Keluar</td>
-                    <td class="text-right">{{ number_format($migrasiKeluar) }}</td>
-                    <td class="text-right">{{ $totalPenduduk > 0 ? round(($migrasiKeluar / $dinTotal) * 100, 1) : 0 }}%</td>
+                    <td class="text-right" id="tableMigrasiKeluar">{{ number_format($migrasiKeluar) }}</td>
+                    <td class="text-right" id="tablePersenMigrasiKeluar">{{ $totalPenduduk > 0 ? round(($migrasiKeluar / $dinTotal) * 100, 1) : 0 }}%</td>
                 </tr>
                 <tr class="highlight-row">
                     <td><strong>Perubahan Bersih</strong></td>
-                    <td class="text-right"><strong>{{ number_format($net) }}</strong></td>
-                    <td class="text-right"><strong>{{ $totalPenduduk > 0 ? round(($net / $dinTotal) * 100, 1) : 0 }}%</strong></td>
+                    <td class="text-right"><strong id="tableNet">{{ number_format($net) }}</strong></td>
+                    <td class="text-right"><strong id="tablePersenNet">{{ $totalPenduduk > 0 ? round(($net / $dinTotal) * 100, 1) : 0 }}%</strong></td>
                 </tr>
             </tbody>
         </table>
@@ -697,6 +659,7 @@ new Chart(educationCtx, {
 const mapLat = {{ (float) $mapLat }};
 const mapLng = {{ (float) $mapLng }};
 const rwMapData = @json($rwMapData ?? []);
+const rtMapData = @json($rtMapData ?? []);
 
 const dusunMap = L.map('dusunMap').setView([mapLat, mapLng], 15);
 
@@ -706,26 +669,48 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 
 const bounds = [[mapLat, mapLng]];
 
-const marker = L.circleMarker([mapLat, mapLng], {
-    radius: 11,
-    color: '#ca8a04',
-    weight: 2,
-    fillColor: '#facc15',
-    fillOpacity: 0.95,
-}).addTo(dusunMap);
+// Custom icon for Dusun (yellow)
+const dusunIcon = L.icon({
+    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-gold.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41]
+});
 
-marker.bindPopup(`
+// Custom icon for RW (blue)
+const rwIcon = L.icon({
+    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41]
+});
+
+// Custom icon for RT (green)
+const rtIcon = L.icon({
+    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41]
+});
+
+// Dusun marker
+const dusunMarker = L.marker([mapLat, mapLng], { icon: dusunIcon }).addTo(dusunMap);
+dusunMarker.bindPopup(`
     <div style="font-family: 'Segoe UI', sans-serif;">
         <h3 style="margin: 0 0 10px 0; color: #0C342C;">{{ $dusun?->nama ?? (Auth::user()->dusun_name ?? 'Dusun') }}</h3>
         <p style="margin: 5px 0;"><strong>Total Penduduk:</strong> {{ number_format($totalPenduduk) }}</p>
         <p style="margin: 5px 0;"><strong>Laki-laki:</strong> {{ number_format($totalLakiLaki) }} ({{ $totalPenduduk > 0 ? round(($totalLakiLaki / $totalPenduduk) * 100) : 0 }}%)</p>
         <p style="margin: 5px 0;"><strong>Perempuan:</strong> {{ number_format($totalPerempuan) }} ({{ $totalPenduduk > 0 ? round(($totalPerempuan / $totalPenduduk) * 100) : 0 }}%)</p>
-        <p style="margin: 5px 0;"><strong>Balita:</strong> {{ number_format($totalBalita) }}</p>
-        <p style="margin: 5px 0;"><strong>Lansia:</strong> {{ number_format($totalLansia) }}</p>
-        <p style="margin: 5px 0;"><strong>Kepadatan:</strong> {{ number_format($kepadatan, 2) }} jiwa/km²</p>
     </div>
 `);
 
+// RW markers
 rwMapData.forEach((rw) => {
     const lat = Number(rw.lat);
     const lng = Number(rw.lng);
@@ -737,19 +722,34 @@ rwMapData.forEach((rw) => {
     bounds.push([lat, lng]);
 
     const rwLabel = rw.nomor_rw ? `RW ${rw.nomor_rw}` : (rw.name || 'RW');
-    const rwMarker = L.circleMarker([lat, lng], {
-        radius: 8,
-        color: '#1d4ed8',
-        weight: 2,
-        fillColor: '#3b82f6',
-        fillOpacity: 0.9,
-    }).addTo(dusunMap);
+    const rwMarker = L.marker([lat, lng], { icon: rwIcon }).addTo(dusunMap);
 
     rwMarker.bindPopup(`
         <div style="font-family: 'Segoe UI', sans-serif; min-width: 170px;">
             <h3 style="margin: 0 0 8px 0; color: #0C342C; font-size: 15px;">${rwLabel}</h3>
             <p style="margin: 4px 0; color: #4b5563;"><strong>Dusun:</strong> {{ $dusun?->nama ?? (Auth::user()->dusun_name ?? 'Dusun') }}</p>
-            <p style="margin: 4px 0; color: #4b5563;"><strong>Nama Wilayah:</strong> ${rw.name || '-'}</p>
+        </div>
+    `);
+});
+
+// RT markers
+rtMapData.forEach((rt) => {
+    const lat = Number(rt.lat);
+    const lng = Number(rt.lng);
+
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+        return;
+    }
+
+    bounds.push([lat, lng]);
+
+    const rtLabel = rt.nomor_rt ? `RT ${rt.nomor_rt}` : (rt.name || 'RT');
+    const rtMarker = L.marker([lat, lng], { icon: rtIcon }).addTo(dusunMap);
+
+    rtMarker.bindPopup(`
+        <div style="font-family: 'Segoe UI', sans-serif; min-width: 170px;">
+            <h3 style="margin: 0 0 8px 0; color: #0C342C; font-size: 15px;">${rtLabel}</h3>
+            <p style="margin: 4px 0; color: #4b5563;"><strong>Dusun:</strong> {{ $dusun?->nama ?? (Auth::user()->dusun_name ?? 'Dusun') }}</p>
         </div>
     `);
 });
@@ -757,7 +757,39 @@ rwMapData.forEach((rw) => {
 if (bounds.length > 1) {
     dusunMap.fitBounds(bounds, { padding: [30, 30] });
 } else {
-    marker.openPopup();
+    dusunMarker.openPopup();
+}
+
+// Handle dinamika filter changes
+document.getElementById('filterBulan').addEventListener('change', updateDinamika);
+document.getElementById('filterTahun').addEventListener('change', updateDinamika);
+
+function updateDinamika() {
+    const bulan = document.getElementById('filterBulan').value;
+    const tahun = document.getElementById('filterTahun').value;
+
+    fetch(`{{ route('kasun.dinamika-api') }}?bulan=${bulan}&tahun=${tahun}`)
+        .then(response => response.json())
+        .then(data => {
+            // Update cards
+            document.getElementById('countKelahiran').textContent = data.kelahiran;
+            document.getElementById('countKematian').textContent = data.kematian;
+            document.getElementById('countMigrasiMasuk').textContent = data.migrasiMasuk;
+            document.getElementById('countMigrasiKeluar').textContent = data.migrasiKeluar;
+
+            // Update table
+            document.getElementById('tableKelahiran').textContent = new Intl.NumberFormat('id-ID').format(data.kelahiran);
+            document.getElementById('tablePersenKelahiran').textContent = data.kelahiran_persen + '%';
+            document.getElementById('tableKematian').textContent = new Intl.NumberFormat('id-ID').format(data.kematian);
+            document.getElementById('tablePersenKematian').textContent = data.kematian_persen + '%';
+            document.getElementById('tableMigrasiMasuk').textContent = new Intl.NumberFormat('id-ID').format(data.migrasiMasuk);
+            document.getElementById('tablePersenMigrasiMasuk').textContent = data.migrasiMasuk_persen + '%';
+            document.getElementById('tableMigrasiKeluar').textContent = new Intl.NumberFormat('id-ID').format(data.migrasiKeluar);
+            document.getElementById('tablePersenMigrasiKeluar').textContent = data.migrasiKeluar_persen + '%';
+            document.getElementById('tableNet').textContent = new Intl.NumberFormat('id-ID').format(data.net);
+            document.getElementById('tablePersenNet').textContent = data.net_persen + '%';
+        })
+        .catch(err => console.error('Error fetching dinamika data:', err));
 }
 </script>
 @endpush

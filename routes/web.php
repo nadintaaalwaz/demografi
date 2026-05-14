@@ -1203,6 +1203,28 @@ Route::prefix('kasun')->name('kasun.')->middleware(['auth', 'role:kasun'])->grou
         $migrasiMasuk = (int) ($dinamikaRows->jumlah_masuk ?? 0);
         $migrasiKeluar = (int) ($dinamikaRows->jumlah_keluar ?? 0);
 
+            // Generate bulan options (Bahasa Indonesia)
+            $bulanOptions = [
+                1 => 'Januari',
+                2 => 'Februari',
+                3 => 'Maret',
+                4 => 'April',
+                5 => 'Mei',
+                6 => 'Juni',
+                7 => 'Juli',
+                8 => 'Agustus',
+                9 => 'September',
+                10 => 'Oktober',
+                11 => 'November',
+                12 => 'Desember',
+            ];
+
+            // Generate tahun options (current year and previous 3 years)
+            $tahunOptions = [];
+            for ($y = now()->year; $y >= now()->year - 3; $y--) {
+                $tahunOptions[$y] = $y;
+            }
+
         $kategoriUsiaPerDusun = Wilayah::query()
             ->from('wilayah as w')
             ->leftJoin('penduduk as p', function ($join) {
@@ -1248,6 +1270,27 @@ Route::prefix('kasun')->name('kasun.')->middleware(['auth', 'role:kasun'])->grou
             ->values()
             ->all();
 
+        $rtMapData = Wilayah::query()
+            ->where('tipe', 'rt')
+            ->when(
+                $idDusun,
+                fn ($query) => $query->where('id_dusun', $idDusun),
+                fn ($query) => $query->whereRaw('1 = 0')
+            )
+            ->orderBy('nomor_rt')
+            ->get(['id', 'nama', 'nomor_rt', 'latitude', 'longitude'])
+            ->map(function ($row) {
+                return [
+                    'id' => (int) $row->id,
+                    'name' => $row->nama,
+                    'nomor_rt' => (int) ($row->nomor_rt ?? 0),
+                    'lat' => (float) $row->latitude,
+                    'lng' => (float) $row->longitude,
+                ];
+            })
+            ->values()
+            ->all();
+
         return view('kasun.dashboard', [
             'dusun' => $dusun,
             'totalPenduduk' => $totalPenduduk,
@@ -1274,9 +1317,60 @@ Route::prefix('kasun')->name('kasun.')->middleware(['auth', 'role:kasun'])->grou
             'mapLng' => $longitude,
             'kepadatan' => $kepadatan,
             'rwMapData' => $rwMapData,
+            'rtMapData' => $rtMapData,
+            'bulanOptions' => $bulanOptions,
+            'tahunOptions' => $tahunOptions,
+            'bulanSelected' => now()->month,
+            'tahunSelected' => now()->year,
         ]);
     })->name('dashboard');
     
+    // API: Get dinamika data by month and year
+    Route::get('/api/dinamika', function (Request $request) {
+        $bulan = $request->query('bulan', now()->month);
+        $tahun = $request->query('tahun', now()->year);
+        $idDusun = Auth::user()->id_dusun;
+        $totalPenduduk = Penduduk::where('status', 'Aktif')
+            ->when($idDusun, fn ($q) => $q->where('id_dusun', $idDusun))
+            ->count();
+
+        $dinamikaRows = DB::table('dinamika_penduduk')
+            ->where('tahun', $tahun)
+            ->where('bulan', $bulan)
+            ->when(
+                $idDusun,
+                fn ($query) => $query->where(function ($inner) use ($idDusun) {
+                    $inner->where('id_dusun', $idDusun)
+                        ->orWhereNull('id_dusun');
+                })
+            )
+            ->selectRaw('SUM(jumlah_lahir) as jumlah_lahir')
+            ->selectRaw('SUM(jumlah_meninggal) as jumlah_meninggal')
+            ->selectRaw('SUM(jumlah_masuk) as jumlah_masuk')
+            ->selectRaw('SUM(jumlah_keluar) as jumlah_keluar')
+            ->first();
+
+        $kelahiran = (int) ($dinamikaRows->jumlah_lahir ?? 0);
+        $kematian = (int) ($dinamikaRows->jumlah_meninggal ?? 0);
+        $migrasiMasuk = (int) ($dinamikaRows->jumlah_masuk ?? 0);
+        $migrasiKeluar = (int) ($dinamikaRows->jumlah_keluar ?? 0);
+        $net = ($kelahiran + $migrasiMasuk) - ($kematian + $migrasiKeluar);
+        $dinTotal = max(1, $totalPenduduk);
+
+        return response()->json([
+            'kelahiran' => $kelahiran,
+            'kematian' => $kematian,
+            'migrasiMasuk' => $migrasiMasuk,
+            'migrasiKeluar' => $migrasiKeluar,
+            'net' => $net,
+            'kelahiran_persen' => round(($kelahiran / $dinTotal) * 100, 1),
+            'kematian_persen' => round(($kematian / $dinTotal) * 100, 1),
+            'migrasiMasuk_persen' => round(($migrasiMasuk / $dinTotal) * 100, 1),
+            'migrasiKeluar_persen' => round(($migrasiKeluar / $dinTotal) * 100, 1),
+            'net_persen' => round(($net / $dinTotal) * 100, 1),
+        ]);
+    })->name('dinamika-api');
+
     // Statistik
     Route::get('/statistik', function () {
         return view('kasun.statistik');
