@@ -12,6 +12,56 @@ use Illuminate\Support\Facades\Auth;
 class UserManagementController extends Controller
 {
     /**
+     * Normalisasi teks untuk perbandingan sederhana.
+     */
+    private function normalizeText(?string $value): string
+    {
+        $value = trim((string) $value);
+        $value = mb_strtolower($value);
+        $value = preg_replace('/\s+/', ' ', $value);
+
+        return $value ?? '';
+    }
+
+    /**
+     * Pastikan nama kasun memang berada di dusun yang dipilih.
+     */
+    private function validateKasunDusunMatch(string $nama, ?int $idDusun, callable $fail): void
+    {
+        $nama = trim($nama);
+
+        $penduduk = Penduduk::query()
+            ->whereRaw('LOWER(TRIM(nama_lengkap)) = ?', [mb_strtolower($nama)])
+            ->first();
+
+        if (!$penduduk) {
+            $fail('Nama kasun tidak ditemukan pada data penduduk. Pastikan nama benar dan ada.');
+            return;
+        }
+
+        if (!$idDusun) {
+            return;
+        }
+
+        $dusunDipilih = Wilayah::find($idDusun);
+        $namaDusunDipilih = $dusunDipilih?->nama ?? 'dusun yang dipilih';
+        $dusunPenduduk = Wilayah::find($penduduk->id_dusun);
+        $namaDusunPenduduk = $dusunPenduduk?->nama ?? 'dusun lain';
+
+        if ((int) $penduduk->id_dusun !== (int) $idDusun) {
+            $fail("Nama tersebut tidak berada pada dusun {$namaDusunDipilih}. Data penduduk terdaftar di dusun {$namaDusunPenduduk}.");
+            return;
+        }
+
+        $alamatPenduduk = $this->normalizeText($penduduk->alamat ?? '');
+        $namaDusunNorm = $this->normalizeText($namaDusunDipilih);
+
+        if ($alamatPenduduk !== '' && $namaDusunNorm !== '' && !str_contains($alamatPenduduk, $namaDusunNorm)) {
+            $fail("Alamat penduduk tidak sesuai dengan dusun {$namaDusunDipilih}. Pastikan yang diampu juga beralamat di dusun tersebut.");
+        }
+    }
+
+    /**
      * Display a listing of kasun users.
      */
     public function index()
@@ -60,15 +110,12 @@ class UserManagementController extends Controller
                 'required',
                 'string',
                 'max:255',
-                function ($attribute, $value, $fail) {
-                    $nama = trim((string) $value);
-                    $exists = Penduduk::query()
-                        ->whereRaw('LOWER(TRIM(nama_lengkap)) = ?', [mb_strtolower($nama)])
-                        ->exists();
-
-                    if (!$exists) {
-                        $fail('Nama kasun tidak ditemukan pada data penduduk. Pastikan nama benar dan ada.');
-                    }
+                function ($attribute, $value, $fail) use ($request) {
+                    $this->validateKasunDusunMatch(
+                        (string) $value,
+                        $request->filled('id_dusun') ? (int) $request->input('id_dusun') : null,
+                        $fail
+                    );
                 },
             ],
             'id_dusun' => 'nullable|integer',
@@ -121,15 +168,12 @@ class UserManagementController extends Controller
                 'required',
                 'string',
                 'max:255',
-                function ($attribute, $value, $fail) {
-                    $nama = trim((string) $value);
-                    $exists = Penduduk::query()
-                        ->whereRaw('LOWER(TRIM(nama_lengkap)) = ?', [mb_strtolower($nama)])
-                        ->exists();
-
-                    if (!$exists) {
-                        $fail('Nama kasun tidak ditemukan pada data penduduk. Pastikan nama benar dan ada.');
-                    }
+                function ($attribute, $value, $fail) use ($request) {
+                    $this->validateKasunDusunMatch(
+                        (string) $value,
+                        $request->filled('id_dusun') ? (int) $request->input('id_dusun') : null,
+                        $fail
+                    );
                 },
             ],
             'id_dusun' => 'nullable|integer',
