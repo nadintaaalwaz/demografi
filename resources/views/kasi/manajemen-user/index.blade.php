@@ -326,7 +326,13 @@
                                     </div>
                                     <div class="user-details">
                                         <h4>{{ $user->nama }}</h4>
-                                        <p>Kasun Desa Sebalor</p>
+                                        <p>
+                                            @if($user->dusun)
+                                                Kasun {{ $user->dusun->nama }}
+                                            @else
+                                                Kasun belum ditentukan
+                                            @endif
+                                        </p>
                                     </div>
                                 </div>
                             </td>
