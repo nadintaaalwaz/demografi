@@ -244,6 +244,8 @@ class DinamikaPendudukController extends Controller
 
         $recordId = $validated['record_id'] ?? null;
 
+        $flashType = 'success';
+
         if ($recordId) {
             $record = DinamikaPenduduk::findOrFail($recordId);
 
@@ -279,6 +281,10 @@ class DinamikaPendudukController extends Controller
             $flashMessage = $hasChanges
                 ? 'Data dinamika penduduk berhasil diperbarui.'
                 : 'Tidak ada perubahan pada data dinamika penduduk.';
+
+            if (!$hasChanges) {
+                $flashType = 'warning';
+            }
         } else {
             $record = DinamikaPenduduk::firstOrNew([
                 'tahun' => $validated['tahun'],
@@ -304,29 +310,39 @@ class DinamikaPendudukController extends Controller
                 $flashMessage = $hasChanges
                     ? 'Data dinamika penduduk berhasil diperbarui.'
                     : 'Tidak ada perubahan pada data dinamika penduduk.';
+
+                if (!$hasChanges) {
+                    $flashType = 'warning';
+                }
             }
         }
 
         return redirect()
             ->route('kasi.dinamika', ['tahun' => $validated['tahun'], 'bulan' => $validated['bulan']])
-            ->with('success', $flashMessage);
+            ->with($flashType, $flashMessage);
     }
 
     public function destroy(Request $request, $id)
     {
-        $record = DinamikaPenduduk::findOrFail($id);
-        $tahun = (int) ($request->input('tahun') ?: $record->tahun ?: now()->year);
-        $bulan = $request->input('bulan');
+        try {
+            $record = DinamikaPenduduk::findOrFail($id);
+            $tahun = (int) ($request->input('tahun') ?: $record->tahun ?: now()->year);
+            $bulan = $request->input('bulan');
 
-        $record->delete();
+            $record->delete();
 
-        $params = ['tahun' => $tahun];
-        if ($bulan !== null && $bulan !== '') {
-            $params['bulan'] = (int) $bulan;
+            $params = ['tahun' => $tahun];
+            if ($bulan !== null && $bulan !== '') {
+                $params['bulan'] = (int) $bulan;
+            }
+
+            return redirect()
+                ->route('kasi.dinamika', $params)
+                ->with('success', 'Data dinamika penduduk berhasil dihapus.');
+        } catch (\Throwable $e) {
+            return redirect()
+                ->back()
+                ->with('error', 'Data dinamika penduduk gagal dihapus. Silakan coba lagi.');
         }
-
-        return redirect()
-            ->route('kasi.dinamika', $params)
-            ->with('success', 'Data dinamika penduduk berhasil dihapus.');
     }
 }

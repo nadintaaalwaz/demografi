@@ -287,6 +287,48 @@
         background: rgba(255, 162, 162, 0.12);
         border-color: rgba(255, 174, 174, 0.35);
         color: #ffd1d1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        min-width: 104px;
+    }
+
+    .flash-wrap {
+        margin-bottom: 12px;
+        display: grid;
+        gap: 8px;
+    }
+
+    .flash-alert {
+        border-radius: 10px;
+        padding: 10px 12px;
+        font-size: 13px;
+        font-weight: 600;
+        border: 1px solid transparent;
+    }
+
+    .flash-alert.success {
+        background: rgba(39, 225, 176, 0.16);
+        border-color: rgba(96, 225, 194, 0.35);
+        color: #b7ffe6;
+    }
+
+    .flash-alert.warning {
+        background: rgba(255, 206, 84, 0.14);
+        border-color: rgba(255, 206, 84, 0.32);
+        color: #ffe6a6;
+    }
+
+    .flash-alert.error {
+        background: rgba(255, 126, 126, 0.15);
+        border-color: rgba(255, 165, 165, 0.35);
+        color: #ffd1d1;
+    }
+
+    .flash-alert ul {
+        margin: 6px 0 0 16px;
+        padding: 0;
     }
 
     .stats-grid {
@@ -508,6 +550,33 @@
             </div>
         </div>
     </div>
+
+    @if (session('success') || session('warning') || session('error') || $errors->any())
+        <div class="flash-wrap">
+            @if (session('success'))
+                <div class="flash-alert success">{{ session('success') }}</div>
+            @endif
+
+            @if (session('warning'))
+                <div class="flash-alert warning">{{ session('warning') }}</div>
+            @endif
+
+            @if (session('error'))
+                <div class="flash-alert error">{{ session('error') }}</div>
+            @endif
+
+            @if ($errors->any())
+                <div class="flash-alert error">
+                    Proses belum berhasil. Periksa data berikut:
+                    <ul>
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+        </div>
+    @endif
 
     <div class="manual-form-card" id="manualFormCard">
         <form method="POST" action="{{ route('kasi.dinamika.store') }}">
