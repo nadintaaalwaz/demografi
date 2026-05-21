@@ -148,6 +148,13 @@ class WilayahController extends Controller
             'luas_wilayah' => 'nullable|numeric|min:0.01',
             'latitude' => 'required|numeric|between:-90,90',
             'longitude' => 'required|numeric|between:-180,180',
+        ], [
+            'latitude.required' => 'Kolom garis lintang wajib diisi.',
+            'latitude.numeric' => 'Kolom garis lintang harus berupa angka.',
+            'latitude.between' => 'Kolom garis lintang harus berada di antara -90 sampai 90.',
+            'longitude.required' => 'Kolom garis bujur wajib diisi.',
+            'longitude.numeric' => 'Kolom garis bujur harus berupa angka.',
+            'longitude.between' => 'Kolom garis bujur harus berada di antara -180 sampai 180.',
         ]);
 
         if ($validated['tipe'] === 'rw' && empty($validated['id_dusun'])) {
@@ -266,6 +273,13 @@ class WilayahController extends Controller
             'luas_wilayah' => 'nullable|numeric|min:0.01',
             'latitude' => 'required|numeric|between:-90,90',
             'longitude' => 'required|numeric|between:-180,180',
+        ], [
+            'latitude.required' => 'Kolom garis lintang wajib diisi.',
+            'latitude.numeric' => 'Kolom garis lintang harus berupa angka.',
+            'latitude.between' => 'Kolom garis lintang harus berada di antara -90 sampai 90.',
+            'longitude.required' => 'Kolom garis bujur wajib diisi.',
+            'longitude.numeric' => 'Kolom garis bujur harus berupa angka.',
+            'longitude.between' => 'Kolom garis bujur harus berada di antara -180 sampai 180.',
         ]);
 
         if ($validated['tipe'] === 'rw' && empty($validated['id_dusun'])) {

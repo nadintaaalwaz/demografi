@@ -11,6 +11,12 @@ class DinamikaPendudukController extends Controller
     public function index(Request $request)
     {
         $selectedYear = (int) $request->query('tahun', now()->year);
+        $selectedMonth = $request->query('bulan');
+        $selectedMonth = $selectedMonth !== null && $selectedMonth !== '' ? (int) $selectedMonth : null;
+
+        if ($selectedMonth !== null && ($selectedMonth < 1 || $selectedMonth > 12)) {
+            $selectedMonth = null;
+        }
 
         $yearRange = DinamikaPenduduk::query()
             ->selectRaw('MIN(tahun) as min_year, MAX(tahun) as max_year')
@@ -30,13 +36,32 @@ class DinamikaPendudukController extends Controller
             $selectedYear = $maxYear;
         }
 
+        $monthOptions = [
+            1 => 'Januari',
+            2 => 'Februari',
+            3 => 'Maret',
+            4 => 'April',
+            5 => 'Mei',
+            6 => 'Juni',
+            7 => 'Juli',
+            8 => 'Agustus',
+            9 => 'September',
+            10 => 'Oktober',
+            11 => 'November',
+            12 => 'Desember',
+        ];
+
         $hasDusunSpecificData = DinamikaPenduduk::query()
             ->where('tahun', $selectedYear)
             ->whereNotNull('id_dusun')
             ->exists();
 
-        $scopeQuery = function () use ($selectedYear, $hasDusunSpecificData) {
+        $scopeQuery = function () use ($selectedYear, $selectedMonth, $hasDusunSpecificData) {
             $query = DinamikaPenduduk::query()->where('tahun', $selectedYear);
+
+            if ($selectedMonth !== null) {
+                $query->where('bulan', $selectedMonth);
+            }
 
             if ($hasDusunSpecificData) {
                 $query->whereNotNull('id_dusun');
@@ -90,6 +115,10 @@ class DinamikaPendudukController extends Controller
 
         $previousYearTotal = DinamikaPenduduk::query()
             ->where('tahun', $previousYear)
+            ->when(
+                $selectedMonth !== null,
+                fn ($query) => $query->where('bulan', $selectedMonth)
+            )
             ->when(
                 $previousHasDusunSpecificData,
                 fn ($query) => $query->whereNotNull('id_dusun'),
@@ -151,6 +180,18 @@ class DinamikaPendudukController extends Controller
             $yearlyKeluar[] = (int) ($row->jumlah_keluar ?? 0);
         }
 
+        $editableRecords = DinamikaPenduduk::query()
+            ->with('dusun:id,nama')
+            ->where('tahun', $selectedYear)
+            ->when(
+                $selectedMonth !== null,
+                fn ($query) => $query->where('bulan', $selectedMonth)
+            )
+            ->orderByDesc('bulan')
+            ->orderBy('id_dusun')
+            ->orderByDesc('id')
+            ->get();
+
         // Load dusun list untuk dropdown form
         $dusunList = Wilayah::where('tipe', 'dusun')
             ->orderBy('nama')
@@ -158,7 +199,10 @@ class DinamikaPendudukController extends Controller
 
         return view('kasi.dinamika-penduduk', [
             'selectedYear' => $selectedYear,
+            'selectedMonth' => $selectedMonth,
+            'monthOptions' => $monthOptions,
             'yearOptions' => $yearOptions,
+            'editableRecords' => $editableRecords,
             'dusunList' => $dusunList,
             'totalKelahiran' => $totalKelahiran,
             'totalKematian' => $totalKematian,
@@ -184,6 +228,7 @@ class DinamikaPendudukController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
+            'record_id' => 'nullable|integer|exists:dinamika_penduduk,id',
             'tahun' => 'required|integer|min:2000|max:2100',
             'bulan' => 'required|integer|min:1|max:12',
             'id_dusun' => 'nullable|integer|exists:wilayah,id',
@@ -197,22 +242,91 @@ class DinamikaPendudukController extends Controller
             'id_dusun.exists' => 'Dusun yang dipilih tidak valid.',
         ]);
 
-        DinamikaPenduduk::updateOrCreate(
-            [
+        $recordId = $validated['record_id'] ?? null;
+
+        if ($recordId) {
+            $record = DinamikaPenduduk::findOrFail($recordId);
+
+            $conflictExists = DinamikaPenduduk::query()
+                ->where('tahun', $validated['tahun'])
+                ->where('bulan', $validated['bulan'])
+                ->where('id_dusun', $validated['id_dusun'] ?? null)
+                ->where('id', '!=', $record->id)
+                ->exists();
+
+            if ($conflictExists) {
+                return redirect()
+                    ->back()
+                    ->withInput()
+                    ->withErrors([
+                        'bulan' => 'Data dinamika untuk kombinasi tahun, bulan, dan dusun tersebut sudah ada. Silakan pilih data yang sudah ada untuk diubah.',
+                    ]);
+            }
+
+            $record->fill([
                 'tahun' => $validated['tahun'],
                 'bulan' => $validated['bulan'],
                 'id_dusun' => $validated['id_dusun'] ?? null,
-            ],
-            [
                 'jumlah_lahir' => $validated['jumlah_lahir'],
                 'jumlah_meninggal' => $validated['jumlah_meninggal'],
                 'jumlah_masuk' => $validated['jumlah_masuk'],
                 'jumlah_keluar' => $validated['jumlah_keluar'],
-            ]
-        );
+            ]);
+
+            $hasChanges = $record->isDirty();
+            $record->save();
+
+            $flashMessage = $hasChanges
+                ? 'Data dinamika penduduk berhasil diperbarui.'
+                : 'Tidak ada perubahan pada data dinamika penduduk.';
+        } else {
+            $record = DinamikaPenduduk::firstOrNew([
+                'tahun' => $validated['tahun'],
+                'bulan' => $validated['bulan'],
+                'id_dusun' => $validated['id_dusun'] ?? null,
+            ]);
+
+            $isNewRecord = !$record->exists;
+
+            $record->fill([
+                'jumlah_lahir' => $validated['jumlah_lahir'],
+                'jumlah_meninggal' => $validated['jumlah_meninggal'],
+                'jumlah_masuk' => $validated['jumlah_masuk'],
+                'jumlah_keluar' => $validated['jumlah_keluar'],
+            ]);
+
+            $hasChanges = $record->isDirty();
+            $record->save();
+
+            if ($isNewRecord) {
+                $flashMessage = 'Rekap dinamika penduduk berhasil disimpan.';
+            } else {
+                $flashMessage = $hasChanges
+                    ? 'Data dinamika penduduk berhasil diperbarui.'
+                    : 'Tidak ada perubahan pada data dinamika penduduk.';
+            }
+        }
 
         return redirect()
-            ->route('kasi.dinamika', ['tahun' => $validated['tahun']])
-            ->with('success', 'Rekap dinamika penduduk berhasil disimpan.');
+            ->route('kasi.dinamika', ['tahun' => $validated['tahun'], 'bulan' => $validated['bulan']])
+            ->with('success', $flashMessage);
+    }
+
+    public function destroy(Request $request, $id)
+    {
+        $record = DinamikaPenduduk::findOrFail($id);
+        $tahun = (int) ($request->input('tahun') ?: $record->tahun ?: now()->year);
+        $bulan = $request->input('bulan');
+
+        $record->delete();
+
+        $params = ['tahun' => $tahun];
+        if ($bulan !== null && $bulan !== '') {
+            $params['bulan'] = (int) $bulan;
+        }
+
+        return redirect()
+            ->route('kasi.dinamika', $params)
+            ->with('success', 'Data dinamika penduduk berhasil dihapus.');
     }
 }

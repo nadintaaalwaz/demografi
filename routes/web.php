@@ -1022,6 +1022,7 @@ Route::prefix('kasi')->name('kasi.')->middleware(['auth', 'role:kasi'])->group(f
     // Dinamika Penduduk (Monitoring)
     Route::get('/dinamika-penduduk', [DinamikaPendudukController::class, 'index'])->name('dinamika');
     Route::post('/dinamika-penduduk', [DinamikaPendudukController::class, 'store'])->name('dinamika.store');
+    Route::delete('/dinamika-penduduk/{id}', [DinamikaPendudukController::class, 'destroy'])->name('dinamika.destroy');
     
     // Manajemen User Kasun
     Route::get('/users', [UserManagementController::class, 'index'])->name('users.index');

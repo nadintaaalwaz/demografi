@@ -205,6 +205,90 @@
         color: rgba(224, 255, 246, 0.85);
     }
 
+    .records-card {
+        background: rgba(9, 100, 85, 0.72);
+        border: 1px solid rgba(96, 225, 194, 0.25);
+        border-radius: 14px;
+        padding: 14px;
+        margin-bottom: 12px;
+    }
+
+    .records-title {
+        margin: 0 0 8px;
+        font-size: 16px;
+        color: #e8ff3f;
+        font-weight: 700;
+    }
+
+    .records-subtitle {
+        margin: 0 0 10px;
+        font-size: 12px;
+        color: rgba(224, 255, 246, 0.82);
+    }
+
+    .records-table-wrap {
+        overflow-x: auto;
+    }
+
+    .records-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+    }
+
+    .records-table th,
+    .records-table td {
+        padding: 8px 10px;
+        border-bottom: 1px solid rgba(96, 225, 194, 0.2);
+        text-align: left;
+        white-space: nowrap;
+        color: #e6fffb;
+    }
+
+    .records-table th {
+        color: #d5ffe4;
+        font-weight: 700;
+    }
+
+    .btn-edit-row,
+    .btn-cancel-edit {
+        height: 32px;
+        border-radius: 8px;
+        border: 1px solid rgba(96, 225, 194, 0.45);
+        background: rgba(39, 225, 176, 0.2);
+        color: #b7ffe6;
+        padding: 0 10px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .record-actions {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .inline-delete-form {
+        margin: 0;
+    }
+
+    .btn-delete-row {
+        height: 32px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 174, 174, 0.35);
+        background: rgba(255, 162, 162, 0.12);
+        color: #ffd1d1;
+        padding: 0 10px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .btn-cancel-edit {
+        background: rgba(255, 162, 162, 0.12);
+        border-color: rgba(255, 174, 174, 0.35);
+        color: #ffd1d1;
+    }
+
     .stats-grid {
         display: grid;
         grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -383,17 +467,34 @@
 @endpush
 
 @section('content')
+@php
+    $monthOptionMap = $monthOptions ?? [];
+    $selectedMonthLabel = $selectedMonth ? ($monthOptionMap[(int) $selectedMonth] ?? $selectedMonth) : null;
+    $records = $editableRecords ?? collect();
+@endphp
 <div class="dinamika-wrap">
     <div class="dinamika-header">
         <div class="dinamika-title">
             <h2><i class="fas fa-wave-square"></i> Dinamika Penduduk</h2>
-            <p>Monitoring data kelahiran, kematian, dan perpindahan penduduk.</p>
+            <p>Data kelahiran, kematian, dan perpindahan penduduk.</p>
         </div>
 
         <div class="dinamika-actions">
             <button type="button" class="btn-manual-input" id="toggleManualFormBtn">
                 <i class="fas fa-plus-circle"></i> Input Manual
             </button>
+            <div class="year-select">
+                <i class="far fa-calendar-alt"></i>
+                <select id="monthSelect">
+                    <option value="">Semua Bulan</option>
+                    @foreach($monthOptionMap as $monthNumber => $monthName)
+                        <option value="{{ $monthNumber }}" {{ (int) ($selectedMonth ?? 0) === (int) $monthNumber ? 'selected' : '' }}>
+                            {{ $monthName }}
+                        </option>
+                    @endforeach
+                </select>
+                <i class="fas fa-chevron-down year-caret"></i>
+            </div>
             <div class="year-select">
                 <i class="far fa-calendar-alt"></i>
                 <select id="yearSelect">
@@ -411,6 +512,7 @@
     <div class="manual-form-card" id="manualFormCard">
         <form method="POST" action="{{ route('kasi.dinamika.store') }}">
             @csrf
+            <input type="hidden" id="record_id" name="record_id" value="{{ old('record_id') }}">
             <div class="manual-form-grid">
                 <div class="manual-form-field">
                     <label for="tahun">Tahun</label>
@@ -482,52 +584,74 @@
             </div>
             <p class="manual-note">Input dinamika dilakukan manual sebagai rekap bulanan (bukan dari file Excel penduduk). Pilih dusun jika input per-dusun, atau kosongkan untuk data gabungan seluruh desa.</p>
             <div class="manual-form-footer">
-                <button type="submit" class="btn-save-dinamika">
+                <button type="button" id="cancelEditBtn" class="btn-cancel-edit" style="display:none; margin-right:8px;">
+                    Batal Ubah
+                </button>
+                <button type="submit" class="btn-save-dinamika" id="saveDinamikaBtn">
                     <i class="fas fa-save"></i> Simpan Rekap
                 </button>
             </div>
         </form>
     </div>
 
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-top">
-                <span class="stat-icon"><i class="fas fa-baby"></i></span>
-                <span class="trend-badge {{ ($trendKelahiran['down'] ?? false) ? 'down' : '' }}">{{ $trendKelahiran['label'] ?? '+0%' }}</span>
-            </div>
-            <div class="stat-label">Kelahiran</div>
-            <div class="stat-value">{{ number_format($totalKelahiran ?? 0) }}</div>
-            <div class="stat-sub">Tahun {{ $selectedYear ?? now()->year }}</div>
-        </div>
-
-        <div class="stat-card">
-            <div class="stat-top">
-                <span class="stat-icon"><i class="fas fa-skull-crossbones"></i></span>
-                <span class="trend-badge {{ ($trendKematian['down'] ?? false) ? 'down' : '' }}">{{ $trendKematian['label'] ?? '+0%' }}</span>
-            </div>
-            <div class="stat-label">Kematian</div>
-            <div class="stat-value">{{ number_format($totalKematian ?? 0) }}</div>
-            <div class="stat-sub">Tahun {{ $selectedYear ?? now()->year }}</div>
-        </div>
-
-        <div class="stat-card">
-            <div class="stat-top">
-                <span class="stat-icon"><i class="fas fa-sign-in-alt"></i></span>
-                <span class="trend-badge {{ ($trendMigrasiMasuk['down'] ?? false) ? 'down' : '' }}">{{ $trendMigrasiMasuk['label'] ?? '+0%' }}</span>
-            </div>
-            <div class="stat-label">Pindah Masuk</div>
-            <div class="stat-value">{{ number_format($totalMigrasiMasuk ?? 0) }}</div>
-            <div class="stat-sub">Tahun {{ $selectedYear ?? now()->year }}</div>
-        </div>
-
-        <div class="stat-card">
-            <div class="stat-top">
-                <span class="stat-icon"><i class="fas fa-sign-out-alt"></i></span>
-                <span class="trend-badge {{ ($trendMigrasiKeluar['down'] ?? false) ? 'down' : '' }}">{{ $trendMigrasiKeluar['label'] ?? '+0%' }}</span>
-            </div>
-            <div class="stat-label">Pindah Keluar</div>
-            <div class="stat-value">{{ number_format($totalMigrasiKeluar ?? 0) }}</div>
-            <div class="stat-sub">Tahun {{ $selectedYear ?? now()->year }}</div>
+    <div class="records-card">
+        <h3 class="records-title">Data Dinamika Tersimpan</h3>
+        <p class="records-subtitle">Pilih data yang ingin diperbarui, lalu klik tombol Ubah.</p>
+        <div class="records-table-wrap">
+            <table class="records-table">
+                <thead>
+                    <tr>
+                        <th>Bulan</th>
+                        <th>Dusun</th>
+                        <th>Lahir</th>
+                        <th>Meninggal</th>
+                        <th>Masuk</th>
+                        <th>Keluar</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($records as $record)
+                        <tr>
+                            <td>{{ $monthOptionMap[(int) $record->bulan] ?? $record->bulan }}</td>
+                            <td>{{ optional($record->dusun)->nama ?? 'Gabungan Desa' }}</td>
+                            <td>{{ number_format((int) $record->jumlah_lahir) }}</td>
+                            <td>{{ number_format((int) $record->jumlah_meninggal) }}</td>
+                            <td>{{ number_format((int) $record->jumlah_masuk) }}</td>
+                            <td>{{ number_format((int) $record->jumlah_keluar) }}</td>
+                            <td>
+                                <div class="record-actions">
+                                    <button
+                                        type="button"
+                                        class="btn-edit-row"
+                                        data-record-id="{{ $record->id }}"
+                                        data-tahun="{{ $record->tahun }}"
+                                        data-bulan="{{ $record->bulan }}"
+                                        data-dusun-id="{{ $record->id_dusun }}"
+                                        data-jumlah-lahir="{{ (int) $record->jumlah_lahir }}"
+                                        data-jumlah-meninggal="{{ (int) $record->jumlah_meninggal }}"
+                                        data-jumlah-masuk="{{ (int) $record->jumlah_masuk }}"
+                                        data-jumlah-keluar="{{ (int) $record->jumlah_keluar }}"
+                                    >
+                                        Ubah
+                                    </button>
+                                    <form method="POST" action="{{ route('kasi.dinamika.destroy', $record->id) }}" class="inline-delete-form" onsubmit="return confirm('Yakin ingin menghapus data dinamika ini?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <input type="hidden" name="tahun" value="{{ $selectedYear ?? now()->year }}">
+                                        <input type="hidden" name="bulan" value="{{ $selectedMonth ?? '' }}">
+                                        <button type="submit" class="btn-delete-row">Hapus</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="7">Belum ada data dinamika untuk filter tahun/bulan yang dipilih.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
     </div>
 
@@ -567,9 +691,46 @@
     const toggleManualFormBtn = document.getElementById('toggleManualFormBtn');
     const manualFormCard = document.getElementById('manualFormCard');
     const yearSelect = document.getElementById('yearSelect');
+    const monthSelect = document.getElementById('monthSelect');
     const manualForm = manualFormCard?.querySelector('form');
     const bulanSelect = document.getElementById('bulan');
+    const recordIdInput = document.getElementById('record_id');
+    const saveDinamikaBtn = document.getElementById('saveDinamikaBtn');
+    const cancelEditBtn = document.getElementById('cancelEditBtn');
+    const editButtons = document.querySelectorAll('.btn-edit-row');
+    const tahunInput = document.getElementById('tahun');
+    const dusunInput = document.getElementById('id_dusun');
+    const jumlahLahirInput = document.getElementById('jumlah_lahir');
+    const jumlahMeninggalInput = document.getElementById('jumlah_meninggal');
+    const jumlahMasukInput = document.getElementById('jumlah_masuk');
+    const jumlahKeluarInput = document.getElementById('jumlah_keluar');
     const isMobile = window.matchMedia('(max-width: 768px)').matches;
+
+    function setEditMode(isEdit) {
+        if (!saveDinamikaBtn) {
+            return;
+        }
+
+        saveDinamikaBtn.innerHTML = isEdit
+            ? '<i class="fas fa-save"></i> Simpan Perubahan'
+            : '<i class="fas fa-save"></i> Simpan Rekap';
+
+        if (cancelEditBtn) {
+            cancelEditBtn.style.display = isEdit ? 'inline-flex' : 'none';
+        }
+    }
+
+    function resetFormToCreateMode() {
+        if (recordIdInput) recordIdInput.value = '';
+        if (tahunInput) tahunInput.value = '{{ old('tahun', $selectedYear ?? now()->year) }}';
+        if (bulanSelect) bulanSelect.value = '{{ old('bulan') }}';
+        if (dusunInput) dusunInput.value = '{{ old('id_dusun') }}';
+        if (jumlahLahirInput) jumlahLahirInput.value = '{{ old('jumlah_lahir', 0) }}';
+        if (jumlahMeninggalInput) jumlahMeninggalInput.value = '{{ old('jumlah_meninggal', 0) }}';
+        if (jumlahMasukInput) jumlahMasukInput.value = '{{ old('jumlah_masuk', 0) }}';
+        if (jumlahKeluarInput) jumlahKeluarInput.value = '{{ old('jumlah_keluar', 0) }}';
+        setEditMode(false);
+    }
 
     if (toggleManualFormBtn && manualFormCard) {
         toggleManualFormBtn.addEventListener('click', function () {
@@ -581,10 +742,33 @@
         manualFormCard?.classList.add('active');
     @endif
 
+    if (recordIdInput && recordIdInput.value) {
+        setEditMode(true);
+        manualFormCard?.classList.add('active');
+    }
+
     if (yearSelect) {
         yearSelect.addEventListener('change', function () {
             const url = new URL(window.location.href);
             url.searchParams.set('tahun', this.value);
+            if (monthSelect && monthSelect.value) {
+                url.searchParams.set('bulan', monthSelect.value);
+            } else {
+                url.searchParams.delete('bulan');
+            }
+            window.location.href = url.toString();
+        });
+    }
+
+    if (monthSelect) {
+        monthSelect.addEventListener('change', function () {
+            const url = new URL(window.location.href);
+            url.searchParams.set('tahun', yearSelect ? yearSelect.value : '{{ $selectedYear ?? now()->year }}');
+            if (this.value) {
+                url.searchParams.set('bulan', this.value);
+            } else {
+                url.searchParams.delete('bulan');
+            }
             window.location.href = url.toString();
         });
     }
@@ -604,6 +788,29 @@
             this.setCustomValidity('');
         });
     }
+
+    if (cancelEditBtn) {
+        cancelEditBtn.addEventListener('click', function () {
+            resetFormToCreateMode();
+        });
+    }
+
+    editButtons.forEach((button) => {
+        button.addEventListener('click', function () {
+            if (recordIdInput) recordIdInput.value = this.dataset.recordId || '';
+            if (tahunInput) tahunInput.value = this.dataset.tahun || '{{ $selectedYear ?? now()->year }}';
+            if (bulanSelect) bulanSelect.value = this.dataset.bulan || '';
+            if (dusunInput) dusunInput.value = this.dataset.dusunId || '';
+            if (jumlahLahirInput) jumlahLahirInput.value = this.dataset.jumlahLahir || 0;
+            if (jumlahMeninggalInput) jumlahMeninggalInput.value = this.dataset.jumlahMeninggal || 0;
+            if (jumlahMasukInput) jumlahMasukInput.value = this.dataset.jumlahMasuk || 0;
+            if (jumlahKeluarInput) jumlahKeluarInput.value = this.dataset.jumlahKeluar || 0;
+
+            setEditMode(true);
+            manualFormCard?.classList.add('active');
+            manualFormCard?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    });
 
     const textColor = '#d9fff3';
     const gridColor = 'rgba(190, 255, 237, 0.12)';
