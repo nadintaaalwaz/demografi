@@ -368,12 +368,12 @@
             'sub' => 'Masa usia sekolah dasar, fokus pada pengembangan kemampuan sosial, kognitif, dan perilaku dasar.',
         ],
         [
-            'label' => 'Jumlah Remaja (12–18 Tahun)',
+            'label' => 'Jumlah Remaja (12–19 Tahun)',
             'value' => $ageValues[2] ?? 0,
             'sub' => 'Masa pubertas dan pencarian jati diri, penting untuk edukasi kesehatan reproduksi dan mental.',
         ],
         [
-            'label' => 'Jumlah Dewasa (19–59 Tahun)',
+            'label' => 'Jumlah Dewasa (20–59 Tahun)',
             'value' => $ageValues[3] ?? 0,
             'sub' => 'Usia produktif yang fokus pada produktivitas kerja, kesehatan fisik, dan pencegahan penyakit tidak menular.',
         ],
