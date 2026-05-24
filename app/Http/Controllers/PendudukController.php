@@ -96,7 +96,7 @@ class PendudukController extends Controller
     {
         $search = trim((string) $request->query('q', ''));
         $jenisKelamin = $request->query('jenis_kelamin');
-        $kategoriUsia = $request->query('kategori_usia');
+        $kategoriUsia = strtolower((string) $request->query('kategori_usia', ''));
         $status = $request->query('status');
         $idDusun = $request->query('id_dusun');
 
@@ -125,13 +125,20 @@ class PendudukController extends Controller
             $pendudukQuery->where('jenis_kelamin', $jenisKelamin);
         }
 
-        if (in_array($kategoriUsia, ['Balita', 'Produktif', 'Lansia'], true)) {
-            if ($kategoriUsia === 'Balita') {
-                $pendudukQuery->whereRaw('TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) < 5');
-            } elseif ($kategoriUsia === 'Lansia') {
-                $pendudukQuery->whereRaw('TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) >= 60');
-            } else {
+        // FILTER: Kategori Usia (values: balita, anak, remaja, dewasa, lansia)
+        if (in_array($kategoriUsia, ['balita', 'anak', 'remaja', 'dewasa', 'lansia'], true)) {
+            if ($kategoriUsia === 'balita') {
+                $pendudukQuery->whereRaw('TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 0 AND 5');
+            } elseif ($kategoriUsia === 'anak') {
+                $pendudukQuery->whereRaw('TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 6 AND 11');
+            } elseif ($kategoriUsia === 'remaja') {
+                // sesuai permintaan: 10-19 tahun
+                $pendudukQuery->whereRaw('TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 10 AND 19');
+            } elseif ($kategoriUsia === 'dewasa') {
+                // sesuai permintaan: 19-59 tahun
                 $pendudukQuery->whereRaw('TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 19 AND 59');
+            } elseif ($kategoriUsia === 'lansia') {
+                $pendudukQuery->whereRaw('TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) >= 60');
             }
         }
 

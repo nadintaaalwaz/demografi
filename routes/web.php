@@ -38,15 +38,15 @@ $buildPublicDashboardData = function () {
 
     $totalLakiLaki = (clone $pendudukAktif)->where('jenis_kelamin', 'L')->count();
     $totalPerempuan = (clone $pendudukAktif)->where('jenis_kelamin', 'P')->count();
-    $totalBalita = (clone $pendudukAktif)->whereRaw('TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) < 5')->count();
-    $totalProduktif = (clone $pendudukAktif)->whereRaw('TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 19 AND 59')->count();
+    $totalBalita = (clone $pendudukAktif)->whereRaw('TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 0 AND 5')->count();
+    $totalProduktif = (clone $pendudukAktif)->whereRaw('TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 20 AND 59')->count();
     $totalLansia = (clone $pendudukAktif)->whereRaw('TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) >= 60')->count();
 
     $ageRaw = (clone $pendudukAktif)
         ->selectRaw("SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 0 AND 5 THEN 1 ELSE 0 END) as bayi_balita")
         ->selectRaw("SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 6 AND 11 THEN 1 ELSE 0 END) as anak_anak")
-        ->selectRaw("SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 10 AND 19 THEN 1 ELSE 0 END) as remaja")
-        ->selectRaw("SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 19 AND 59 THEN 1 ELSE 0 END) as dewasa")
+        ->selectRaw("SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 12 AND 19 THEN 1 ELSE 0 END) as remaja")
+        ->selectRaw("SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 20 AND 59 THEN 1 ELSE 0 END) as dewasa")
         ->selectRaw("SUM(CASE WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) >= 60 THEN 1 ELSE 0 END) as lansia")
         ->first();
 

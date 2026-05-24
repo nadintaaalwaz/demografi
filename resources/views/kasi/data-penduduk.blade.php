@@ -56,9 +56,11 @@
                     <label for="kategoriUsia">Kategori Usia</label>
                     <select name="kategori_usia" id="kategoriUsia">
                         <option value="">Semua</option>
-                        <option value="Balita" {{ request('kategori_usia') === 'Balita' ? 'selected' : '' }}>Balita</option>
-                        <option value="Produktif" {{ request('kategori_usia') === 'Produktif' ? 'selected' : '' }}>Produktif</option>
-                        <option value="Lansia" {{ request('kategori_usia') === 'Lansia' ? 'selected' : '' }}>Lansia</option>
+                        <option value="balita" {{ strtolower(request('kategori_usia', '')) === 'balita' ? 'selected' : '' }}>Bayi & Balita (0–5)</option>
+                        <option value="anak" {{ strtolower(request('kategori_usia', '')) === 'anak' ? 'selected' : '' }}>Anak-anak (6–11)</option>
+                        <option value="remaja" {{ strtolower(request('kategori_usia', '')) === 'remaja' ? 'selected' : '' }}>Remaja (10–19)</option>
+                        <option value="dewasa" {{ strtolower(request('kategori_usia', '')) === 'dewasa' ? 'selected' : '' }}>Dewasa (19–59)</option>
+                        <option value="lansia" {{ strtolower(request('kategori_usia', '')) === 'lansia' ? 'selected' : '' }}>Lansia (60+)</option>
                     </select>
                 </div>
 
