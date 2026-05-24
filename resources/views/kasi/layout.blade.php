@@ -546,10 +546,6 @@
                 <h1>@yield('page-title', 'Dashboard')</h1>
             </div>
             <div class="navbar-right">
-                <div class="nav-icon">
-                    <i class="fas fa-bell"></i>
-                    <span class="badge">3</span>
-                </div>
                 <div class="user-profile">
                     <div class="user-avatar">KP</div>
                     <div class="user-info">
