@@ -230,6 +230,79 @@
                 @enderror
             </div>
 
+            <div class="form-group">
+                <label class="form-label">Alamat <span class="required">*</span></label>
+                <textarea name="alamat" class="form-input" rows="3" placeholder="Alamat lengkap sesuai domisili" required>{{ old('alamat') }}</textarea>
+                @error('alamat')
+                <div class="form-error">{{ $message }}</div>
+                @enderror
+            </div>
+
+            <div class="form-two-col">
+                <div class="form-group">
+                    <label class="form-label">Status Keluarga</label>
+                    <select name="status_keluarga" class="form-select">
+                        <option value="">-- Pilih Status Keluarga --</option>
+                        <option value="Kepala Keluarga" {{ old('status_keluarga') == 'Kepala Keluarga' ? 'selected' : '' }}>Kepala Keluarga</option>
+                        <option value="Istri" {{ old('status_keluarga') == 'Istri' ? 'selected' : '' }}>Istri</option>
+                        <option value="Anak" {{ old('status_keluarga') == 'Anak' ? 'selected' : '' }}>Anak</option>
+                    </select>
+                    @error('status_keluarga')
+                    <div class="form-error">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Status Perkawinan</label>
+                    <select name="status_perkawinan" class="form-select">
+                        <option value="">-- Pilih Status Perkawinan --</option>
+                        <option value="Belum Kawin" {{ old('status_perkawinan') == 'Belum Kawin' ? 'selected' : '' }}>Belum Kawin</option>
+                        <option value="Kawin" {{ old('status_perkawinan') == 'Kawin' ? 'selected' : '' }}>Kawin</option>
+                        <option value="Cerai Hidup" {{ old('status_perkawinan') == 'Cerai Hidup' ? 'selected' : '' }}>Cerai Hidup</option>
+                        <option value="Cerai Mati" {{ old('status_perkawinan') == 'Cerai Mati' ? 'selected' : '' }}>Cerai Mati</option>
+                    </select>
+                    @error('status_perkawinan')
+                    <div class="form-error">{{ $message }}</div>
+                    @enderror
+                </div>
+            </div>
+
+            <div class="form-two-col">
+                <div class="form-group">
+                    <label class="form-label">Pendidikan</label>
+                    <input type="text" name="pendidikan" value="{{ old('pendidikan') }}" class="form-input" placeholder="Contoh: SMA, S1">
+                    @error('pendidikan')
+                    <div class="form-error">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Pekerjaan</label>
+                    <input type="text" name="pekerjaan" value="{{ old('pekerjaan') }}" class="form-input" placeholder="Contoh: Petani, IRT">
+                    @error('pekerjaan')
+                    <div class="form-error">{{ $message }}</div>
+                    @enderror
+                </div>
+            </div>
+
+            <div class="form-two-col">
+                <div class="form-group">
+                    <label class="form-label">RW</label>
+                    <input type="text" name="rw" value="{{ old('rw') }}" class="form-input" placeholder="RW">
+                    @error('rw')
+                    <div class="form-error">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">RT</label>
+                    <input type="text" name="rt" value="{{ old('rt') }}" class="form-input" placeholder="RT">
+                    @error('rt')
+                    <div class="form-error">{{ $message }}</div>
+                    @enderror
+                </div>
+            </div>
+
             <div class="form-two-col">
                 <div class="form-group">
                     <label class="form-label">Jenis Kelamin <span class="required">*</span></label>
@@ -255,7 +328,7 @@
 
             <div class="form-two-col">
                 <div class="form-group">
-                    <label class="form-label">Tanggal Lahir</label>
+                    <label class="form-label">Tanggal Lahir <span class="required">*</span></label>
                     <input type="date" name="tanggal_lahir" value="{{ old('tanggal_lahir') }}" 
                            class="form-input">
                     @error('tanggal_lahir')
@@ -272,6 +345,28 @@
                         @endforeach
                     </select>
                     @error('id_dusun')
+                    <div class="form-error">{{ $message }}</div>
+                    @enderror
+                </div>
+            </div>
+
+            <div class="form-two-col">
+                <div class="form-group">
+                    <label class="form-label">Status <span class="required">*</span></label>
+                    <select name="status" class="form-select" required>
+                        <option value="Aktif" {{ old('status', 'Aktif') == 'Aktif' ? 'selected' : '' }}>Aktif</option>
+                        <option value="Meninggal" {{ old('status') == 'Meninggal' ? 'selected' : '' }}>Meninggal</option>
+                        <option value="Keluar" {{ old('status') == 'Keluar' ? 'selected' : '' }}>Keluar</option>
+                    </select>
+                    @error('status')
+                    <div class="form-error">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Tanggal Status</label>
+                    <input type="date" name="tanggal_status" value="{{ old('tanggal_status') }}" class="form-input">
+                    @error('tanggal_status')
                     <div class="form-error">{{ $message }}</div>
                     @enderror
                 </div>

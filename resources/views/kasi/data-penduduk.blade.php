@@ -25,24 +25,25 @@
 
     <div class="card-body">
         <form method="GET" action="{{ route('kasi.penduduk.index') }}" class="table-tools" id="searchFilterForm" data-base-url="{{ route('kasi.penduduk.index') }}">
-            <div class="search-group">
-                <i class="fas fa-search"></i>
-                <input
-                    type="text"
-                    name="q"
-                    id="searchInput"
-                    value="{{ request('q') }}"
-                    placeholder="Cari berdasarkan nama, NIK, nomor kartu keluarga, dusun..."
-                    autocomplete="off"
-                >
+            <div class="toolbar-row">
+                <div class="search-group">
+                    <i class="fas fa-search"></i>
+                    <input
+                        type="text"
+                        name="q"
+                        id="searchInput"
+                        value="{{ request('q') }}"
+                        placeholder="Cari berdasarkan nama, NIK, nomor kartu keluarga, dusun..."
+                        autocomplete="off"
+                    >
+                </div>
+
+                <a href="{{ route('kasi.penduduk.create') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Tambah Data
+                </a>
             </div>
 
-            <button type="button" class="btn-filter-toggle" id="toggleFilterBtn" aria-expanded="{{ request()->filled('jenis_kelamin') || request()->filled('kategori_usia') || request()->filled('status') || request()->filled('id_dusun') || request()->filled('per_page') ? 'true' : 'false' }}">
-                <i class="fas fa-filter"></i>
-                Filter
-            </button>
-
-            <div class="filter-panel {{ request()->filled('jenis_kelamin') || request()->filled('kategori_usia') || request()->filled('status') || request()->filled('id_dusun') || request()->filled('per_page') ? 'active' : '' }}" id="filterPanel">
+            <div class="filter-panel active" id="filterPanel">
                 <div class="filter-field">
                     <label for="jenisKelamin">Jenis Kelamin</label>
                     <select name="jenis_kelamin" id="jenisKelamin">
@@ -96,7 +97,6 @@
                 </div>
 
                 <div class="filter-actions">
-                    <button type="submit" class="btn-apply-filter">Terapkan</button>
                     <a href="{{ route('kasi.penduduk.index') }}" class="btn-reset-filter">Reset</a>
                 </div>
             </div>
@@ -133,9 +133,18 @@
                             </span>
                         </td>
                         <td>
-                            <a href="{{ route('kasi.penduduk.show', $p->nik) }}" class="btn btn-sm btn-info">
-                                <i class="fas fa-eye"></i>
-                            </a>
+                            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                                <a href="{{ route('kasi.penduduk.edit', $p->nik) }}" class="btn btn-sm btn-warning" title="Edit">
+                                    <i class="fas fa-pen"></i>
+                                </a>
+                                <form action="{{ route('kasi.penduduk.destroy', $p->nik) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus data ini?')" style="display:inline;">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-sm btn-danger" title="Hapus">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                     @empty
@@ -197,70 +206,191 @@
 </div>
 
 <style>
-    /* Page header */
-    .page-header { margin-bottom: 20px; }
-    .page-header h1 { font-size: 1.6rem; color: #0C342C; margin-bottom: 6px; }
+    /* Overall spacing */
+    .page-header { margin-bottom: 18px; }
+    .page-header h1 { font-size: 1.8rem; font-weight: 800; color: #0C342C; margin-bottom: 6px; }
     .page-header p { color: #6b7280; margin: 0; }
 
     /* Card */
-    .card { background: #fff; border-radius: 12px; box-shadow: 0 6px 18px rgba(10,20,15,0.04); overflow: hidden; }
-    .card-header { padding: 18px 22px; border-bottom: 1px solid #f1f5f9; }
-    .card-body { padding: 20px; }
+    .card { background: #fff; border-radius: 16px; box-shadow: 0 8px 24px rgba(10,20,15,0.06); overflow: hidden; }
+    .card-header { padding: 18px 22px; border-bottom: 1px solid #eef2f6; }
+    .card-body { padding: 20px 22px 24px; }
 
-    /* Toolbar + Search + Filter layout */
-    .table-tools { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: start; margin-bottom: 18px; }
+    /* Stats */
+    .stats-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+    .stat-item { display: flex; align-items: center; gap: 14px; }
+    .stat-icon {
+        width: 54px; height: 54px; border-radius: 14px;
+        display: flex; align-items: center; justify-content: center;
+        background: linear-gradient(135deg, #0C342C, #076653); color: #fff; font-size: 1.2rem;
+        box-shadow: 0 8px 18px rgba(7, 102, 83, 0.18);
+    }
+    .stat-number { font-size: 1.6rem; font-weight: 800; color: #0C342C; line-height: 1.1; }
+    .stat-label { color: #6b7280; font-size: 0.95rem; }
+
+    /* Toolbar */
+    .table-tools {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        margin-bottom: 16px;
+    }
+
+    .toolbar-row {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        width: 100%;
+    }
+
+    .toolbar-row .search-group {
+        flex: 1;
+    }
+
+    .toolbar-row .btn-primary {
+        width: 220px;
+        flex: 0 0 220px;
+    }
 
     .search-group { position: relative; }
-    .search-group i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #6b7280; font-size: 14px; }
-    .search-group input { width: 100%; border: 1px solid #e6edf0; border-radius: 10px; height: 42px; padding: 0 14px 0 38px; font-size: 14px; color: #0f172a; }
-    .search-group input:focus { outline: none; border-color: #076653; box-shadow: 0 0 0 4px rgba(7,102,83,0.06); }
+    .search-group i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 14px; }
+    .search-group input {
+        width: 100%; height: 48px; border: 1px solid #dbe4ea; border-radius: 12px;
+        padding: 0 16px 0 42px; font-size: 14px; color: #0f172a; background: #fff;
+        transition: border-color .2s ease, box-shadow .2s ease;
+    }
+    .search-group input::placeholder { color: #94a3b8; }
+    .search-group input:focus { outline: none; border-color: #0C342C; box-shadow: 0 0 0 4px rgba(12,52,44,0.08); }
 
-    /* Right-side controls container */
-    .table-tools > div[style] { display:flex; gap:12px; align-items:center; }
+    .btn-filter-toggle,
+    .btn-primary,
+    .btn-apply-filter,
+    .btn-reset-filter,
+    .btn-sm {
+        transition: transform .18s ease, box-shadow .18s ease, background-color .18s ease, border-color .18s ease;
+    }
 
-    .btn-filter-toggle { background: #fff; border: 1px solid #e6edf0; color: #0C342C; padding: 8px 12px; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap:8px; }
-    .btn-filter-toggle:hover { box-shadow: 0 6px 14px rgba(7,102,83,0.06); }
+    .btn-filter-toggle {
+        background: #fff; border: 1px solid #dbe4ea; color: #0C342C; padding: 10px 14px;
+        border-radius: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
+        box-shadow: 0 2px 8px rgba(15,23,42,0.04);
+    }
+    .btn-filter-toggle:hover { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(15,23,42,0.08); }
 
-    .btn-primary { background: #076653; color: #fff; padding: 10px 14px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items:center; gap:8px; }
+    .btn-primary {
+        background: linear-gradient(135deg, #0C342C, #076653); color: #fff; padding: 12px 16px;
+        border-radius: 12px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
+        box-shadow: 0 8px 18px rgba(7,102,83,0.18);
+        white-space: nowrap;
+        width: 100%;
+        justify-content: center;
+        flex: 1;
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 10px 22px rgba(7,102,83,0.24); color: #fff; }
 
     /* Filter panel */
-    .filter-panel { display: none; grid-column: 1 / -1; background: #f8fafc; border: 1px solid #edf2f7; border-radius: 8px; padding: 14px; margin-top: 12px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.5); }
-    .filter-panel.active { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; align-items: end; }
+    .filter-panel {
+        display: none; grid-column: 1 / -1; background: #f8fafc; border: 1px solid #e8eef2;
+        border-radius: 14px; padding: 16px; margin-top: 12px;
+    }
+    .filter-panel.active { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; align-items: end; }
 
-    .filter-field { display:flex; flex-direction:column; gap:6px; }
-    .filter-field label { font-size: 12px; font-weight: 600; color: #374151; }
-    .filter-field select { height:38px; border:1px solid #e6edf0; border-radius:8px; padding:0 10px; background:#fff; }
-    .filter-actions { display:flex; gap:8px; align-items:center; }
-    .btn-apply-filter { background:#0C342C; color:#fff; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; }
-    .btn-reset-filter { background:#fff; color:#374151; border:1px solid #e6edf0; padding:8px 12px; border-radius:8px; text-decoration:none; display:inline-flex; align-items:center; }
+    .filter-panel .filter-actions {
+        justify-content: flex-end;
+        justify-self: end;
+        margin-left: 14px;
+        padding-left: 0;
+        width: auto;
+    }
+
+    .filter-panel .btn-reset-filter {
+        width: 180px;
+        flex: 0 0 180px;
+    }
+
+    .filter-field { display: flex; flex-direction: column; gap: 6px; }
+    .filter-field label { font-size: 12px; font-weight: 700; color: #334155; }
+    .filter-field select {
+        height: 42px; border: 1px solid #dbe4ea; border-radius: 10px; padding: 0 12px;
+        background: #fff; color: #0f172a;
+    }
+    .filter-field select:focus { outline: none; border-color: #0C342C; box-shadow: 0 0 0 4px rgba(12,52,44,0.08); }
+    .filter-actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        width: 100%;
+    }
+    .btn-reset-filter {
+        background: #fff;
+        color: #334155;
+        border: 1px solid #dbe4ea;
+        padding: 10px 14px;
+        border-radius: 10px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 200px;
+        flex: 0 0 220px;
+    }
+    .btn-reset-filter:hover { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(15,23,42,0.06); }
 
     /* Table */
-    .table-responsive { overflow-x:auto; }
-    .data-table { width:100%; border-collapse:collapse; min-width: 900px; }
-    .data-table th { background:#fbfdfe; padding:14px; text-align:left; font-weight:700; color:#0C342C; border-bottom:1px solid #eef2f6; }
-    .data-table td { padding:14px; border-bottom:1px solid #f1f5f9; color:#0f172a; }
-    .data-table tbody tr:hover { background:#fbfcfd; }
+    .table-responsive { overflow-x: auto; margin-top: 20px; border-radius: 14px; }
+    .data-table { width: 100%; border-collapse: collapse; min-width: 980px; }
+    .data-table thead th {
+        background: #fbfdfe; padding: 16px 14px; text-align: left; font-weight: 800; color: #0C342C;
+        border-bottom: 1px solid #e7edf1; white-space: nowrap;
+    }
+    .data-table td {
+        padding: 16px 14px; border-bottom: 1px solid #eef2f6; color: #0f172a; vertical-align: middle;
+    }
+    .data-table tbody tr:hover { background: #fcfefe; }
 
     /* Badges and buttons */
-    .badge { padding:6px 10px; border-radius:12px; font-weight:600; font-size:0.85rem; }
-    .badge-success { background:#dff6ea; color:#05603a; }
-    .badge-danger { background:#ffe8e8; color:#8b1e1e; }
+    .badge { padding: 7px 12px; border-radius: 999px; font-weight: 700; font-size: 0.82rem; display: inline-block; }
+    .badge-success { background: #dcfce7; color: #166534; }
+    .badge-danger { background: #fee2e2; color: #991b1b; }
 
-    .btn-sm { padding:8px; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; }
-    .btn-info { background:#17a2b8; color:#fff; border:none; }
-    .btn-warning { background:#f59e0b; color:#fff; border:none; }
-    .btn-danger { background:#ef4444; color:#fff; border:none; }
+    .btn-sm {
+        width: 38px; height: 38px; border-radius: 10px; display: inline-flex; align-items: center;
+        justify-content: center; border: none; color: #fff;
+    }
+    .btn-warning { background: #f59e0b; }
+    .btn-danger { background: #ef4444; }
+    .btn-sm:hover { transform: translateY(-1px); }
 
     /* Empty state */
-    .empty-state { text-align:center; padding:40px; color:#94a3b8; }
+    .empty-state { text-align: center; padding: 40px; color: #94a3b8; }
 
     /* Pagination */
-    .pagination-wrapper { margin-top:20px; display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .pagination-wrapper {
+        margin-top: 22px; display: flex; align-items: center; justify-content: space-between;
+        gap: 12px; flex-wrap: wrap;
+    }
+    .pagination-info { color: #64748b; font-size: 13px; }
+    .pagination-links { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .page-btn, .page-number {
+        display: inline-flex; align-items: center; justify-content: center; min-width: 38px; height: 38px;
+        padding: 0 14px; border-radius: 10px; text-decoration: none; font-size: 13px; font-weight: 700;
+        border: 1px solid #dbe4ea; color: #334155; background: #fff;
+    }
+    .page-btn:hover, .page-number:hover { border-color: #0C342C; color: #0C342C; box-shadow: 0 6px 14px rgba(15,23,42,0.06); }
+    .page-number.active { background: #0C342C; color: #fff; border-color: #0C342C; }
+    .page-btn.disabled { opacity: 0.5; pointer-events: none; }
 
-    @media (max-width: 900px) {
-        .table-tools { grid-template-columns: 1fr; }
+    @media (max-width: 992px) {
+        .toolbar-row { flex-direction: column; align-items: stretch; }
         .filter-panel.active { grid-template-columns: 1fr; }
-        .data-table { min-width: 700px; }
+        .filter-actions { flex-wrap: wrap; }
+        .data-table { min-width: 860px; }
+    }
+
+    @media (max-width: 768px) {
+        .card-header, .card-body { padding-left: 14px; padding-right: 14px; }
+        .btn-primary { width: 100%; justify-content: center; }
+        .toolbar-row { gap: 10px; }
     }
 </style>
 
@@ -271,17 +401,10 @@
 
         const baseUrl = form.dataset.baseUrl;
         const searchInput = document.getElementById('searchInput');
-        const filterPanel = document.getElementById('filterPanel');
-        const toggleFilterBtn = document.getElementById('toggleFilterBtn');
         const selects = Array.from(form.querySelectorAll('select'));
         let searchDebounce = null;
 
         const hasAnyFilterValue = () => selects.some(select => select.value !== '');
-
-        toggleFilterBtn.addEventListener('click', function () {
-            const isActive = filterPanel.classList.toggle('active');
-            toggleFilterBtn.setAttribute('aria-expanded', isActive ? 'true' : 'false');
-        });
 
         searchInput.addEventListener('input', function () {
             clearTimeout(searchDebounce);

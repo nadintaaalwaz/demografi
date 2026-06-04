@@ -52,12 +52,21 @@ class PendudukController extends Controller
     {
         $data = $request->validate([
             'nik' => 'required|digits:16|unique:penduduk,nik',
-            'nomor_kartu_keluarga' => 'nullable|digits:16',
+            'nomor_kartu_keluarga' => 'required|digits:16',
             'nama_lengkap' => 'required|string|max:255',
             'jenis_kelamin' => 'required|in:L,P',
             'tempat_lahir' => 'nullable|string|max:255',
-            'tanggal_lahir' => 'nullable|date',
-            'id_dusun' => 'nullable|integer|exists:wilayah,id',
+            'tanggal_lahir' => 'required|date',
+            'status_keluarga' => 'nullable|in:Kepala Keluarga,Istri,Anak',
+            'status_perkawinan' => 'nullable|in:Belum Kawin,Kawin,Cerai Hidup,Cerai Mati',
+            'pendidikan' => 'nullable|string|max:255',
+            'pekerjaan' => 'nullable|string|max:255',
+            'alamat' => 'required|string',
+            'id_dusun' => 'required|integer|exists:wilayah,id',
+            'rw' => 'nullable|string|max:10',
+            'rt' => 'nullable|string|max:10',
+            'status' => 'required|in:Aktif,Meninggal,Keluar',
+            'tanggal_status' => 'nullable|date',
         ]);
 
         Penduduk::create($data);
@@ -83,12 +92,21 @@ class PendudukController extends Controller
         $penduduk = Penduduk::findOrFail($nik);
 
         $data = $request->validate([
-            'nomor_kartu_keluarga' => 'nullable|digits:16',
+            'nomor_kartu_keluarga' => 'required|digits:16',
             'nama_lengkap' => 'required|string|max:255',
             'jenis_kelamin' => 'required|in:L,P',
             'tempat_lahir' => 'nullable|string|max:255',
-            'tanggal_lahir' => 'nullable|date',
-            'id_dusun' => 'nullable|integer|exists:wilayah,id',
+            'tanggal_lahir' => 'required|date',
+            'status_keluarga' => 'nullable|in:Kepala Keluarga,Istri,Anak',
+            'status_perkawinan' => 'nullable|in:Belum Kawin,Kawin,Cerai Hidup,Cerai Mati',
+            'pendidikan' => 'nullable|string|max:255',
+            'pekerjaan' => 'nullable|string|max:255',
+            'alamat' => 'required|string',
+            'id_dusun' => 'required|integer|exists:wilayah,id',
+            'rw' => 'nullable|string|max:10',
+            'rt' => 'nullable|string|max:10',
+            'status' => 'required|in:Aktif,Meninggal,Keluar',
+            'tanggal_status' => 'nullable|date',
         ]);
 
         $penduduk->update($data);
@@ -249,7 +267,7 @@ class PendudukController extends Controller
             ->orderBy('nama')
             ->get(['id', 'nama']);
 
-        return view('kasi.penduduk.index', compact('penduduk', 'dusunList'));
+        return view('kasi.data-penduduk', compact('penduduk', 'dusunList'));
     }
 
     /**
