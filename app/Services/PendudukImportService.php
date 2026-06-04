@@ -19,34 +19,34 @@ class PendudukImportService
             $import = new PendudukImport();
             Excel::import($import, $file);
 
-            // Jika ada error validasi, return langsung
-            if (!empty($import->errors)) {
-                Log::info('Validation errors found during import', ['errors_count' => count($import->errors)]);
-                return [
-                    'success' => false,
-                    'errors' => $import->errors,
-                ];
-            }
+            // Step 2: Jika ada error pada beberapa baris, kita tidak langsung gagal.
+            // Import semua baris valid, dan kembalikan daftar error untuk ditampilkan.
+            $validCount = count($import->validData ?? []);
 
-            // Step 2: Jika validasi lolos, lakukan replace data
-            // Hapus semua data penduduk lama dan insert yang baru
-            Penduduk::truncate();
-            
-            foreach ($import->validData as $row) {
-                Penduduk::create($row);
+            if ($validCount > 0) {
+                Penduduk::truncate();
+                foreach ($import->validData as $row) {
+                    Penduduk::create($row);
+                }
             }
 
             UploadLog::create([
                 'user_id' => (int) (Auth::user()?->id ?? 0),
                 'nama_file' => $originalFileName,
-                'total_record' => count($import->validData),
+                'total_record' => $validCount,
             ]);
 
-            return [
-                'success' => true,
-                'total_record' => count($import->validData),
-                'message' => 'Data berhasil diimport',
+            $result = [
+                'success' => $validCount > 0,
+                'total_record' => $validCount,
+                'message' => $validCount > 0 ? 'Data berhasil diimport' : 'Tidak ada record valid untuk diimport',
             ];
+
+            if (!empty($import->errors)) {
+                $result['errors'] = $import->errors;
+            }
+
+            return $result;
         } catch (\Exception $e) {
             Log::error('Import error', [
                 'error' => $e->getMessage(),

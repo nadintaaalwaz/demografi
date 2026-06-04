@@ -187,6 +187,33 @@
         font-size: 12px;
     }
 
+    .btn-view {
+        background: #0891b2;
+        color: #fff;
+    }
+
+    .btn-view:hover {
+        background: #0e7490;
+    }
+
+    .btn-warning {
+        background: #f59e0b;
+        color: #fff;
+    }
+
+    .btn-warning:hover {
+        background: #d97706;
+    }
+
+    .btn-danger {
+        background: #ef4444;
+        color: #fff;
+    }
+
+    .btn-danger:hover {
+        background: #dc2626;
+    }
+
     .pagination {
         display: flex;
         justify-content: space-between;
@@ -250,25 +277,92 @@
 @endpush
 
 @section('content')
-<!-- Toolbar -->
-<div class="toolbar">
-    <div class="search-box">
-        <input type="text" placeholder="Cari berdasarkan NIK atau Nama..." id="searchInput">
+
+
+<!-- Toolbar + Filter -->
+<form method="GET" action="{{ route('kasi.penduduk.index') }}" class="table-tools" id="searchFilterForm" data-base-url="{{ route('kasi.penduduk.index') }}">
+    <div class="search-group">
         <i class="fas fa-search"></i>
+        <input
+            type="text"
+            name="q"
+            id="searchInput"
+            value="{{ request('q') }}"
+            placeholder="Cari berdasarkan nama, NIK, nomor kartu keluarga, dusun..."
+            autocomplete="off"
+        >
     </div>
-    
-    <div class="filter-group">
-        <button class="btn btn-secondary">
-            <i class="fas fa-filter"></i> Filter
+
+    <div style="display:flex; align-items:center; gap:12px;">
+        <button type="button" class="btn-filter-toggle" id="toggleFilterBtn" aria-expanded="{{ request()->filled('jenis_kelamin') || request()->filled('kategori_usia') || request()->filled('status') || request()->filled('id_dusun') || request()->filled('per_page') ? 'true' : 'false' }}">
+            <i class="fas fa-filter"></i>
+            Filter
         </button>
+
         <a href="{{ route('kasi.penduduk.create') }}" class="btn btn-primary">
             <i class="fas fa-plus"></i> Tambah Data
         </a>
-        <a href="{{ route('kasi.upload.form') }}" class="btn btn-success">
-            <i class="fas fa-file-upload"></i> Upload Excel
-        </a>
     </div>
-</div>
+
+    <div class="filter-panel {{ request()->filled('jenis_kelamin') || request()->filled('kategori_usia') || request()->filled('status') || request()->filled('id_dusun') || request()->filled('per_page') ? 'active' : '' }}" id="filterPanel">
+        <div class="filter-field">
+            <label for="jenisKelamin">Jenis Kelamin</label>
+            <select name="jenis_kelamin" id="jenisKelamin">
+                <option value="">Semua</option>
+                <option value="L" {{ request('jenis_kelamin') === 'L' ? 'selected' : '' }}>Laki-laki</option>
+                <option value="P" {{ request('jenis_kelamin') === 'P' ? 'selected' : '' }}>Perempuan</option>
+            </select>
+        </div>
+
+        <div class="filter-field">
+            <label for="kategoriUsia">Kategori Usia</label>
+            <select name="kategori_usia" id="kategoriUsia">
+                <option value="">Semua</option>
+                <option value="balita" {{ strtolower(request('kategori_usia', '')) === 'balita' ? 'selected' : '' }}>Bayi & Balita (0–5)</option>
+                <option value="anak" {{ strtolower(request('kategori_usia', '')) === 'anak' ? 'selected' : '' }}>Anak-anak (6–11)</option>
+                <option value="remaja" {{ strtolower(request('kategori_usia', '')) === 'remaja' ? 'selected' : '' }}>Remaja (10–19)</option>
+                <option value="dewasa" {{ strtolower(request('kategori_usia', '')) === 'dewasa' ? 'selected' : '' }}>Dewasa (19–59)</option>
+                <option value="lansia" {{ strtolower(request('kategori_usia', '')) === 'lansia' ? 'selected' : '' }}>Lansia (60+)</option>
+            </select>
+        </div>
+
+        <div class="filter-field">
+            <label for="statusPenduduk">Status</label>
+            <select name="status" id="statusPenduduk">
+                <option value="">Semua</option>
+                <option value="Aktif" {{ request('status') === 'Aktif' ? 'selected' : '' }}>Aktif</option>
+                <option value="Meninggal" {{ request('status') === 'Meninggal' ? 'selected' : '' }}>Meninggal</option>
+                <option value="Keluar" {{ request('status') === 'Keluar' ? 'selected' : '' }}>Keluar</option>
+            </select>
+        </div>
+
+        <div class="filter-field">
+            <label for="dusunFilter">Dusun</label>
+            <select name="id_dusun" id="dusunFilter">
+                <option value="">Semua</option>
+                @foreach($dusunList as $dusun)
+                    <option value="{{ $dusun->id }}" {{ (string) request('id_dusun') === (string) $dusun->id ? 'selected' : '' }}>
+                        {{ $dusun->nama }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+
+        <div class="filter-field">
+            <label for="perPage">Baris per Halaman</label>
+            <select name="per_page" id="perPage">
+                <option value="25" {{ (string) request('per_page', '50') === '25' ? 'selected' : '' }}>25</option>
+                <option value="50" {{ (string) request('per_page', '50') === '50' ? 'selected' : '' }}>50</option>
+                <option value="100" {{ (string) request('per_page', '50') === '100' ? 'selected' : '' }}>100</option>
+            </select>
+        </div>
+
+        <div class="filter-actions">
+            <button type="submit" class="btn-apply-filter">Terapkan</button>
+            <a href="{{ route('kasi.penduduk.index') }}" class="btn-reset-filter">Reset</a>
+        </div>
+    </div>
+</form>
 
 <!-- Table -->
 <div class="table-container">
@@ -293,23 +387,23 @@
                 <tr>
                     <td>{{ $index + 1 }}</td>
                     <td>{{ $p->nik }}</td>
-                    <td><strong>{{ $p->nama }}</strong></td>
+                    <td><strong>{{ $p->nama_lengkap }}</strong></td>
                     <td>
                         <span class="badge {{ $p->jenis_kelamin == 'L' ? 'badge-male' : 'badge-female' }}">
                             {{ $p->jenis_kelamin == 'L' ? 'L' : 'P' }}
                         </span>
                     </td>
                     <td>{{ $p->tanggal_lahir }}</td>
-                    <td>{{ $p->usia }} th</td>
+                    <td>{{ $p->status_keluarga ?? '-' }}</td>
                     <td>{{ $p->dusun->nama ?? '-' }}</td>
                     <td>{{ $p->pendidikan ?? '-' }}</td>
                     <td>{{ $p->pekerjaan ?? '-' }}</td>
                     <td>
                         <div class="action-buttons">
-                            <a href="{{ route('kasi.penduduk.edit', $p->id) }}" class="btn btn-warning btn-sm">
+                            <a href="{{ route('kasi.penduduk.edit', $p->nik) }}" class="btn btn-warning btn-sm">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            <form action="{{ route('kasi.penduduk.destroy', $p->id) }}" method="POST" style="display: inline;">
+                            <form action="{{ route('kasi.penduduk.destroy', $p->nik) }}" method="POST" style="display: inline;">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?')">

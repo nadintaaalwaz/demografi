@@ -263,7 +263,7 @@
                 <ul>
                     <li>File harus berformat Excel (.xlsx atau .xls)</li>
                     <li>Ukuran file maksimal 10 MB</li>
-                    <li><strong>Header kolom wajib (baris pertama):</strong> nomor_kartu_keluarga, nik, nama_lengkap, jenis_kelamin, tempat_lahir, tanggal_lahir, status_keluarga, status_perkawinan, pendidikan, pekerjaan, dusun, rw, rt, alamat, status, tanggal_status</li>
+                    <li><strong>Template Excel:</strong> gunakan template resmi untuk memastikan kolom yang diperlukan tersedia. Sistem tidak lagi memvalidasi nama atau urutan kolom pada upload, hanya memeriksa tipe file.</li>
                     <li>Format NIK dan nomor_kartu_keluarga: 16 digit angka</li>
                     <li>Jenis Kelamin: L atau P</li>
                     <li>Format Tanggal Lahir: DD-MM-YYYY, DD/MM/YYYY, atau format Excel date</li>
@@ -296,6 +296,10 @@
                 </div>
 
                 <div class="button-group">
+                    <a href="{{ route('kasi.upload.template') }}" class="btn btn-success">
+                        <i class="fas fa-download"></i> Download Template Excel
+                    </a>
+
                     <button type="submit" class="btn btn-primary" id="submitBtn">
                         <i class="fas fa-upload"></i> Upload & Proses Data
                     </button>

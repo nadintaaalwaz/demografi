@@ -5,7 +5,10 @@ namespace App\Http\Controllers;
 use App\Services\PendudukImportService;
 use App\Models\Penduduk;
 use App\Models\Wilayah;
+use App\Exports\PendudukTemplateExport;
+use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class PendudukController extends Controller
 {
@@ -22,6 +25,86 @@ class PendudukController extends Controller
     public function uploadForm()
     {
         return view('kasi.upload-penduduk');
+    }
+
+    /**
+     * Download template Excel with required headings
+     */
+    public function downloadTemplate()
+    {
+        $filename = 'template-penduduk.xlsx';
+        return Excel::download(new PendudukTemplateExport(), $filename);
+    }
+
+    /**
+     * Show create form
+     */
+    public function create()
+    {
+        $dusunList = Wilayah::where('tipe', 'dusun')->orderBy('nama')->get();
+        return view('kasi.penduduk.create', compact('dusunList'));
+    }
+
+    /**
+     * Store new penduduk
+     */
+    public function store(Request $request)
+    {
+        $data = $request->validate([
+            'nik' => 'required|digits:16|unique:penduduk,nik',
+            'nomor_kartu_keluarga' => 'nullable|digits:16',
+            'nama_lengkap' => 'required|string|max:255',
+            'jenis_kelamin' => 'required|in:L,P',
+            'tempat_lahir' => 'nullable|string|max:255',
+            'tanggal_lahir' => 'nullable|date',
+            'id_dusun' => 'nullable|integer|exists:wilayah,id',
+        ]);
+
+        Penduduk::create($data);
+
+        return redirect()->route('kasi.penduduk.index')->with('success', 'Penduduk berhasil ditambahkan');
+    }
+
+    /**
+     * Edit form
+     */
+    public function edit($nik)
+    {
+        $penduduk = Penduduk::findOrFail($nik);
+        $dusunList = Wilayah::where('tipe', 'dusun')->orderBy('nama')->get();
+        return view('kasi.penduduk.edit', compact('penduduk', 'dusunList'));
+    }
+
+    /**
+     * Update penduduk
+     */
+    public function update(Request $request, $nik)
+    {
+        $penduduk = Penduduk::findOrFail($nik);
+
+        $data = $request->validate([
+            'nomor_kartu_keluarga' => 'nullable|digits:16',
+            'nama_lengkap' => 'required|string|max:255',
+            'jenis_kelamin' => 'required|in:L,P',
+            'tempat_lahir' => 'nullable|string|max:255',
+            'tanggal_lahir' => 'nullable|date',
+            'id_dusun' => 'nullable|integer|exists:wilayah,id',
+        ]);
+
+        $penduduk->update($data);
+
+        return redirect()->route('kasi.penduduk.index')->with('success', 'Data penduduk berhasil diperbarui');
+    }
+
+    /**
+     * Delete penduduk
+     */
+    public function destroy($nik)
+    {
+        $penduduk = Penduduk::findOrFail($nik);
+        $penduduk->delete();
+
+        return redirect()->route('kasi.penduduk.index')->with('success', 'Data penduduk berhasil dihapus');
     }
 
     /**
@@ -46,7 +129,8 @@ class PendudukController extends Controller
         // kirim langsung file ke service
         $result = $this->importService->import($file, $originalFileName);
 
-        if ($result['success']) {
+        // treat as success when at least some records were imported
+        if (($result['success'] ?? false) || (!empty($result['total_record']) && $result['total_record'] > 0)) {
             if ($request->expectsJson()) {
                 return response()->json([
                     'success' => true,
@@ -55,9 +139,14 @@ class PendudukController extends Controller
                 ]);
             }
 
-            return redirect()
-                ->route('kasi.upload.form')
-                ->with('success', "Data berhasil diimport! Total {$result['total_record']} record.");
+            $redirect = redirect()->route('kasi.upload.form');
+            $msg = "Data berhasil diimport! Total " . ($result['total_record'] ?? 0) . " record.";
+            if (!empty($result['errors'])) {
+                $redirect->with('import_errors', $result['errors']);
+                $msg .= ' (Beberapa baris diabaikan karena error)';
+            }
+
+            return $redirect->with('success', $msg);
         } else {
             if ($request->expectsJson()) {
                 return response()->json([
@@ -69,7 +158,7 @@ class PendudukController extends Controller
 
             return redirect()
                 ->route('kasi.upload.form')
-                ->with('import_errors', $result['errors'])
+                ->with('import_errors', $result['errors'] ?? [])
                 ->withInput();
         }
 
@@ -160,7 +249,7 @@ class PendudukController extends Controller
             ->orderBy('nama')
             ->get(['id', 'nama']);
 
-        return view('kasi.data-penduduk', compact('penduduk', 'dusunList'));
+        return view('kasi.penduduk.index', compact('penduduk', 'dusunList'));
     }
 
     /**

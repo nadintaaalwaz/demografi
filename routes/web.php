@@ -984,17 +984,15 @@ Route::prefix('kasi')->name('kasi.')->middleware(['auth', 'role:kasi'])->group(f
     Route::get('/penduduk', [PendudukController::class, 'index'])->name('penduduk.index');
     Route::get('/penduduk/{nik}', [PendudukController::class, 'show'])->name('penduduk.show');
     
-    Route::get('/penduduk/create', function () {
-        return view('kasi.penduduk.create');
-    })->name('penduduk.create');
-    
-    Route::get('/penduduk/{id}/edit', function ($id) {
-        return view('kasi.penduduk.edit', ['id' => $id]);
-    })->name('penduduk.edit');
-    
-    Route::delete('/penduduk/{id}', function ($id) {
-        return redirect()->route('kasi.penduduk.index')->with('success', 'Data berhasil dihapus');
-    })->name('penduduk.destroy');
+    Route::get('/penduduk/create', [PendudukController::class, 'create'])->name('penduduk.create');
+
+    Route::post('/penduduk', [PendudukController::class, 'store'])->name('penduduk.store');
+
+    Route::get('/penduduk/{nik}/edit', [PendudukController::class, 'edit'])->name('penduduk.edit');
+
+    Route::put('/penduduk/{nik}', [PendudukController::class, 'update'])->name('penduduk.update');
+
+    Route::delete('/penduduk/{nik}', [PendudukController::class, 'destroy'])->name('penduduk.destroy');
     
     // Laporan Demografi & Dinamika
     Route::get('/laporan', [ReportController::class, 'index'])->name('laporan.index');
@@ -1006,10 +1004,7 @@ Route::prefix('kasi')->name('kasi.')->middleware(['auth', 'role:kasi'])->group(f
     Route::get('/upload', [PendudukController::class, 'uploadForm'])->name('upload.form');
     Route::post('/upload/process', [PendudukController::class, 'upload'])->name('upload.process');
     
-    Route::get('/upload/template', function () {
-        // Return download template Excel (implementation later)
-        return response()->download(public_path('templates/template-penduduk.xlsx'));
-    })->name('upload.template');
+    Route::get('/upload/template', [PendudukController::class, 'downloadTemplate'])->name('upload.template');
     
     // Wilayah (CRUD)
     Route::get('/wilayah', [WilayahController::class, 'index'])->name('wilayah.index');
