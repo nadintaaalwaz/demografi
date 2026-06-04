@@ -982,17 +982,24 @@ Route::prefix('kasi')->name('kasi.')->middleware(['auth', 'role:kasi'])->group(f
     
     // Data Penduduk
     Route::get('/penduduk', [PendudukController::class, 'index'])->name('penduduk.index');
-    Route::get('/penduduk/{nik}', [PendudukController::class, 'show'])->name('penduduk.show');
-    
     Route::get('/penduduk/create', [PendudukController::class, 'create'])->name('penduduk.create');
+    Route::get('/penduduk/{nik}', [PendudukController::class, 'show'])
+        ->where('nik', '[0-9]{16}')
+        ->name('penduduk.show');
 
     Route::post('/penduduk', [PendudukController::class, 'store'])->name('penduduk.store');
 
-    Route::get('/penduduk/{nik}/edit', [PendudukController::class, 'edit'])->name('penduduk.edit');
+    Route::get('/penduduk/{nik}/edit', [PendudukController::class, 'edit'])
+        ->where('nik', '[0-9]{16}')
+        ->name('penduduk.edit');
 
-    Route::put('/penduduk/{nik}', [PendudukController::class, 'update'])->name('penduduk.update');
+    Route::put('/penduduk/{nik}', [PendudukController::class, 'update'])
+        ->where('nik', '[0-9]{16}')
+        ->name('penduduk.update');
 
-    Route::delete('/penduduk/{nik}', [PendudukController::class, 'destroy'])->name('penduduk.destroy');
+    Route::delete('/penduduk/{nik}', [PendudukController::class, 'destroy'])
+        ->where('nik', '[0-9]{16}')
+        ->name('penduduk.destroy');
     
     // Laporan Demografi & Dinamika
     Route::get('/laporan', [ReportController::class, 'index'])->name('laporan.index');

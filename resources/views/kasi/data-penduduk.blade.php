@@ -112,7 +112,6 @@
                         <th>Tanggal Lahir</th>
                         <th>Status Keluarga</th>
                         <th>Dusun</th>
-                        <th>Pekerjaan</th>
                         <th>Status</th>
                         <th>Aksi</th>
                     </tr>
@@ -125,31 +124,29 @@
                         <td>{{ $p->jenis_kelamin }}</td>
                         <td>{{ optional($p->tanggal_lahir)->format('d-m-Y') ?? '-' }}</td>
                         <td>{{ $p->status_keluarga ?? '-' }}</td>
-                        <td>{{ $p->dusun->nama ?? '-' }}</td>
-                        <td>{{ $p->pekerjaan ?? '-' }}</td>
+                        <td>{{ optional($p->dusun)->nama ?? '-' }}</td>
                         <td>
                             <span class="badge badge-{{ $p->status == 'Aktif' ? 'success' : 'danger' }}">
                                 {{ $p->status }}
                             </span>
                         </td>
                         <td>
-                            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                            <div class="aksi-horizontal" style="display:flex; gap:8px; flex-wrap:wrap;">
+                                <a href="{{ route('kasi.penduduk.show', $p->nik) }}" class="btn btn-sm btn-info" title="Lihat">
+                                    <i class="fas fa-eye"></i>
+                                </a>
                                 <a href="{{ route('kasi.penduduk.edit', $p->nik) }}" class="btn btn-sm btn-warning" title="Edit">
                                     <i class="fas fa-pen"></i>
                                 </a>
-                                <form action="{{ route('kasi.penduduk.destroy', $p->nik) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus data ini?')" style="display:inline;">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-danger" title="Hapus">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </form>
+                                <button type="button" data-action="{{ route('kasi.penduduk.destroy', $p->nik) }}" class="btn btn-sm btn-danger btn-delete" title="Hapus">
+                                    <i class="fas fa-trash"></i>
+                                </button>
                             </div>
                         </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="9" style="text-align: center; padding: 40px;">
+                        <td colspan="8" style="text-align: center; padding: 40px;">
                             <i class="fas fa-inbox" style="font-size: 3rem; color: #ccc; margin-bottom: 16px;"></i>
                             <p>Belum ada data penduduk. Silakan upload data terlebih dahulu.</p>
                             <a href="{{ route('kasi.upload.form') }}" class="btn btn-primary" style="margin-top: 16px;">
@@ -357,6 +354,15 @@
         width: 38px; height: 38px; border-radius: 10px; display: inline-flex; align-items: center;
         justify-content: center; border: none; color: #fff;
     }
+    .aksi-horizontal {
+        display: inline-flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: nowrap;
+        white-space: nowrap;
+    }
+    .btn-info { background: #0ea5e9; }
     .btn-warning { background: #f59e0b; }
     .btn-danger { background: #ef4444; }
     .btn-sm:hover { transform: translateY(-1px); }
@@ -392,6 +398,15 @@
         .btn-primary { width: 100%; justify-content: center; }
         .toolbar-row { gap: 10px; }
     }
+    /* Modal confirm */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(2,6,23,0.55); display: none; align-items: center; justify-content: center; z-index: 1200; }
+    .modal-overlay.active { display: flex; }
+    .modal-card { background: #fff; padding: 18px; border-radius: 12px; max-width: 420px; width: 92%; box-shadow: 0 12px 40px rgba(2,6,23,0.32); }
+    .modal-card h3 { margin: 0 0 8px; font-size: 1.05rem; color: #0C342C; }
+    .modal-card p { margin: 0 0 14px; color: #475569; }
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+    .btn-cancel { background: #f3f4f6; color: #374151; padding: 8px 12px; border-radius: 8px; border: none; }
+    .btn-confirm { background: #ef4444; color: #fff; padding: 8px 12px; border-radius: 8px; border: none; }
 </style>
 
 <script>
@@ -426,6 +441,50 @@
                 form.submit();
             });
         });
+
+            // Delete confirmation modal setup
+            const deleteForm = document.createElement('form');
+            deleteForm.id = 'deleteForm';
+            deleteForm.method = 'POST';
+            deleteForm.style.display = 'none';
+            // Add CSRF token and method input placeholders; server-side blade will replace tokens below
+            deleteForm.innerHTML = `@csrf\n@method('DELETE')`;
+            document.body.appendChild(deleteForm);
+
+            const modal = document.getElementById('confirmDeleteModal');
+            const btnConfirm = document.getElementById('confirmDeleteBtn');
+            const btnCancel = document.getElementById('cancelDeleteBtn');
+            let pendingAction = null;
+
+            document.querySelectorAll('.btn-delete').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    pendingAction = btn.getAttribute('data-action');
+                    if (modal) modal.classList.add('active');
+                });
+            });
+
+            if (btnCancel) btnCancel.addEventListener('click', function () {
+                if (modal) modal.classList.remove('active');
+                pendingAction = null;
+            });
+
+            if (btnConfirm) btnConfirm.addEventListener('click', function () {
+                if (!pendingAction) return;
+                deleteForm.action = pendingAction;
+                deleteForm.submit();
+            });
     });
 </script>
+
+    <!-- Delete confirmation modal -->
+    <div id="confirmDeleteModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="confirmDeleteTitle">
+        <div class="modal-card" role="document">
+            <h3 id="confirmDeleteTitle">Hapus Data</h3>
+            <p>Apakah Anda yakin ingin menghapus data ini? Tindakan ini tidak dapat dibatalkan.</p>
+            <div class="modal-actions">
+                <button type="button" id="cancelDeleteBtn" class="btn-cancel">Batal</button>
+                <button type="button" id="confirmDeleteBtn" class="btn-confirm">Iya, Hapus</button>
+            </div>
+        </div>
+    </div>
 @endsection
