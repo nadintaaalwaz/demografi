@@ -8,6 +8,89 @@ Dashboard {{ Auth::user()->dusun_name ?? "Dusun" }}
 
 @push('styles')
 <style>
+    /* Page background wrapper to apply dark green dashboard look */
+    .dusun-dashboard-bg {
+        background: linear-gradient(180deg, #053a32 0%, #032920 100%);
+        padding: 28px 32px;
+        min-height: calc(100vh - 40px);
+        box-sizing: border-box;
+        color: #e6f7f0;
+    }
+
+    /* Make cards slightly lighter than background and text readable */
+    .dusun-dashboard-bg .stat-card,
+    .dusun-dashboard-bg .chart-card,
+    .dusun-dashboard-bg .map-container,
+    .dusun-dashboard-bg .dinamika-section,
+    .dusun-dashboard-bg .dusun-total-section,
+    .dusun-dashboard-bg .occupation-section {
+        background: linear-gradient(180deg, #0b5b4a 0%, #0a4f41 100%);
+        color: #e6f7f0;
+        border: 1px solid rgba(255,255,255,0.03);
+    }
+
+    /* Override Dinamika section to use white background for readability */
+    .dusun-dashboard-bg .dinamika-section {
+        background: #ffffff;
+        color: #000000;
+        border: 1px solid rgba(12,52,44,0.06);
+        box-shadow: none;
+    }
+
+    .dusun-dashboard-bg .dinamika-section .chart-header {
+        border-bottom-color: rgba(12,52,44,0.06);
+    }
+
+    /* Make the Dinamika section title black for readability */
+    .dusun-dashboard-bg .dinamika-section .chart-title {
+        color: #000000;
+    }
+
+    .dusun-dashboard-bg .dinamika-section .dinamika-card {
+        background: #f8fafc;
+        color: #000000;
+        border: 1px solid rgba(12,52,44,0.06);
+        box-shadow: none;
+    }
+
+    .dusun-dashboard-bg .dinamika-section .dinamika-card h4 {
+        color: #000000;
+    }
+
+    .dusun-dashboard-bg .dinamika-section .dinamika-card p {
+        color: #111111;
+    }
+
+    .dusun-dashboard-bg .dinamika-section .dusun-total-table th {
+        background: #ffffff;
+        color: #000000;
+    }
+
+    .dusun-dashboard-bg .dinamika-section .dusun-total-table td {
+        color: #000000;
+    }
+
+    .dusun-dashboard-bg .stat-card h3,
+    .dusun-dashboard-bg .stat-card p,
+    .dusun-dashboard-bg .chart-title,
+    .dusun-dashboard-bg .occupation-title,
+    .dusun-dashboard-bg .dinamika-card h4 {
+        color: #e6f7f0;
+    }
+
+    /* make small labels and chart legends lighter */
+    .dusun-dashboard-bg .stat-sub,
+    .dusun-dashboard-bg .stat-label,
+    .dusun-dashboard-bg .stat-value,
+    .dusun-dashboard-bg .stat-pill,
+    .dusun-dashboard-bg .gender-legend-item {
+        color: #dff7ee;
+    }
+
+    /* override occupation bar fill to be visible on dark background */
+    .dusun-dashboard-bg .occupation-bar { background: rgba(255,255,255,0.06); }
+    .dusun-dashboard-bg .occupation-bar-fill { background: linear-gradient(90deg, #E3EF26 0%, #F59E0B 100%); }
+
     .stats-grid {
         display: grid;
         grid-template-columns: repeat(1, 1fr);
@@ -126,6 +209,96 @@ Dashboard {{ Auth::user()->dusun_name ?? "Dusun" }}
         align-items: start;
     }
 
+    .rw-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 14px;
+    }
+
+    .rw-tab {
+        border: 1px solid rgba(255,255,255,0.08);
+        background: rgba(255,255,255,0.04);
+        color: #dff7ee;
+        padding: 8px 14px;
+        border-radius: 999px;
+        font-weight: 800;
+        font-size: 13px;
+        cursor: pointer;
+        transition: 0.2s ease;
+    }
+
+    .rw-tab:hover {
+        transform: translateY(-1px);
+        background: rgba(227,239,38,0.12);
+    }
+
+    .rw-tab.active {
+        background: #E3EF26;
+        color: #0C342C;
+        border-color: #E3EF26;
+    }
+
+    .rt-summary-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 14px;
+        max-height: 100%;
+        overflow: auto;
+        padding-right: 4px;
+    }
+
+    .rt-summary-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 14px;
+        border-radius: 12px;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .rt-summary-panel {
+        min-width: 220px;
+    }
+
+    .rw-rt-body {
+        display: grid;
+        grid-template-columns: minmax(0, 1.55fr) minmax(240px, 0.85fr);
+        gap: 16px;
+        align-items: start;
+    }
+
+    .rw-rt-chart-area {
+        min-width: 0;
+    }
+
+    .rw-rt-chart-area .chart-container {
+        height: 230px;
+    }
+
+    .rw-rt-chart-area .rw-tabs {
+        margin-top: 10px;
+        margin-bottom: 0;
+    }
+
+    .rt-summary-panel .chart-title {
+        font-size: 15px;
+        margin-bottom: 10px;
+        color: #ffffff;
+    }
+
+    .rt-summary-item .label {
+        font-weight: 700;
+        color: #dff7ee;
+    }
+
+    .rt-summary-item .value {
+        font-weight: 900;
+        color: #E3EF26;
+    }
+
     .chart-card {
         background: #fff;
         padding: 16px;
@@ -134,7 +307,7 @@ Dashboard {{ Auth::user()->dusun_name ?? "Dusun" }}
         border: none;
         display: flex;
         flex-direction: column;
-        min-height: 320px;
+        min-height: 360px;
     }
 
     .chart-container {
@@ -362,19 +535,33 @@ Dashboard {{ Auth::user()->dusun_name ?? "Dusun" }}
 
     @media (min-width: 768px) {
         .stats-grid { grid-template-columns: repeat(2, 1fr); }
-        .charts-row { grid-template-columns: repeat(2, 1fr); }
+        .charts-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
 
     @media (min-width: 1200px) {
         .stats-grid { grid-template-columns: repeat(4, 1fr); }
-        .charts-row { grid-template-columns: repeat(3, 1fr); }
+        .charts-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (min-width: 1400px) {
+        .dusun-dashboard-bg {
+            padding-left: 40px;
+            padding-right: 40px;
+        }
+
+        .chart-card {
+            min-height: 390px;
+        }
     }
 </style>
 @endpush
 
 @section('content')
+<!-- Wrap all dashboard content in dark background container -->
+<div class="dusun-dashboard-bg">
+
 <!-- Info Banner -->
-<div class="info-banner">
+<div class="info-banner" style="background: linear-gradient(135deg, rgba(12,86,67,0.18), rgba(12,86,67,0.12)); border: none;">
     <div class="info-banner-content">
         <h2>Selamat Datang, {{ Auth::user()->nama ?? 'Kasun' }}</h2>
         <p>Berikut adalah data statistik dan monitoring untuk {{ Auth::user()->dusun_name ?? 'Dusun Anda' }}</p>
@@ -424,25 +611,7 @@ Dashboard {{ Auth::user()->dusun_name ?? "Dusun" }}
 
 <!-- Charts -->
 <div class="charts-row">
-    <!-- Gender Chart -->
-    <div class="chart-card">
-        <div class="chart-header">
-            <h2 class="chart-title">Distribusi Gender</h2>
-        </div>
-        <div class="chart-container">
-            <canvas id="genderChart"></canvas>
-        </div>
-        <div class="gender-legend">
-            <span class="gender-legend-item female-label">
-                <span class="gender-legend-dot" style="background:#f59e0b;"></span>
-                Perempuan
-            </span>
-            <span class="gender-legend-item male-label">
-                <span class="gender-legend-dot" style="background:#076653;"></span>
-                Laki-laki
-            </span>
-        </div>
-    </div>
+    <!-- Distribusi Gender dihilangkan — menampilkan Distribusi Usia dan Tingkat Pendidikan saja -->
 
     <!-- Age Distribution -->
     <div class="chart-card">
@@ -468,6 +637,36 @@ Dashboard {{ Auth::user()->dusun_name ?? "Dusun" }}
 </div>
 
 <!-- Map -->
+<div class="charts-row" style="margin-bottom:18px;">
+    <div class="chart-card">
+        <div class="chart-header">
+            <h2 class="chart-title">Jumlah Penduduk per RW (Dusun Anda)</h2>
+        </div>
+        <div class="chart-container">
+            <canvas id="kasunRwChart"></canvas>
+        </div>
+        <div id="kasunRwSummary" style="display:flex;gap:12px;margin-top:16px;flex-wrap:wrap"></div>
+    </div>
+
+    <div class="chart-card">
+        <div class="chart-header">
+            <h2 class="chart-title">Jumlah Penduduk per RT (Dusun Anda)</h2>
+        </div>
+        <div class="rw-rt-body">
+            <div class="rw-rt-chart-area">
+                <div class="chart-container">
+                    <canvas id="kasunRtChart"></canvas>
+                </div>
+                <div id="kasunRwTabs" class="rw-tabs"></div>
+            </div>
+            <div class="rt-summary-panel">
+                <h3 class="chart-title">Detail RT</h3>
+                <div id="kasunRtList" class="rt-summary-list"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="map-container">
     <div class="chart-header">
         <h2 class="chart-title">Peta Lokasi Dusun</h2>
@@ -562,6 +761,7 @@ Dashboard {{ Auth::user()->dusun_name ?? "Dusun" }}
         </table>
     </div>
 </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -570,92 +770,38 @@ Dashboard {{ Auth::user()->dusun_name ?? "Dusun" }}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
 <script>
+@php
+    $eduPalette = ['#9BE564','#3DC6A4','#E3EF26','#F59E0B','#F472B6','#8B5CF6'];
+    $educationColors = array_slice($eduPalette, 0, max(0, count($educationLabels ?? [])));
+@endphp
 const chartColors = {
-    primary: '#076653',
-    secondary: '#0C342C',
-    accent: '#E3EF26',
+    // brighter palette for dark dashboard
+    primary: '#E3EF26',
+    secondary: '#14b8a6',
+    accent: '#F472B6',
     success: '#10b981',
-    warning: '#f59e0b',
+    warning: '#F59E0B',
 };
 
-// Gender Chart
-const genderCtx = document.getElementById('genderChart').getContext('2d');
-new Chart(genderCtx, {
-    type: 'doughnut',
-    data: {
-        labels: ['Laki-laki', 'Perempuan'],
-        datasets: [{
-            data: @json([(int) $totalLakiLaki, (int) $totalPerempuan]),
-            backgroundColor: [chartColors.primary, chartColors.warning],
-            borderWidth: 0
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: { display: false }
-        }
-    }
-});
+// Distribusi Gender dihilangkan (tampilan lebih ringkas)
 
-// Age Chart
+// Age Chart (gradient bars)
 const ageCtx = document.getElementById('ageChart').getContext('2d');
+const ageGradient = ageCtx.createLinearGradient(0, 0, 0, 300);
+ageGradient.addColorStop(0, '#fb7185');
+ageGradient.addColorStop(1, 'rgba(251,113,133,0.2)');
 new Chart(ageCtx, {
     type: 'bar',
-    data: {
-        labels: @json($ageLabels),
-        datasets: [{
-            label: 'Jumlah',
-            data: @json($ageValues),
-            backgroundColor: chartColors.primary,
-            borderRadius: 8
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                display: false
-            }
-        },
-        scales: {
-            y: {
-                beginAtZero: true
-            }
-        }
-    }
+    data: { labels: @json($ageLabels), datasets: [{ label: 'Jumlah', data: @json($ageValues), backgroundColor: ageGradient, borderRadius: 10, barPercentage: 0.6 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { color: '#dff7ee' } }, y: { beginAtZero: true, ticks: { color: '#dff7ee' }, grid: { color: 'rgba(255,255,255,0.04)' } } } }
 });
 
-// Education Chart
+// Education Chart (doughnut with legend to right)
 const educationCtx = document.getElementById('educationChart').getContext('2d');
 new Chart(educationCtx, {
-    type: 'bar',
-    data: {
-        labels: @json($educationLabels),
-        datasets: [{
-            label: 'Jumlah',
-            data: @json($educationValues),
-            backgroundColor: chartColors.primary,
-            borderRadius: 8
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        indexAxis: 'y',
-        plugins: {
-            legend: {
-                display: false
-            }
-        },
-        scales: {
-            x: {
-                beginAtZero: true
-            }
-        }
-    }
+    type: 'doughnut',
+    data: { labels: @json($educationLabels), datasets: [{ data: @json($educationValues), backgroundColor: @json($educationColors) }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#dff7ee', boxWidth: 12 } } } }
 });
 
 // Occupation chart removed (per request)
@@ -758,6 +904,130 @@ if (bounds.length > 1) {
 // Handle dinamika filter changes
 document.getElementById('filterBulan').addEventListener('change', updateDinamika);
 document.getElementById('filterTahun').addEventListener('change', updateDinamika);
+
+// Fetch RW/RT distribution for kasun (scoped)
+fetch('{{ route('kasun.dashboard.chart-data') }}')
+    .then(r => r.json())
+    .then(payload => {
+        const rwCtx = document.getElementById('kasunRwChart').getContext('2d');
+        new Chart(rwCtx, {
+            type: 'bar',
+            data: { labels: payload.rw.labels, datasets: [{ label: 'Jumlah', data: payload.rw.data, backgroundColor: chartColors.primary, borderRadius: 6 }] },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: {
+                        ticks: { color: '#ffffff' },
+                        grid: { color: 'rgba(255,255,255,0.02)' }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: { color: '#ffffff' },
+                        grid: { color: 'rgba(255,255,255,0.04)' }
+                    }
+                }
+            }
+        });
+
+        const rtCtx = document.getElementById('kasunRtChart').getContext('2d');
+        const rtChart = new Chart(rtCtx, {
+            type: 'line',
+            data: { labels: [], datasets: [{ label: 'Jumlah', data: [], borderColor: chartColors.primary, backgroundColor: 'rgba(227,239,38,0.18)', pointBackgroundColor: chartColors.primary, pointBorderColor: '#0C342C', pointRadius: 5, pointHoverRadius: 7, tension: 0.35, fill: true }] },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { ticks: { color: '#ffffff' }, grid: { color: 'rgba(255,255,255,0.02)' } },
+                    y: { beginAtZero: true, ticks: { color: '#ffffff' }, grid: { color: 'rgba(255,255,255,0.04)' } }
+                }
+            }
+        });
+
+        // Populate RW summary small cards below the RW chart
+        try {
+            const rwSummary = document.getElementById('kasunRwSummary');
+            const rwTabs = document.getElementById('kasunRwTabs');
+            const rtList = document.getElementById('kasunRtList');
+            const rwGroups = {};
+            const rtGroups = {};
+
+            (payload.rt.labels || []).forEach((label, idx) => {
+                const count = Number(payload.rt.data[idx] || 0);
+                const match = String(label).match(/RW\s*([0-9]+)/i);
+                const rwKey = match ? `RW ${match[1]}` : 'RW';
+                const rtName = String(label).replace(/^.*?-\s*/i, '').replace(/^RT\s*/i, 'RT ');
+
+                if (!rtGroups[rwKey]) rtGroups[rwKey] = [];
+                rtGroups[rwKey].push({ label: rtName, count });
+            });
+
+            (payload.rw.labels || []).forEach((label, idx) => {
+                rwGroups[label] = Number(payload.rw.data[idx] || 0);
+            });
+
+            if (rwSummary) {
+                rwSummary.innerHTML = '';
+                payload.rw.labels.forEach((label, idx) => {
+                    const count = payload.rw.data[idx] || 0;
+                    const card = document.createElement('div');
+                    card.style.cssText = 'background: rgba(255,255,255,0.03); padding:12px 14px; border-radius:10px; min-width:110px; text-align:center;';
+                    card.innerHTML = `<div style="font-weight:800; font-size:18px; color:#e6f7f0">${new Intl.NumberFormat('id-ID').format(count)}</div><div style="font-size:12px; color:rgba(230,247,240,0.9); margin-top:4px">${label}</div>`;
+                    rwSummary.appendChild(card);
+                });
+            }
+
+            if (rwTabs && rtList && rtChart) {
+                const rwLabels = Object.keys(rwGroups);
+                const formatNumber = (value) => new Intl.NumberFormat('id-ID').format(Number(value || 0));
+
+                const renderRTForRW = (rwLabel) => {
+                    const rows = rtGroups[rwLabel] || [];
+                    rtList.innerHTML = '';
+
+                    if (!rows.length) {
+                        rtList.innerHTML = '<div style="color:#dff7ee; opacity:0.85; padding:12px 0;">Tidak ada data RT untuk RW ini.</div>';
+                        rtChart.data.labels = [];
+                        rtChart.data.datasets[0].data = [];
+                        rtChart.update();
+                        return;
+                    }
+
+                    rows.forEach((row) => {
+                        const item = document.createElement('div');
+                        item.className = 'rt-summary-item';
+                        item.innerHTML = `<div class="label">${row.label}</div><div class="value">${formatNumber(row.count)} jiwa</div>`;
+                        rtList.appendChild(item);
+                    });
+
+                    rtChart.data.labels = rows.map(row => row.label);
+                    rtChart.data.datasets[0].data = rows.map(row => row.count);
+                    rtChart.update();
+                };
+
+                rwTabs.innerHTML = '';
+                rwLabels.forEach((rwLabel, index) => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'rw-tab' + (index === 0 ? ' active' : '');
+                    btn.textContent = rwLabel;
+                    btn.addEventListener('click', () => {
+                        rwTabs.querySelectorAll('.rw-tab').forEach(el => el.classList.remove('active'));
+                        btn.classList.add('active');
+                        renderRTForRW(rwLabel);
+                    });
+                    rwTabs.appendChild(btn);
+                });
+
+                renderRTForRW(rwLabels[0] || 'RW');
+            }
+        } catch (e) {
+            console.error('Error populating RW/RT summaries', e);
+        }
+    })
+    .catch(err => console.error('Kasun chart load error', err));
 
 function updateDinamika() {
     const bulan = document.getElementById('filterBulan').value;

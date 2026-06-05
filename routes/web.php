@@ -979,6 +979,9 @@ Route::prefix('kasi')->name('kasi.')->middleware(['auth', 'role:kasi'])->group(f
             'sebalorBoundaryUrl' => asset('data/sebalor-boundary.geojson'),
         ]);
     })->name('dashboard');
+
+    // Chart data endpoint for dashboard (kasi)
+    Route::get('/dashboard/chart-data', [App\Http\Controllers\ChartDataController::class, 'pendudukDistribution'])->name('dashboard.chart-data');
     
     // Data Penduduk
     Route::get('/penduduk', [PendudukController::class, 'index'])->name('penduduk.index');
@@ -1339,6 +1342,9 @@ Route::prefix('kasun')->name('kasun.')->middleware(['auth', 'role:kasun'])->grou
             'tahunSelected' => now()->year,
         ]);
     })->name('dashboard');
+
+    // Chart data endpoint for dashboard (kasun) - same controller, scoped by logged user
+    Route::get('/dashboard/chart-data', [App\Http\Controllers\ChartDataController::class, 'pendudukDistribution'])->name('dashboard.chart-data');
     
     // API: Get dinamika data by month and year
     Route::get('/api/dinamika', function (Request $request) {
