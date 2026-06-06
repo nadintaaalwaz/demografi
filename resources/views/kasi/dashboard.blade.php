@@ -5,322 +5,198 @@
 
 @push('styles')
 <style>
+
+.stats-grid{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:20px;
+    margin-bottom:25px;
+}
+
+.age-grid{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:20px;
+    margin-bottom:30px;
+}
+
+.stat-card{
+    background:linear-gradient(135deg,#0b6b57,#075a49);
+    border-radius:24px;
+    padding:22px;
+    color:white;
+    min-height:160px;
+    position:relative;
+    overflow:hidden;
+    box-shadow:0 10px 30px rgba(0,0,0,.15);
+    transition:.3s;
+}
+
+.stat-card:hover{
+    transform:translateY(-6px);
+}
+
+.stat-card::before{
+    content:'';
+    position:absolute;
+    width:100px;
+    height:100px;
+    border-radius:50%;
+    background:rgba(255,255,255,.07);
+    right:-30px;
+    top:-30px;
+}
+
+.stat-label{
+    font-size:14px;
+    color:#d8f7ed;
+    font-weight:600;
+    margin-bottom:15px;
+}
+
+.stat-value{
+    font-size:38px;
+    font-weight:800;
+    color:white;
+}
+
+.stat-sub{
+    margin-top:10px;
+    color:#d5ece6;
+    font-size:13px;
+    line-height:1.5;
+}
+
+.age-card{
+    min-height:120px;
+}
+
+.charts-grid{
+    display:grid;
+    grid-template-columns:1fr 1.5fr 1fr;
+    gap:25px;
+    margin-bottom:35px;
+}
+
+.chart-card{
+    background:#fff;
+    border-radius:24px;
+    padding:24px;
+    box-shadow:0 10px 25px rgba(0,0,0,.08);
+}
+
+.chart-title{
+    font-size:18px;
+    font-weight:700;
+    color:#0C342C;
+}
+
+.chart-header{
+    margin-bottom:20px;
+}
+
+.gender-legend{
+    display:flex;
+    justify-content:center;
+    gap:20px;
+    margin-top:15px;
+}
+
+.gender-legend-item{
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+
+.gender-legend-dot{
+    width:12px;
+    height:12px;
+    border-radius:50%;
+}
+
+.chart-card canvas{
+    max-height:300px!important;
+}
+
+.occupation-section{
+    background:#fff;
+    border-radius:24px;
+    padding:28px;
+    box-shadow:0 10px 25px rgba(0,0,0,.08);
+}
+
+.occupation-table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+.occupation-table th{
+    background:#f8fafc;
+    padding:15px;
+}
+
+.occupation-table td{
+    padding:15px;
+}
+
+.occupation-bar{
+    height:8px;
+    background:#e2e8f0;
+    border-radius:30px;
+}
+
+.occupation-bar-fill{
+    height:100%;
+    border-radius:30px;
+    background:linear-gradient(90deg,#0b6b57,#0C342C);
+}
+
+@media(max-width:1200px){
+
+    .stats-grid{
+        grid-template-columns:repeat(2,1fr);
+    }
+
+    .age-grid{
+        grid-template-columns:repeat(2,1fr);
+    }
+
+    .charts-grid{
+        grid-template-columns:1fr;
+    }
+}
+
+@media(max-width:768px){
+
     .stats-grid,
-    .age-grid {
-        display: grid;
-        gap: 18px;
-        margin-bottom: 22px;
+    .age-grid{
+        grid-template-columns:1fr;
     }
+}
+.occupation-header{
+    margin-bottom:20px;
+    border-bottom:2px solid #eef2f7;
+    padding-bottom:15px;
+}
 
-    .stats-grid {
-        grid-template-columns: repeat(5, minmax(0, 1fr));
-    }
+.occupation-title{
+    font-size:20px;
+    font-weight:700;
+    color:#0C342C;
+}
 
-    .age-grid {
-        grid-template-columns: repeat(5, minmax(0, 1fr));
-        margin-bottom: 30px;
-    }
+.occupation-number{
+    font-size:16px;
+    font-weight:700;
+    color:#0C342C;
+}
 
-    .stat-card {
-        background: linear-gradient(180deg, #ffffff 0%, #fbfcfd 100%);
-        padding: 18px 18px 16px;
-        border-radius: 24px;
-        box-shadow: 0 14px 32px rgba(15, 23, 42, 0.08);
-        border: none;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        min-height: 142px;
-        transition: transform 0.28s ease, box-shadow 0.28s ease, border-color 0.28s ease;
-        position: relative;
-        overflow: hidden;
-    }
+.occupation-percentage{
+    font-size:12px;
+    color:#64748b;
+    margin-top:5px;
+}
 
-    .stat-card:hover {
-        transform: translateY(-7px);
-        box-shadow: 0 18px 36px rgba(7, 102, 83, 0.16), 0 0 0 1px rgba(227, 239, 38, 0.18);
-    }
-
-    .stat-card.summary-card {
-        min-height: 132px;
-    }
-
-    .stat-card.summary-card::after,
-    .stat-card.age-card::after {
-        content: '';
-        position: absolute;
-        inset: auto -24px -30px auto;
-        width: 90px;
-        height: 90px;
-        border-radius: 50%;
-        background: radial-gradient(circle, rgba(227, 239, 38, 0.12) 0%, rgba(227, 239, 38, 0) 72%);
-        pointer-events: none;
-    }
-
-    .stat-label {
-        font-size: 15px;
-        font-weight: 800;
-        color: #111827;
-        line-height: 1.35;
-        text-transform: none;
-        letter-spacing: 0;
-        margin-bottom: 8px;
-    }
-
-    .stat-label.small {
-        font-size: 13px;
-        color: #475569;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-    }
-
-    .stat-value {
-        font-size: 32px;
-        font-weight: 800;
-        color: #0C342C;
-        line-height: 1;
-        margin-top: auto;
-    }
-
-    .stat-sub {
-        margin-top: 10px;
-        font-size: 13px;
-        color: #475569;
-        line-height: 1.55;
-    }
-
-    .stat-detail {
-        margin-top: 10px;
-        display: inline-flex;
-        flex-wrap: wrap;
-        gap: 8px;
-    }
-
-    .stat-pill {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 6px 10px;
-        border-radius: 999px;
-        background: #f8fafc;
-        color: #334155;
-        font-size: 12px;
-        font-weight: 700;
-    }
-
-    .dashboard-section-title {
-        margin: 6px 0 16px;
-        font-size: 18px;
-        font-weight: 800;
-        color: #0C342C;
-        letter-spacing: -0.01em;
-    }
-
-    .charts-grid {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 22px;
-        margin-bottom: 40px;
-    }
-
-    .chart-card {
-        background: #fff;
-        padding: 22px;
-        border-radius: 28px;
-        box-shadow: 0 14px 32px rgba(15, 23, 42, 0.08);
-        border: none;
-        min-height: 340px;
-        transition: transform 0.28s ease, box-shadow 0.28s ease;
-    }
-
-    .chart-card:hover {
-        transform: translateY(-7px);
-        box-shadow: 0 18px 36px rgba(7, 102, 83, 0.16), 0 0 0 1px rgba(227, 239, 38, 0.18);
-    }
-
-    .chart-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 18px;
-        padding-bottom: 12px;
-        border-bottom: 2px solid #eef2f7;
-    }
-
-    .chart-title {
-        font-size: 17px;
-        font-weight: 800;
-        color: #111827;
-    }
-
-    .gender-legend {
-        margin-top: 14px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        font-size: 13px;
-        font-weight: 700;
-    }
-
-    .gender-legend-item {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        min-width: 120px;
-    }
-
-    .gender-legend-dot {
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        display: inline-block;
-    }
-
-    .male-label { color: #076653; }
-    .female-label { color: #f59e0b; }
-
-    .gender-legend .female-label {
-        justify-content: flex-start;
-    }
-
-    .gender-legend .male-label {
-        justify-content: flex-end;
-        margin-left: auto;
-        text-align: right;
-    }
-
-    .chart-card canvas {
-        width: 100% !important;
-        max-height: 260px !important;
-    }
-
-    .occupation-section {
-        background: #fff;
-        padding: 28px;
-        border-radius: 28px;
-        box-shadow: 0 14px 32px rgba(15, 23, 42, 0.08);
-        border: none;
-        transition: transform 0.28s ease, box-shadow 0.28s ease;
-        margin-bottom: 40px;
-    }
-
-    .occupation-section:hover {
-        transform: translateY(-7px);
-        box-shadow: 0 18px 36px rgba(7, 102, 83, 0.16), 0 0 0 1px rgba(227, 239, 38, 0.18);
-    }
-
-    .occupation-header {
-        margin-bottom: 24px;
-        padding-bottom: 16px;
-        border-bottom: 2px solid #eef2f7;
-    }
-
-    .occupation-title {
-        font-size: 18px;
-        font-weight: 800;
-        color: #0C342C;
-        letter-spacing: -0.01em;
-    }
-
-    .occupation-table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-
-    .occupation-table thead tr {
-        background: #f8fafc;
-        border-bottom: 2px solid #e2e8f0;
-    }
-
-    .occupation-table th {
-        padding: 14px 16px;
-        text-align: left;
-        font-size: 13px;
-        font-weight: 800;
-        color: #475569;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-    }
-
-    .occupation-table tbody tr {
-        border-bottom: 1px solid #f1f5f9;
-        transition: background-color 0.15s ease;
-    }
-
-    .occupation-table tbody tr:hover {
-        background-color: #f8fafc;
-    }
-
-    .occupation-table td {
-        padding: 16px;
-        font-size: 15px;
-        color: #334155;
-    }
-
-    .occupation-table td:first-child {
-        font-weight: 600;
-        color: #076653;
-    }
-
-    .occupation-number {
-        font-weight: 700;
-        color: #0C342C;
-        font-size: 16px;
-    }
-
-    .occupation-percentage {
-        font-size: 13px;
-        color: #64748b;
-        margin-top: 4px;
-    }
-
-    .occupation-bar {
-        width: 100%;
-        height: 6px;
-        background: #e2e8f0;
-        border-radius: 3px;
-        overflow: hidden;
-        margin-top: 8px;
-    }
-
-    .occupation-bar-fill {
-        height: 100%;
-        background: linear-gradient(90deg, #076653 0%, #0C342C 100%);
-        border-radius: 3px;
-        transition: width 0.3s ease;
-    }
-
-    @media (max-width: 768px) {
-        .stats-grid,
-        .age-grid,
-        .charts-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .chart-card {
-            min-height: auto;
-        }
-
-        .occupation-table {
-            font-size: 13px;
-        }
-
-        .occupation-table th,
-        .occupation-table td {
-            padding: 10px 12px;
-        }
-    }
-
-    @media (max-width: 1100px) and (min-width: 769px) {
-        .stats-grid,
-        .age-grid {
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-        }
-
-        .charts-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-    }
 </style>
 @endpush
 
@@ -396,13 +272,52 @@
 </div>
 
 <div class="age-grid">
-    @foreach($ageCards as $card)
-        <div class="stat-card age-card">
-            <div class="stat-label">{{ $card['label'] }}</div>
-            <div class="stat-value">{{ number_format($card['value'] ?? 0) }}</div>
-            <div class="stat-sub">{{ $card['sub'] }}</div>
+
+@php
+$totalAge = array_sum($ageValues ?? []);
+@endphp
+
+@foreach($ageCards as $card)
+
+@php
+$persen = $totalAge > 0
+    ? round(($card['value'] / $totalAge) * 100)
+    : 0;
+@endphp
+
+<div class="stat-card age-card">
+
+    <div class="stat-label">
+        {{ str_replace('Jumlah ','',$card['label']) }}
+    </div>
+
+    <div class="stat-value">
+        {{ number_format($card['value']) }}
+    </div>
+
+    <div style="margin-top:15px;">
+        <small>{{ $persen }}%</small>
+
+        <div style="
+            width:100%;
+            height:8px;
+            background:rgba(255,255,255,.2);
+            border-radius:20px;
+            margin-top:6px;">
+
+            <div style="
+                width:{{ $persen }}%;
+                height:100%;
+                background:#4ade80;
+                border-radius:20px;">
+            </div>
+
         </div>
-    @endforeach
+    </div>
+
+</div>
+
+@endforeach
 </div>
 
 <div class="charts-grid">
@@ -517,7 +432,7 @@ const palette = [
 // Gender Distribution Chart
 const genderCtx = document.getElementById('genderChart').getContext('2d');
 new Chart(genderCtx, {
-    type: 'pie',
+    type: 'doughnut',
     data: {
         labels: ['Laki-laki', 'Perempuan'],
         datasets: [{
@@ -526,10 +441,13 @@ new Chart(genderCtx, {
             borderWidth: 0
         }]
     },
-    options: {
-        responsive: true,
-        plugins: {
-            legend: { display: false }
+    cutout:'72%',
+    options:{
+        responsive:true,
+        plugins:{
+            legend:{
+                display:false
+            }
         }
     }
 });
@@ -543,8 +461,9 @@ new Chart(ageCtx, {
         datasets: [{
             label: 'Jumlah Penduduk',
             data: ageValues,
-            backgroundColor: chartColors.primary,
-            borderRadius: 8
+            backgroundColor:'#ec4899',
+            borderRadius:12,
+            barThickness:18
         }]
     },
     options: {
@@ -565,26 +484,29 @@ new Chart(ageCtx, {
 // Education Chart
 const educationCtx = document.getElementById('educationChart').getContext('2d');
 new Chart(educationCtx, {
-    type: 'bar',
+    type:'doughnut',
     data: {
         labels: educationLabels,
-        datasets: [{
-            label: 'Jumlah',
-            data: educationValues,
-            backgroundColor: educationLabels.map((_, index) => palette[index % palette.length]),
-            borderRadius: 8
+        datasets:[{
+            data:educationValues,
+            backgroundColor:[
+                '#94a3b8',
+                '#60a5fa',
+                '#22c55e',
+                '#facc15',
+                '#fb923c',
+                '#ec4899',
+                '#8b5cf6'
+            ],
+            borderWidth:0
         }]
     },
-    options: {
-        responsive: true,
-        plugins: {
-            legend: {
-                display: false
-            }
-        },
-        scales: {
-            y: {
-                beginAtZero: true
+    cutout:'65%',
+    options:{
+        responsive:true,
+        plugins:{
+            legend:{
+                position:'bottom'
             }
         }
     }
