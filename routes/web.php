@@ -745,6 +745,66 @@ Route::get('/kasi/dashboard-test', function () {
         ->where('tipe', 'dusun')
         ->whereNotNull('luas_wilayah')
         ->sum('luas_wilayah');
+    
+    // =====================
+    // DISTRIBUSI DUSUN
+    // =====================
+
+    $dusunRows = Wilayah::from('wilayah as w')
+        ->leftJoin('penduduk as p', function ($join) {
+            $join->on('p.id_dusun', '=', 'w.id')
+                ->where('p.status', 'Aktif');
+        })
+        ->where('w.tipe', 'dusun')
+        ->select('w.nama')
+        ->selectRaw('COUNT(p.nik) as total')
+        ->groupBy('w.nama')
+        ->orderBy('w.nama')
+        ->get();
+
+    $dusunLabels = $dusunRows->pluck('nama')->toArray();
+    $dusunValues = $dusunRows->pluck('total')->map(fn($v)=>(int)$v)->toArray();
+
+
+    // =====================
+    // DISTRIBUSI RW
+    // =====================
+
+    $rwRows = Penduduk::where('status','Aktif')
+        ->select('rw')
+        ->selectRaw('COUNT(*) as total')
+        ->groupBy('rw')
+        ->orderBy('rw')
+        ->get();
+
+    $rwLabels = $rwRows->map(function($row){
+        return 'RW '.$row->rw;
+    })->toArray();
+
+    $rwValues = $rwRows->pluck('total')
+        ->map(fn($v)=>(int)$v)
+        ->toArray();
+
+
+    // =====================
+    // DISTRIBUSI RT
+    // =====================
+
+    $rtRows = Penduduk::where('status','Aktif')
+        ->select('rw','rt')
+        ->selectRaw('COUNT(*) as total')
+        ->groupBy('rw','rt')
+        ->orderBy('rw')
+        ->orderBy('rt')
+        ->get();
+
+    $rtLabels = $rtRows->map(function($row){
+        return 'RW '.$row->rw.' - RT '.$row->rt;
+    })->toArray();
+
+    $rtValues = $rtRows->pluck('total')
+        ->map(fn($v)=>(int)$v)
+        ->toArray();
 
     return view('kasi.dashboard', [
         'totalPenduduk' => $totalPenduduk,
@@ -765,6 +825,14 @@ Route::get('/kasi/dashboard-test', function () {
         'totalPendudukTerpetakan' => $totalPendudukTerpetakan,
         'totalLuasDusun' => $totalLuasDusun,
         'sebalorBoundaryUrl' => asset('data/sebalor-boundary.geojson'),
+        'dusunLabels' => $dusunLabels,
+        'dusunValues' => $dusunValues,
+
+        'rwLabels' => $rwLabels,
+        'rwValues' => $rwValues,
+
+        'rtLabels' => $rtLabels,
+        'rtValues' => $rtValues,
     ]);
 });
 

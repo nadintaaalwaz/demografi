@@ -2,7 +2,16 @@
 
 @section('title', 'Dashboard')
 @section('page-title', 'Dashboard Desa Sebalor')
+@php
+$dusunLabels = $dusunLabels ?? [];
+$dusunValues = $dusunValues ?? [];
 
+$rwLabels = $rwLabels ?? [];
+$rwValues = $rwValues ?? [];
+
+$rtLabels = $rtLabels ?? [];
+$rtValues = $rtValues ?? [];
+@endphp
 @push('styles')
 <style>
 
@@ -196,6 +205,37 @@
     color:#64748b;
     margin-top:5px;
 }
+.region-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:25px;
+    margin-bottom:35px;
+}
+
+.mini-summary{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:12px;
+    margin-top:20px;
+}
+
+.mini-box{
+    background:#0b6b57;
+    color:white;
+    border-radius:16px;
+    padding:12px;
+    text-align:center;
+}
+
+.mini-box strong{
+    display:block;
+    font-size:18px;
+}
+
+.mini-box span{
+    font-size:12px;
+    opacity:.9;
+}
 
 </style>
 @endpush
@@ -351,6 +391,50 @@ $persen = $totalAge > 0
         </div>
         <canvas id="educationChart"></canvas>
     </div>
+</div>
+<div class="region-grid">
+
+    <div class="chart-card">
+        <div class="chart-header">
+            <h2 class="chart-title">Penduduk per Dusun</h2>
+        </div>
+        <canvas id="dusunChart"></canvas>
+
+        <div class="mini-summary">
+            @foreach($dusunLabels as $i => $label)
+                <div class="mini-box">
+                    <strong>{{ number_format($dusunValues[$i] ?? 0) }}</strong>
+                    <span>{{ $label }}</span>
+                </div>
+            @endforeach
+        </div>
+    </div>
+
+    <div class="chart-card">
+        <div class="chart-header">
+            <h2 class="chart-title">Penduduk per RW</h2>
+        </div>
+
+        <canvas id="rwChart"></canvas>
+
+        <div class="mini-summary">
+            @foreach($rwLabels as $i => $label)
+                <div class="mini-box">
+                    <strong>{{ number_format($rwValues[$i] ?? 0) }}</strong>
+                    <span>{{ $label }}</span>
+                </div>
+            @endforeach
+        </div>
+    </div>
+
+    <div class="chart-card">
+        <div class="chart-header">
+            <h2 class="chart-title">Penduduk per RT</h2>
+        </div>
+
+        <canvas id="rtChart"></canvas>
+    </div>
+
 </div>
 
 <!-- Occupation Section -->
@@ -508,6 +592,66 @@ new Chart(educationCtx, {
             legend:{
                 position:'bottom'
             }
+        }
+    }
+});
+
+const dusunCtx = document.getElementById('dusunChart').getContext('2d');
+
+new Chart(dusunCtx,{
+    type:'bar',
+    data:{
+        labels:@json($dusunLabels),
+        datasets:[{
+            data:@json($dusunValues),
+            backgroundColor:'#d9f01f',
+            borderRadius:10
+        }]
+    },
+    options:{
+        indexAxis:'y',
+        plugins:{
+            legend:{display:false}
+        }
+    }
+});
+
+const rwCtx = document.getElementById('rwChart').getContext('2d');
+
+new Chart(rwCtx,{
+    type:'bar',
+    data:{
+        labels:@json($rwLabels),
+        datasets:[{
+            data:@json($rwValues),
+            backgroundColor:'#7dd3c0',
+            borderRadius:10
+        }]
+    },
+    options:{
+        plugins:{
+            legend:{display:false}
+        }
+    }
+});
+
+const rtCtx = document.getElementById('rtChart').getContext('2d');
+
+new Chart(rtCtx,{
+    type:'line',
+    data:{
+        labels:@json($rtLabels),
+        datasets:[{
+            data:@json($rtValues),
+            borderColor:'#a855f7',
+            backgroundColor:'rgba(168,85,247,.15)',
+            fill:true,
+            tension:.4
+        }]
+    },
+    options:{
+        plugins:{
+            legend:{display:false}
         }
     }
 });
