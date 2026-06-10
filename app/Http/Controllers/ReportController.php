@@ -179,10 +179,28 @@ class ReportController extends Controller
         $filteredRecordCount = (clone $query)->count();
 
         // Aggregate total per kategori
+        // - Lahir/Masuk berasal dari rekap manual: dinamika_penduduk
         $totalLahir = (clone $query)->sum('jumlah_lahir');
-        $totalMeninggal = (clone $query)->sum('jumlah_meninggal');
         $totalMasuk = (clone $query)->sum('jumlah_masuk');
-        $totalKeluar = (clone $query)->sum('jumlah_keluar');
+
+        // - Meninggal/Keluar berasal langsung dari status penduduk
+        $totalMeninggal = Penduduk::query()
+            ->where('status', 'Meninggal')
+            ->whereNotNull('tanggal_status')
+            ->whereYear('tanggal_status', $tahun)
+            ->when($bulan, fn ($q) => $q->whereMonth('tanggal_status', $bulan))
+            ->when($dusunId, fn ($q) => $q->where('id_dusun', $dusunId))
+            ->count();
+
+        $totalKeluar = Penduduk::query()
+            ->where('status', 'Keluar')
+            ->whereNotNull('tanggal_status')
+            ->whereYear('tanggal_status', $tahun)
+            ->when($bulan, fn ($q) => $q->whereMonth('tanggal_status', $bulan))
+            ->when($dusunId, fn ($q) => $q->where('id_dusun', $dusunId))
+            ->count();
+
+
 
         // Per bulan breakdown hanya ditampilkan jika tidak ada filter bulan dan tidak ada filter dusun
         $showPerBulanChart = !$bulan && !$dusunId;
@@ -389,39 +407,67 @@ class ReportController extends Controller
      */
     private function getDusunDinamikaBreakdown($tahun, $bulan = null, $dusunId = null)
     {
-        $query = DinamikaPenduduk::where('tahun', $tahun);
+        // Lahir/Masuk dari dinamika_penduduk (rekap manual)
+        $rekapQuery = DinamikaPenduduk::where('tahun', $tahun);
 
         if ($bulan) {
-            $query->where('bulan', $bulan);
+            $rekapQuery->where('bulan', $bulan);
         }
 
         if ($dusunId) {
-            $query->where('dinamika_penduduk.id_dusun', $dusunId);
+            $rekapQuery->where('dinamika_penduduk.id_dusun', $dusunId);
         }
 
-        $query->selectRaw("
+        $rekapQuery->selectRaw("
             COALESCE(wilayah.nama, 'Tidak Terdata') as dusun,
             SUM(dinamika_penduduk.jumlah_lahir) as lahir,
-            SUM(dinamika_penduduk.jumlah_meninggal) as meninggal,
-            SUM(dinamika_penduduk.jumlah_masuk) as masuk,
-            SUM(dinamika_penduduk.jumlah_keluar) as keluar
+            SUM(dinamika_penduduk.jumlah_masuk) as masuk
         ")
             ->leftJoin('wilayah', 'dinamika_penduduk.id_dusun', '=', 'wilayah.id')
-            ->groupBy('wilayah.nama')
-            ->orderBy('dusun');
+            ->groupBy('wilayah.nama');
 
-        $data = $query->get();
+        // Meninggal/Keluar langsung dari status penduduk (penduduk.status + penduduk.tanggal_status)
+        $meninggalKeluarQuery = Penduduk::query()
+            ->whereIn('status', ['Meninggal', 'Keluar'])
+            ->whereNotNull('tanggal_status')
+            ->whereYear('tanggal_status', $tahun);
 
-        return $data->map(function ($row) {
+        if ($bulan) {
+            $meninggalKeluarQuery->whereMonth('tanggal_status', $bulan);
+        }
+
+        if ($dusunId) {
+            $meninggalKeluarQuery->where('id_dusun', $dusunId);
+        }
+
+        $meninggalKeluarQuery->selectRaw(" 
+            COALESCE(wilayah.nama, 'Tidak Terdata') as dusun,
+            SUM(CASE WHEN penduduk.status = 'Meninggal' THEN 1 ELSE 0 END) as meninggal,
+            SUM(CASE WHEN penduduk.status = 'Keluar' THEN 1 ELSE 0 END) as keluar
+        ")
+            ->leftJoin('wilayah', 'penduduk.id_dusun', '=', 'wilayah.id')
+            ->groupBy('wilayah.nama');
+
+        $rekapRows = $rekapQuery->get()->keyBy('dusun');
+        $meninggalKeluarRows = $meninggalKeluarQuery->get()->keyBy('dusun');
+
+        $allDusun = $rekapRows->keys()->merge($meninggalKeluarRows->keys())->unique()->sort()->values();
+
+        return $allDusun->map(function ($dusun) use ($rekapRows, $meninggalKeluarRows) {
+            $r1 = $rekapRows->get($dusun);
+            $r2 = $meninggalKeluarRows->get($dusun);
+
+
             return [
-                'dusun' => $row->dusun ?? 'Tidak Terdata',
-                'lahir' => (int) $row->lahir,
-                'meninggal' => (int) $row->meninggal,
-                'masuk' => (int) $row->masuk,
-                'keluar' => (int) $row->keluar,
+                'dusun' => $dusun ?? 'Tidak Terdata',
+                'lahir' => (int) ($r1->lahir ?? 0),
+                'masuk' => (int) ($r1->masuk ?? 0),
+                'meninggal' => (int) ($r2->meninggal ?? 0),
+                'keluar' => (int) ($r2->keluar ?? 0),
             ];
-        })->toArray();
+        })->values()->toArray();
     }
+
 
     /**
      * Helper: convert month number to Indonesian name

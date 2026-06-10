@@ -262,6 +262,33 @@
         cursor: pointer;
     }
 
+    .btn-view-names {
+        height: 28px;
+        border-radius: 8px;
+        border: 1px solid rgba(96, 225, 194, 0.35);
+        background: rgba(39, 225, 176, 0.12);
+        color: #b7ffe6;
+        padding: 0 10px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+    .btn-view-detail {
+        height: 32px;
+        border-radius: 8px;
+        border: 1px solid rgba(96,225,194,.35);
+        background: rgba(39,225,176,.12);
+        color: #b7ffe6;
+        padding: 0 12px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .btn-view-names:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+
     .record-actions {
         display: flex;
         align-items: center;
@@ -639,19 +666,14 @@
                     <input type="number" id="jumlah_lahir" name="jumlah_lahir" min="0" value="{{ old('jumlah_lahir', 0) }}" required>
                 </div>
                 <div class="manual-form-field">
-                    <label for="jumlah_meninggal">Jumlah Meninggal</label>
-                    <input type="number" id="jumlah_meninggal" name="jumlah_meninggal" min="0" value="{{ old('jumlah_meninggal', 0) }}" required>
-                </div>
-                <div class="manual-form-field">
                     <label for="jumlah_masuk">Jumlah Masuk</label>
                     <input type="number" id="jumlah_masuk" name="jumlah_masuk" min="0" value="{{ old('jumlah_masuk', 0) }}" required>
                 </div>
-                <div class="manual-form-field">
-                    <label for="jumlah_keluar">Jumlah Keluar</label>
-                    <input type="number" id="jumlah_keluar" name="jumlah_keluar" min="0" value="{{ old('jumlah_keluar', 0) }}" required>
-                </div>
             </div>
-            <p class="manual-note">Input dinamika dilakukan manual sebagai rekap bulanan (bukan dari file Excel penduduk). Pilih dusun jika input per-dusun, atau kosongkan untuk data gabungan seluruh desa.</p>
+            <p class="manual-note">
+            Input manual hanya digunakan untuk mencatat data Lahir dan Masuk. 
+            Data Meninggal dan Keluar akan dihitung otomatis dari perubahan status penduduk.
+            </p>
             <div class="manual-form-footer">
                 <button type="button" id="cancelEditBtn" class="btn-cancel-edit" style="display:none; margin-right:8px;">
                     Batal Ubah
@@ -671,57 +693,68 @@
                 <thead>
                     <tr>
                         <th>Bulan</th>
-                        <th>Dusun</th>
                         <th>Lahir</th>
-                        <th>Meninggal</th>
                         <th>Masuk</th>
+                        <th>Meninggal</th>
                         <th>Keluar</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($records as $record)
+                        @php
+                            $bulanKey = (int) $record->bulan;
+$namesMeninggal = $meninggalNamesByMonth[$bulanKey] ?? [];
+                            $namesKeluar = $keluarNamesByMonth[$bulanKey] ?? [];
+                        @endphp
                         <tr>
                             <td>{{ $monthOptionMap[(int) $record->bulan] ?? $record->bulan }}</td>
-                            <td>{{ optional($record->dusun)->nama ?? 'Gabungan Desa' }}</td>
                             <td>{{ number_format((int) $record->jumlah_lahir) }}</td>
-                            <td>{{ number_format((int) $record->jumlah_meninggal) }}</td>
                             <td>{{ number_format((int) $record->jumlah_masuk) }}</td>
-                            <td>{{ number_format((int) $record->jumlah_keluar) }}</td>
+
+                            <td>{{ number_format(count($namesMeninggal)) }}</td>
+                            <td>{{ number_format(count($namesKeluar)) }}</td>
+                            <td>
+                                <button
+                                    type="button"
+                                    class="btn-view-detail"
+                                    data-bulan="{{ $monthOptionMap[(int) $record->bulan] ?? $record->bulan }}"
+                                    data-lahir="{{ (int) $record->jumlah_lahir }}"
+                                    data-masuk="{{ (int) $record->jumlah_masuk }}"
+                                    data-meninggal='@json($namesMeninggal)'
+                                    data-keluar='@json($namesKeluar)'
+                                >
+                                    <i class="fas fa-eye"></i> Detail
+                                </button>
+                            </td>
+
                             <td>
                                 <div class="record-actions">
                                     <button
                                         type="button"
                                         class="btn-edit-row"
+                                        title="Ubah"
                                         data-record-id="{{ $record->id }}"
                                         data-tahun="{{ $record->tahun }}"
                                         data-bulan="{{ $record->bulan }}"
-                                        data-dusun-id="{{ $record->id_dusun }}"
+                                        data-dusun-id="{{ $record->id_dusun ?? '' }}"
                                         data-jumlah-lahir="{{ (int) $record->jumlah_lahir }}"
-                                        data-jumlah-meninggal="{{ (int) $record->jumlah_meninggal }}"
                                         data-jumlah-masuk="{{ (int) $record->jumlah_masuk }}"
-                                        data-jumlah-keluar="{{ (int) $record->jumlah_keluar }}"
                                     >
-                                        Ubah
+                                        <i class="fas fa-pen"></i>
                                     </button>
-                                    <form method="POST" action="{{ route('kasi.dinamika.destroy', $record->id) }}" class="inline-delete-form" onsubmit="return confirm('Yakin ingin menghapus data dinamika ini?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <input type="hidden" name="tahun" value="{{ $selectedYear ?? now()->year }}">
-                                        <input type="hidden" name="bulan" value="{{ $selectedMonth ?? '' }}">
-                                        <button type="submit" class="btn-delete-row">Hapus</button>
-                                    </form>
                                 </div>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7">Belum ada data dinamika untuk filter tahun/bulan yang dipilih.</td>
+                            <td colspan="7">Belum ada data dinamika (Lahir/Masuk) untuk filter tahun/bulan yang dipilih.</td>
                         </tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
+
     </div>
 
     <div class="charts-grid">
@@ -752,6 +785,20 @@
         </div>
     </div>
 </div>
+
+<!-- Modal detail meninggal/keluar (dibuka via tombol mata) -->
+<div id="detailEventModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:9999;">
+    <div style="max-width:720px; margin:6vh auto; background:rgba(9,100,85,0.98); border:1px solid rgba(96,225,194,0.35); border-radius:16px; padding:16px; color:#e6fffb;">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:10px;">
+            <h3 style="margin:0; font-size:16px; color:#e8ff3f;">Detail</h3>
+            <button type="button" id="detailEventModalClose" class="btn-cancel-edit" style="min-width:unset; padding:0 12px;">Tutup</button>
+        </div>
+        <div id="detailEventModalBody" style="max-height:50vh; overflow:auto; padding-right:6px; font-size:13px;">
+            <!-- content filled by JS -->
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @push('scripts')
@@ -766,14 +813,92 @@
     const recordIdInput = document.getElementById('record_id');
     const saveDinamikaBtn = document.getElementById('saveDinamikaBtn');
     const cancelEditBtn = document.getElementById('cancelEditBtn');
-    const editButtons = document.querySelectorAll('.btn-edit-row');
-    const tahunInput = document.getElementById('tahun');
-    const dusunInput = document.getElementById('id_dusun');
-    const jumlahLahirInput = document.getElementById('jumlah_lahir');
-    const jumlahMeninggalInput = document.getElementById('jumlah_meninggal');
-    const jumlahMasukInput = document.getElementById('jumlah_masuk');
-    const jumlahKeluarInput = document.getElementById('jumlah_keluar');
-    const isMobile = window.matchMedia('(max-width: 768px)').matches;
+
+    const detailEventModal = document.getElementById('detailEventModal');
+    const detailEventModalBody = document.getElementById('detailEventModalBody');
+    const detailEventModalClose = document.getElementById('detailEventModalClose');
+
+    function escapeHtml(str) {
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '<')
+            .replace(/>/g, '>')
+            .replace(/"/g, '"')
+            .replace(/'/g, '&#039;');
+    }
+
+    function openDetailModal(data) {
+
+        let html = `
+            <h3 style="color:#e8ff3f;margin-bottom:15px;">
+                Detail Dinamika Bulan ${data.bulan}
+            </h3>
+
+            <table style="width:100%;margin-bottom:20px;">
+                <tr>
+                    <td><b>Lahir</b></td>
+                    <td>: ${data.lahir} orang</td>
+                </tr>
+                <tr>
+                    <td><b>Masuk</b></td>
+                    <td>: ${data.masuk} orang</td>
+                </tr>
+                <tr>
+                    <td><b>Meninggal</b></td>
+                    <td>: ${data.meninggal.length} orang</td>
+                </tr>
+                <tr>
+                    <td><b>Keluar</b></td>
+                    <td>: ${data.keluar.length} orang</td>
+                </tr>
+            </table>
+        `;
+
+        html += `
+            <h4 style="color:#ff6b6b;">Data Meninggal</h4>
+        `;
+
+        if (data.meninggal.length) {
+            html += '<ul>';
+
+            data.meninggal.forEach(item => {
+                html += `
+                    <li>
+                        ${item.nama}
+                        (${item.dusun ?? '-'} RT ${item.rt ?? '-'} RW ${item.rw ?? '-'})
+                    </li>
+                `;
+            });
+
+            html += '</ul>';
+        } else {
+            html += '<p>Tidak ada data meninggal.</p>';
+        }
+
+        html += `
+            <h4 style="color:#60f3b8;margin-top:15px;">Data Keluar</h4>
+        `;
+
+        if (data.keluar.length) {
+            html += '<ul>';
+
+            data.keluar.forEach(item => {
+                html += `
+                    <li>
+                        ${item.nama}
+                        (${item.dusun ?? '-'} RT ${item.rt ?? '-'} RW ${item.rw ?? '-'})
+                    </li>
+                `;
+            });
+
+            html += '</ul>';
+        } else {
+            html += '<p>Tidak ada data keluar.</p>';
+        }
+
+        detailEventModalBody.innerHTML = html;
+        detailEventModal.style.display = 'block';
+    }
 
     function setEditMode(isEdit) {
         if (!saveDinamikaBtn) {
@@ -795,9 +920,7 @@
         if (bulanSelect) bulanSelect.value = '{{ old('bulan') }}';
         if (dusunInput) dusunInput.value = '{{ old('id_dusun') }}';
         if (jumlahLahirInput) jumlahLahirInput.value = '{{ old('jumlah_lahir', 0) }}';
-        if (jumlahMeninggalInput) jumlahMeninggalInput.value = '{{ old('jumlah_meninggal', 0) }}';
         if (jumlahMasukInput) jumlahMasukInput.value = '{{ old('jumlah_masuk', 0) }}';
-        if (jumlahKeluarInput) jumlahKeluarInput.value = '{{ old('jumlah_keluar', 0) }}';
         setEditMode(false);
     }
 
@@ -864,6 +987,8 @@
         });
     }
 
+const editButtons = document.querySelectorAll('.btn-edit-row');
+
     editButtons.forEach((button) => {
         button.addEventListener('click', function () {
             if (recordIdInput) recordIdInput.value = this.dataset.recordId || '';
@@ -871,9 +996,7 @@
             if (bulanSelect) bulanSelect.value = this.dataset.bulan || '';
             if (dusunInput) dusunInput.value = this.dataset.dusunId || '';
             if (jumlahLahirInput) jumlahLahirInput.value = this.dataset.jumlahLahir || 0;
-            if (jumlahMeninggalInput) jumlahMeninggalInput.value = this.dataset.jumlahMeninggal || 0;
             if (jumlahMasukInput) jumlahMasukInput.value = this.dataset.jumlahMasuk || 0;
-            if (jumlahKeluarInput) jumlahKeluarInput.value = this.dataset.jumlahKeluar || 0;
 
             setEditMode(true);
             manualFormCard?.classList.add('active');
@@ -881,6 +1004,8 @@
         });
     });
 
+const isMobile = window.matchMedia('(max-width: 768px)').matches;
+    
     const textColor = '#d9fff3';
     const gridColor = 'rgba(190, 255, 237, 0.12)';
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
@@ -1058,6 +1183,17 @@
             plugins: { legend: chartLegend },
             scales: baseScales
         }
+    });
+    document.querySelectorAll('.btn-view-detail').forEach(button => {
+        button.addEventListener('click', function () {
+            openDetailModal({
+                bulan: this.dataset.bulan,
+                lahir: this.dataset.lahir,
+                masuk: this.dataset.masuk,
+                meninggal: JSON.parse(this.dataset.meninggal || '[]'),
+                keluar: JSON.parse(this.dataset.keluar || '[]')
+            });
+        });
     });
 </script>
 @endpush

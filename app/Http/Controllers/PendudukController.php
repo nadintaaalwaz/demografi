@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Services\PendudukImportService;
 use App\Models\Penduduk;
 use App\Models\Wilayah;
+use App\Models\RiwayatDinamika;
 use App\Exports\PendudukTemplateExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
@@ -69,9 +70,19 @@ class PendudukController extends Controller
             'tanggal_status' => 'nullable|date',
         ]);
 
+        $penduduk = Penduduk::create($data);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Otomatis simpan riwayat lahir
+        |--------------------------------------------------------------------------
+        */
+
         Penduduk::create($data);
 
-        return redirect()->route('kasi.penduduk.index')->with('success', 'Penduduk berhasil ditambahkan');
+        return redirect()
+            ->route('kasi.penduduk.index')
+            ->with('success', 'Penduduk berhasil ditambahkan');
     }
 
     /**
@@ -90,6 +101,9 @@ class PendudukController extends Controller
     public function update(Request $request, $nik)
     {
         $penduduk = Penduduk::findOrFail($nik);
+
+        // simpan status lama
+        $statusLama = $penduduk->status;
 
         $data = $request->validate([
             'nomor_kartu_keluarga' => 'required|digits:16',
@@ -111,7 +125,41 @@ class PendudukController extends Controller
 
         $penduduk->update($data);
 
-        return redirect()->route('kasi.penduduk.index')->with('success', 'Data penduduk berhasil diperbarui');
+        /*
+        |--------------------------------------------------------------------------
+        | Otomatis simpan riwayat meninggal / keluar
+        |--------------------------------------------------------------------------
+        */
+        if (
+            $statusLama !== $data['status']
+            && in_array($data['status'], ['Meninggal', 'Keluar'])
+        ) {
+
+            $sudahAda = RiwayatDinamika::where(
+                'penduduk_nik',
+                $penduduk->nik
+            )
+            ->where(
+                'jenis_dinamika',
+                $data['status']
+            )
+            ->exists();
+
+            if (!$sudahAda) {
+
+                RiwayatDinamika::create([
+                    'penduduk_nik' => $penduduk->nik,
+                    'jenis_dinamika' => $data['status'],
+                    'tanggal_dinamika' => $data['tanggal_status']
+                        ?? now()->toDateString(),
+                    'keterangan' => 'Otomatis dari perubahan status penduduk',
+                ]);
+            }
+        }
+
+        return redirect()
+            ->route('kasi.penduduk.index')
+            ->with('success', 'Data penduduk berhasil diperbarui');
     }
 
     /**

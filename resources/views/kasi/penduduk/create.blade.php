@@ -353,23 +353,27 @@
             <div class="form-two-col">
                 <div class="form-group">
                     <label class="form-label">Status <span class="required">*</span></label>
-                    <select name="status" class="form-select" required>
-                        <option value="Aktif" {{ old('status', 'Aktif') == 'Aktif' ? 'selected' : '' }}>Aktif</option>
-                        <option value="Meninggal" {{ old('status') == 'Meninggal' ? 'selected' : '' }}>Meninggal</option>
-                        <option value="Keluar" {{ old('status') == 'Keluar' ? 'selected' : '' }}>Keluar</option>
-                    </select>
+                    <div class="form-group">
+                        <label class="form-label">Status</label>
+
+                        <input
+                            type="text"
+                            class="form-input"
+                            value="Aktif"
+                            readonly
+                        >
+
+                        <input
+                            type="hidden"
+                            name="status"
+                            value="Aktif"
+                        >
+                    </div>
                     @error('status')
                     <div class="form-error">{{ $message }}</div>
                     @enderror
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label">Tanggal Status</label>
-                    <input type="date" name="tanggal_status" value="{{ old('tanggal_status') }}" class="form-input">
-                    @error('tanggal_status')
-                    <div class="form-error">{{ $message }}</div>
-                    @enderror
-                </div>
             </div>
 
             <div class="button-group">

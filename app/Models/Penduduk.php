@@ -86,4 +86,12 @@ class Penduduk extends Model
             return 'Produktif';
         }
     }
+    public function riwayatDinamika()
+    {
+        return $this->hasMany(
+            RiwayatDinamika::class,
+            'penduduk_nik',
+            'nik'
+        );
+    }
 }
