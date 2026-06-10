@@ -9,6 +9,7 @@ use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\WilayahController;
 use App\Http\Controllers\PendudukController;
 use App\Http\Controllers\DinamikaPendudukController;
+use App\Http\Controllers\PengajuanPendudukController;
 use App\Http\Controllers\ReportController;
 use App\Models\Penduduk;
 use App\Models\User;
@@ -1477,3 +1478,35 @@ Route::prefix('kasun')->name('kasun.')->middleware(['auth', 'role:kasun'])->grou
         return view('kasun.profile', compact('user'));
     })->name('profile');
 });
+Route::prefix('kasun')
+    ->middleware(['auth'])
+    ->group(function () {
+
+        Route::get('/pengajuan', [PengajuanPendudukController::class, 'index']);
+        Route::get('/pengajuan/create', [PengajuanPendudukController::class, 'create']);
+        Route::post('/pengajuan', [PengajuanPendudukController::class, 'store']);
+    });
+
+Route::prefix('kasi')
+    ->middleware(['auth'])
+    ->group(function () {
+
+        Route::get('/pengajuan', [PengajuanPendudukController::class, 'approvalIndex']);
+
+        Route::get('/pengajuan/{id}', [PengajuanPendudukController::class, 'show']);
+
+        Route::post('/pengajuan/{id}/approve', [PengajuanPendudukController::class, 'approve']);
+
+        Route::post('/pengajuan/{id}/reject', [PengajuanPendudukController::class, 'reject']);
+    });
+Route::resource('pengajuan', PengajuanPendudukController::class);
+
+Route::post(
+    '/pengajuan/{pengajuan}/approve',
+    [PengajuanPendudukController::class, 'approve']
+)->name('pengajuan.approve');
+
+Route::post(
+    '/pengajuan/{pengajuan}/reject',
+    [PengajuanPendudukController::class, 'reject']
+)->name('pengajuan.reject');

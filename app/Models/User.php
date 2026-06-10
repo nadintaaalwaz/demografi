@@ -113,4 +113,11 @@ class User extends Authenticatable
         }
         return strtoupper(substr($this->nama, 0, 2));
     }
+    public function pengajuanPenduduk()
+    {
+        return $this->hasMany(
+            PengajuanPenduduk::class,
+            'id_pengaju'
+        );
+    }
 }

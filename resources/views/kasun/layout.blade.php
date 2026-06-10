@@ -461,6 +461,14 @@
                     <span>Profil</span>
                 </a>
             </li>
+
+            <li class="menu-item">
+                <a href="{{ route('pengajuan.index') }}" class="menu-link {{ request()->routeIs('pengajuan.index') ? 'active' : '' }}">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Pengajuan</span>
+                </a>
+            </li>
+
             <li class="menu-item">
                 <a href="#" class="menu-link" onclick="event.preventDefault(); showLogoutModal();">
                     <i class="fas fa-sign-out-alt"></i>

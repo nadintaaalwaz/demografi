@@ -94,4 +94,12 @@ class Penduduk extends Model
             'nik'
         );
     }
+    public function pengajuan()
+    {
+        return $this->hasMany(
+            PengajuanPenduduk::class,
+            'nik',
+            'nik'
+        );
+    }
 }
