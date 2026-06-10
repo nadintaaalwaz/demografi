@@ -984,7 +984,22 @@
             resetFormToCreateMode();
         });
     }
-const editButtons = document.querySelectorAll('.btn-edit-row');
+
+    if (detailEventModalClose) {
+        detailEventModalClose.addEventListener('click', function () {
+            detailEventModal.style.display = 'none';
+        });
+    }
+
+    if (detailEventModal) {
+        detailEventModal.addEventListener('click', function (e) {
+            if (e.target === detailEventModal) {
+                detailEventModal.style.display = 'none';
+            }
+        });
+    }
+
+    const editButtons = document.querySelectorAll('.btn-edit-row');
     editButtons.forEach((button) => {
         button.addEventListener('click', function () {
             if (recordIdInput) recordIdInput.value = this.dataset.recordId || '';
