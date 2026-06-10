@@ -647,20 +647,7 @@
                         <p class="form-error-text">{{ $message }}</p>
                     @enderror
                 </div>
-                <div class="manual-form-field">
-                    <label for="id_dusun">Dusun (Opsional)</label>
-                    <div class="manual-select-wrap">
-                        <select id="id_dusun" name="id_dusun">
-                            <option value="">-- Semua Dusun / Gabungan --</option>
-                            @foreach(($dusunList ?? []) as $dusunId => $dusunNama)
-                                <option value="{{ $dusunId }}" {{ old('id_dusun') == $dusunId ? 'selected' : '' }}>
-                                    {{ $dusunNama }}
-                                </option>
-                            @endforeach
-                        </select>
-                        <i class="fas fa-chevron-down manual-select-icon"></i>
-                    </div>
-                </div>
+                
                 <div class="manual-form-field">
                     <label for="jumlah_lahir">Jumlah Lahir</label>
                     <input type="number" id="jumlah_lahir" name="jumlah_lahir" min="0" value="{{ old('jumlah_lahir', 0) }}" required>
@@ -715,21 +702,20 @@
                             <td>{{ number_format(count($namesMeninggal)) }}</td>
                             <td>{{ number_format(count($namesKeluar)) }}</td>
                             <td>
-                                <button
-                                    type="button"
-                                    class="btn-view-detail"
-                                    data-bulan="{{ $monthOptionMap[(int) $record->bulan] ?? $record->bulan }}"
-                                    data-lahir="{{ (int) $record->jumlah_lahir }}"
-                                    data-masuk="{{ (int) $record->jumlah_masuk }}"
-                                    data-meninggal='@json($namesMeninggal)'
-                                    data-keluar='@json($namesKeluar)'
-                                >
-                                    <i class="fas fa-eye"></i> Detail
-                                </button>
-                            </td>
-
-                            <td>
                                 <div class="record-actions">
+
+                                    <button
+                                        type="button"
+                                        class="btn-view-detail"
+                                        data-bulan="{{ $monthOptionMap[(int) $record->bulan] ?? $record->bulan }}"
+                                        data-lahir="{{ (int) $record->jumlah_lahir }}"
+                                        data-masuk="{{ (int) $record->jumlah_masuk }}"
+                                        data-meninggal='@json($namesMeninggal)'
+                                        data-keluar='@json($namesKeluar)'
+                                    >
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+
                                     <button
                                         type="button"
                                         class="btn-edit-row"
@@ -743,6 +729,7 @@
                                     >
                                         <i class="fas fa-pen"></i>
                                     </button>
+
                                 </div>
                             </td>
                         </tr>
@@ -809,10 +796,14 @@
     const yearSelect = document.getElementById('yearSelect');
     const monthSelect = document.getElementById('monthSelect');
     const manualForm = manualFormCard?.querySelector('form');
+    const tahunInput = document.getElementById('tahun');
     const bulanSelect = document.getElementById('bulan');
     const recordIdInput = document.getElementById('record_id');
     const saveDinamikaBtn = document.getElementById('saveDinamikaBtn');
     const cancelEditBtn = document.getElementById('cancelEditBtn');
+    const jumlahLahirInput = document.getElementById('jumlah_lahir');
+    const jumlahMasukInput = document.getElementById('jumlah_masuk');
+
 
     const detailEventModal = document.getElementById('detailEventModal');
     const detailEventModalBody = document.getElementById('detailEventModalBody');
@@ -918,7 +909,6 @@
         if (recordIdInput) recordIdInput.value = '';
         if (tahunInput) tahunInput.value = '{{ old('tahun', $selectedYear ?? now()->year) }}';
         if (bulanSelect) bulanSelect.value = '{{ old('bulan') }}';
-        if (dusunInput) dusunInput.value = '{{ old('id_dusun') }}';
         if (jumlahLahirInput) jumlahLahirInput.value = '{{ old('jumlah_lahir', 0) }}';
         if (jumlahMasukInput) jumlahMasukInput.value = '{{ old('jumlah_masuk', 0) }}';
         setEditMode(false);
@@ -1005,7 +995,6 @@
             if (recordIdInput) recordIdInput.value = this.dataset.recordId || '';
             if (tahunInput) tahunInput.value = this.dataset.tahun || '{{ $selectedYear ?? now()->year }}';
             if (bulanSelect) bulanSelect.value = this.dataset.bulan || '';
-            if (dusunInput) dusunInput.value = this.dataset.dusunId || '';
             if (jumlahLahirInput) jumlahLahirInput.value = this.dataset.jumlahLahir || 0;
             if (jumlahMasukInput) jumlahMasukInput.value = this.dataset.jumlahMasuk || 0;
 
