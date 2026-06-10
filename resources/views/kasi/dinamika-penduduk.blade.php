@@ -701,11 +701,11 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($records as $record)
+                    @forelse($editableRecords as $record)
                         @php
                             $bulanKey = (int) $record->bulan;
-$namesMeninggal = $meninggalNamesByMonth[$bulanKey] ?? [];
-                            $namesKeluar = $keluarNamesByMonth[$bulanKey] ?? [];
+                            $namesMeninggal = $meninggalDetailsByMonth[$bulanKey] ?? [];
+                            $namesKeluar = $keluarDetailsByMonth[$bulanKey] ?? [];
                         @endphp
                         <tr>
                             <td>{{ $monthOptionMap[(int) $record->bulan] ?? $record->bulan }}</td>
@@ -975,20 +975,16 @@ $namesMeninggal = $meninggalNamesByMonth[$bulanKey] ?? [];
                 bulanSelect.setCustomValidity('');
             }
         });
-
         bulanSelect.addEventListener('change', function () {
             this.setCustomValidity('');
         });
     }
-
     if (cancelEditBtn) {
         cancelEditBtn.addEventListener('click', function () {
             resetFormToCreateMode();
         });
     }
-
 const editButtons = document.querySelectorAll('.btn-edit-row');
-
     editButtons.forEach((button) => {
         button.addEventListener('click', function () {
             if (recordIdInput) recordIdInput.value = this.dataset.recordId || '';
@@ -1003,9 +999,7 @@ const editButtons = document.querySelectorAll('.btn-edit-row');
             manualFormCard?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
     });
-
 const isMobile = window.matchMedia('(max-width: 768px)').matches;
-    
     const textColor = '#d9fff3';
     const gridColor = 'rgba(190, 255, 237, 0.12)';
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
@@ -1037,7 +1031,6 @@ const isMobile = window.matchMedia('(max-width: 768px)').matches;
             beginAtZero: true
         }
     };
-
     const chartLegend = {
         labels: {
             color: textColor,
@@ -1049,7 +1042,6 @@ const isMobile = window.matchMedia('(max-width: 768px)').matches;
         position: isMobile ? 'bottom' : 'top',
         align: isMobile ? 'center' : 'end'
     };
-
     new Chart(document.getElementById('trendChart'), {
         type: 'line',
         data: {
@@ -1083,7 +1075,6 @@ const isMobile = window.matchMedia('(max-width: 768px)').matches;
             scales: baseScales
         }
     });
-
     new Chart(document.getElementById('growthChart'), {
         type: 'bar',
         data: {

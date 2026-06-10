@@ -335,45 +335,40 @@ class DinamikaPendudukController extends Controller
             $yearlyKeluar[] = (int) ($rowMeninggalKeluar->jumlah_keluar ?? 0);
         }
 
+        // Tabel: tepat 1 baris per bulan sesuai filter
         if ($selectedMonth === null) {
             $bulanToShow = collect(range(1, 12));
         } else {
             $bulanToShow = collect([$selectedMonth]);
         }
-        $rows = collect();
 
-        $rekap = DinamikaPenduduk::query()
+        $rekapLahirMasuk = DinamikaPenduduk::query()
             ->where('tahun', $selectedYear)
             ->when(
                 $selectedMonth !== null,
                 fn ($q) => $q->where('bulan', $selectedMonth)
             )
-            ->select(
-                'bulan'
-            )
+            ->select('bulan')
             ->selectRaw('SUM(jumlah_lahir) as jumlah_lahir')
             ->selectRaw('SUM(jumlah_masuk) as jumlah_masuk')
             ->groupBy('bulan')
             ->get()
             ->keyBy('bulan');
 
-        $rows = collect();
-
+        $editableRecords = collect();
         foreach ($bulanToShow as $bulan) {
+            $row = $rekapLahirMasuk->get($bulan);
 
-            $row = $rekap->get($bulan);
-
-            $rows->push((object)[
+            $editableRecords->push((object)[
                 'id' => null,
                 'tahun' => $selectedYear,
                 'bulan' => $bulan,
                 'id_dusun' => null,
-                'jumlah_lahir' => (int)($row?->jumlah_lahir ?? 0),
-                'jumlah_masuk' => (int)($row?->jumlah_masuk ?? 0),
+                'jumlah_lahir' => (int) ($row?->jumlah_lahir ?? 0),
+                'jumlah_masuk' => (int) ($row?->jumlah_masuk ?? 0),
             ]);
         }
 
-        $editableRecords = $rows;
 
         // Load dusun list untuk dropdown form
         $dusunList = Wilayah::where('tipe', 'dusun')
