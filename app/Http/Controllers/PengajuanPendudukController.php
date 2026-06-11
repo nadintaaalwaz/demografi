@@ -22,6 +22,15 @@ class PengajuanPendudukController extends Controller
     }
 
     /**
+     * Halaman approval pengajuan untuk Kasi
+     */
+    public function approvalIndex()
+    {
+        $pengajuan = PengajuanPenduduk::latest()->paginate(10);
+
+        return view('kasi.pengajuan.index', compact('pengajuan'));
+    }
+    /**
      * Form tambah pengajuan
      */
     public function create()
@@ -54,14 +63,20 @@ class PengajuanPendudukController extends Controller
                 $lampiran[] = $file->store('lampiran_pengajuan', 'public');
             }
         }
-
+        dd([
+            'auth_check' => Auth::check(),
+            'auth_id' => Auth::id(),
+            'user' => Auth::user(),
+        ]);
         PengajuanPenduduk::create([
-            'id_pengaju' => Auth::id(),
+            // Pastikan id_pengaju berupa integer (sesuai foreignId)
+            'id_pengaju' => (int) Auth::id(),
             'nik' => $request->nik,
             'kode_pengajuan' => 'PGJ-' . now()->format('YmdHis'),
             'jenis_pengajuan' => $request->jenis_pengajuan,
             'status' => 'menunggu',
             'data_pengajuan' => array_filter([
+
                 // Jika tidak ada field tambahan, tetap simpan data yang ada.
                 // Semua field selain token dan kolom pengajuan akan ikut tersimpan.
                 ...$request->except([
@@ -77,11 +92,10 @@ class PengajuanPendudukController extends Controller
         ]);
 
         return redirect()
-            ->route('pengajuan.index')
+            ->route('kasun.pengajuan.index')
             ->with('success', 'Pengajuan berhasil dikirim.');
     }
-
-
+    
     /**
      * Detail pengajuan
      */
@@ -91,8 +105,6 @@ class PengajuanPendudukController extends Controller
         // Jika Anda memiliki halaman detail versi Kasi, bisa dibuat terpisah.
         return view('kasun.pengajuan', compact('pengajuan'));
     }
-
-
     /**
      * Setujui pengajuan
      */

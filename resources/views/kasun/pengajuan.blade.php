@@ -3,6 +3,7 @@
 @section('title', 'Pengajuan Penduduk')
 @section('page-title', 'Pengajuan Penduduk')
 
+
 @push('styles')
 <style>
     .page-wrap {
@@ -186,7 +187,7 @@
     <div class="card">
         <div class="card-header">
             <h3 class="card-title">Riwayat Pengajuan</h3>
-            <a href="{{ route('pengajuan.create') }}" class="btn btn-primary">
+            <a href="{{ route('kasun.pengajuan.create') }}" class="btn btn-primary">
                 <i class="fas fa-plus-circle"></i> Buat Pengajuan
             </a>
         </div>
@@ -231,7 +232,7 @@
                             <td>{{ $p->created_at ? $p->created_at->format('d/m/Y H:i') : '-' }}</td>
                             <td>{{ $p->catatan ? $p->catatan : '-' }}</td>
                             <td>
-                                <a href="{{ route('pengajuan.show', $p->id) }}" class="btn btn-outline" style="padding: 8px 12px;">
+                                <a href="{{ route('kasun.pengajuan.index') }}" class="btn btn-outline" style="padding: 8px 12px;">
                                     <i class="fas fa-eye"></i> Lihat
                                 </a>
                             </td>

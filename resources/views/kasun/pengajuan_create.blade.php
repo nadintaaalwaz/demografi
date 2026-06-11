@@ -57,12 +57,12 @@
     <div class="card">
         <div class="card-header">
             <h3 class="card-title">Form Pengajuan</h3>
-            <a href="{{ route('pengajuan.index') }}" class="btn btn-outline">
+            <a href="{{ route('kasun.pengajuan.index') }}" class="btn btn-outline">
                 <i class="fas fa-arrow-left"></i> Kembali
             </a>
         </div>
 
-        <form method="POST" action="{{ route('pengajuan.store') }}" enctype="multipart/form-data">
+        <form method="POST" action="{{ route('kasun.pengajuan.store') }}" enctype="multipart/form-data">
             @csrf
 
             <div class="grid-2">

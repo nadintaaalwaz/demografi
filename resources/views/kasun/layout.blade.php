@@ -463,7 +463,7 @@
             </li>
 
             <li class="menu-item">
-                <a href="{{ route('pengajuan.index') }}" class="menu-link {{ request()->routeIs('pengajuan.index') ? 'active' : '' }}">
+                <a href="{{ route('kasun.pengajuan.index') }}" class="menu-link {{ request()->routeIs('kasun.pengajuan.index') ? 'active' : '' }}">
                     <i class="fas fa-file-alt"></i>
                     <span>Pengajuan</span>
                 </a>

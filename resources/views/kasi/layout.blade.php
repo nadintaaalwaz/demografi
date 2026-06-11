@@ -515,6 +515,12 @@
                 </a>
             </li>
             <li class="menu-item">
+                <a href="{{ url('/kasi/pengajuan') }}" class="menu-link {{ request()->is('kasi/pengajuan*') ? 'active' : '' }}">
+                    <i class="fas fa-file-signature"></i>
+                    <span>Daftar Pengajuan</span>
+                </a>
+            </li>
+            <li class="menu-item">
                 <a href="{{ route('kasi.laporan.index') }}" class="menu-link {{ request()->routeIs('kasi.laporan.*') ? 'active' : '' }}">
                     <i class="fas fa-file-alt"></i>
                     <span>Pelaporan</span>
@@ -522,6 +528,7 @@
             </li>
             
             <div class="menu-divider"></div>
+
             
             <li class="menu-item">
                 <a href="{{ route('kasi.users.index') }}" class="menu-link {{ request()->routeIs('kasi.users.*') ? 'active' : '' }}">

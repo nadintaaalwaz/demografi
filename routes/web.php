@@ -1479,34 +1479,34 @@ Route::prefix('kasun')->name('kasun.')->middleware(['auth', 'role:kasun'])->grou
     })->name('profile');
 });
 Route::prefix('kasun')
+    ->name('kasun.')
     ->middleware(['auth'])
     ->group(function () {
 
-        Route::get('/pengajuan', [PengajuanPendudukController::class, 'index']);
-        Route::get('/pengajuan/create', [PengajuanPendudukController::class, 'create']);
-        Route::post('/pengajuan', [PengajuanPendudukController::class, 'store']);
+        Route::get('/pengajuan', [PengajuanPendudukController::class, 'index'])
+            ->name('pengajuan.index');
+
+        Route::get('/pengajuan/create', [PengajuanPendudukController::class, 'create'])
+            ->name('pengajuan.create');
+
+        Route::post('/pengajuan', [PengajuanPendudukController::class, 'store'])
+            ->name('pengajuan.store');
     });
 
 Route::prefix('kasi')
+    ->name('kasi.')
     ->middleware(['auth'])
     ->group(function () {
 
-        Route::get('/pengajuan', [PengajuanPendudukController::class, 'approvalIndex']);
+        Route::get('/pengajuan', [PengajuanPendudukController::class, 'approvalIndex'])
+            ->name('pengajuan.index');
 
-        Route::get('/pengajuan/{id}', [PengajuanPendudukController::class, 'show']);
+        Route::get('/pengajuan/{pengajuan}', [PengajuanPendudukController::class, 'show'])
+            ->name('pengajuan.show');
 
-        Route::post('/pengajuan/{id}/approve', [PengajuanPendudukController::class, 'approve']);
+        Route::post('/pengajuan/{pengajuan}/approve', [PengajuanPendudukController::class, 'approve'])
+            ->name('pengajuan.approve');
 
-        Route::post('/pengajuan/{id}/reject', [PengajuanPendudukController::class, 'reject']);
+        Route::post('/pengajuan/{pengajuan}/reject', [PengajuanPendudukController::class, 'reject'])
+            ->name('pengajuan.reject');
     });
-Route::resource('pengajuan', PengajuanPendudukController::class);
-
-Route::post(
-    '/pengajuan/{pengajuan}/approve',
-    [PengajuanPendudukController::class, 'approve']
-)->name('pengajuan.approve');
-
-Route::post(
-    '/pengajuan/{pengajuan}/reject',
-    [PengajuanPendudukController::class, 'reject']
-)->name('pengajuan.reject');
