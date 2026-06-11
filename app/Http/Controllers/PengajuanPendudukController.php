@@ -26,11 +26,47 @@ class PengajuanPendudukController extends Controller
     /**
      * Halaman approval pengajuan untuk Kasi
      */
-    public function approvalIndex()
+    public function approvalIndex(Request $request)
     {
-        $pengajuan = PengajuanPenduduk::latest()->paginate(10);
+        $query = PengajuanPenduduk::query()->with(['pengaju.dusun']);
 
-        return view('kasi.pengajuan.index', compact('pengajuan'));
+        // Filter status
+        $query->whereIn('status', ['menunggu', 'disetujui', 'ditolak']);
+
+        // Filter nama pengaju (via relasi)
+        $nama = trim((string) $request->query('nama'));
+        if ($nama !== '') {
+            $query->whereHas('pengaju', function ($q) use ($nama) {
+                $q->where('nama', 'like', '%' . $nama . '%');
+            });
+        }
+
+        // Filter dusun
+        $dusunId = $request->query('dusun');
+        if (!empty($dusunId)) {
+            $query->whereHas('pengaju.dusun', function ($q) use ($dusunId) {
+                $q->where('id', $dusunId);
+            });
+        }
+
+        // Sort berdasarkan waktu pengajuan
+        $query->orderByDesc('created_at');
+
+        // Pagination size
+        $perPage = (int) $request->query('per_page', 10);
+        if (!in_array($perPage, [10, 25, 50, 100], true)) {
+            $perPage = 10;
+        }
+
+        $pengajuan = $query->paginate($perPage)->withQueryString();
+
+        // Ambil daftar dusun untuk filter dropdown
+        $dusunList = \App\Models\Wilayah::query()
+            ->where('tipe', 'dusun')
+            ->orderBy('nama')
+            ->get(['id', 'nama']);
+
+        return view('kasi.pengajuan.index', compact('pengajuan', 'dusunList'));
     }
     /**
      * Form tambah pengajuan

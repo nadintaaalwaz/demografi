@@ -193,6 +193,66 @@
             </div>
         @endif
 
+        <div style="margin-bottom:14px; display:grid; gap:10px;">
+            <form id="filterForm" method="GET" action="{{ route('kasi.pengajuan.index') }}" style="display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end;">
+                <div style="flex: 1 1 260px; min-width: 220px;">
+                    <label style="display:block; font-weight:900; color:#0C342C; font-size:13px; margin-bottom:6px;">Cari Nama Pengaju</label>
+                    <input
+                        type="text"
+                        name="nama"
+                        value="{{ request()->query('nama') }}"
+                        placeholder="Masukkan nama..."
+                        style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(229,231,235,1); outline:none; font-size:13px;"
+                        oninput="document.getElementById('filterForm').submit();"
+                    />
+                </div>
+
+
+                <div style="flex: 0 0 220px;">
+                    <label style="display:block; font-weight:900; color:#0C342C; font-size:13px; margin-bottom:6px;">Dusun</label>
+                    <select
+                        name="dusun"
+                        style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(229,231,235,1); outline:none; font-size:13px;"
+                        onchange="document.getElementById('filterForm').submit();"
+                    >
+
+                        <option value="">Semua Dusun</option>
+                        @foreach(($dusunList ?? []) as $d)
+                            <option value="{{ $d->id }}" {{ (string)request()->query('dusun') === (string)$d->id ? 'selected' : '' }}>
+                                {{ $d->nama }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div style="flex: 0 0 220px;">
+                    <label style="display:block; font-weight:900; color:#0C342C; font-size:13px; margin-bottom:6px;">Tampilkan</label>
+                    <select
+                        name="per_page"
+                        style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(229,231,235,1); outline:none; font-size:13px;"
+                        onchange="document.getElementById('filterForm').submit();"
+                    >
+
+                        @php
+                            $currentPerPage = (int) request()->query('per_page', 10);
+                        @endphp
+                        @foreach([25, 50, 100] as $v)
+                            <option value="{{ $v }}" {{ (int)$currentPerPage === (int)$v ? 'selected' : '' }}>
+                                {{ $v }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div>
+                    <button type="submit" class="btn" style="padding:10px 14px; border-radius:12px; display:none;">
+                        Terapkan
+                    </button>
+                </div>
+
+            </form>
+        </div>
+
         <div class="table-wrap">
             <table>
                 <thead>
@@ -240,9 +300,10 @@
                             <td>
                                 <span class="badge {{ $badgeClass }}">{{ $statusLabel }}</span>
                             </td>
-                            <td>{{ $p->created_at ? $p->created_at->format('d/m/Y H:i') : '-' }}</td>
+                            <td>{{ $p->created_at ? $p->created_at->timezone('Asia/Jakarta')->format('d/m/Y H:i') : '-' }}</td>
 
                             <td class="detail-row">
+
                                 <div><b>NIK:</b> {{ $p->nik ?? '-' }}</div>
 
                                 @if(!empty($p->catatan))
@@ -320,7 +381,7 @@
             <div class="modal-header">
                 <div>
                     <h3 class="modal-title" id="rejectModalTitle">Tolak Pengajuan</h3>
-                    <div class="modal-subtitle">Masukkan alasan penolakan untuk diproses.</div>
+                     <div class="modal-subtitle">Masukkan alasan penolakan untuk diproses.</div>
                 </div>
                 <button type="button" class="modal-close" onclick="closeRejectModal()" aria-label="Tutup">✕</button>
             </div>
