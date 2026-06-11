@@ -15,7 +15,9 @@ class PengajuanPendudukController extends Controller
      */
     public function index()
     {
-        $pengajuan = PengajuanPenduduk::latest()->paginate(10);
+        $pengajuan = PengajuanPenduduk::with([
+            'pengaju.dusun'
+        ])->latest()->paginate(10);
 
         return view('kasun.pengajuan', compact('pengajuan'));
 
