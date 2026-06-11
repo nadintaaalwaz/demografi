@@ -78,15 +78,33 @@
                     @error('jenis_pengajuan')<div style="color:#991b1b; font-weight:800; font-size:12px; margin-top:6px;">{{ $message }}</div>@enderror
                 </div>
 
-                {{-- Khusus kematian & migrasi_keluar butuh pencarian NIK --}}
+                {{-- Khusus kematian & migrasi_keluar: cari penduduk, tampilkan nama + NIK, lalu pilih --}}
                 <div class="field" id="fieldNik" style="display:none;">
-                    <label for="nik">Pilih Penduduk (Khusus Kematian & Migrasi Keluar)</label>
-                    <select name="nik" id="nik">
+                    <label for="nik_search">Cari nama penduduk</label>
+
+                    <input
+                        type="text"
+                        id="nik_search"
+                        placeholder="Ketik nama..."
+                        autocomplete="off"
+                        style="margin-bottom:10px;"
+                    />
+
+                    {{-- Untuk submit ke backend tetap pakai select name=nik, tapi dibuat tersembunyi.
+                         Dropdown tampilan memakai daftar hasil pencarian. --}}
+                    <select name="nik" id="nik" style="display:none;">
                         <option value="">-- Pilih NIK --</option>
                         @foreach($penduduk as $p)
-                            <option value="{{ $p->nik }}">{{ $p->nik }} - {{ $p->nama_lengkap }}</option>
+                            <option value="{{ $p->nik }}" data-nama="{{ $p->nama_lengkap }}">
+                                {{ $p->nik }} - {{ $p->nama_lengkap }}
+                            </option>
                         @endforeach
                     </select>
+
+                    <div id="nikResults" style="max-height:220px; overflow:auto; border:1px solid #e5e7eb; border-radius:12px; padding:6px; background:#fff;">
+                        <div style="color:#6b7280; font-weight:800; padding:8px 6px;">Ketik untuk mencari...</div>
+                    </div>
+
                     <div class="help">NIK diperlukan untuk pencatatan Meninggal/Keluar.</div>
                 </div>
             </div>
@@ -98,6 +116,7 @@
                     id="lampiran"
                     multiple
                     accept="image/*,application/pdf"
+                    required
                 >
                 <div class="help">Lampiran opsional. Bisa lebih dari 1 file (pdf/jpg/png/webp).</div>
                 @error('lampiran')
@@ -111,6 +130,7 @@
                     name="catatan"
                     id="catatan"
                     placeholder="Catatan tambahan dari Kasun..."
+                    required
                 >{{ old('catatan') }}</textarea>
                 <div class="help">Catatan opsional untuk Kasi Pemerintahan.</div>
                 @error('catatan')
@@ -123,16 +143,16 @@
                 <label>Data tambahan untuk Kasi</label>
 
                 <div class="grid-2" style="margin-top:10px;" id="fieldTanggalKeterangan">
-                    <input name="tanggal" placeholder="Tanggal kejadian/surat" value="{{ old('tanggal') }}" />
-                    <input name="keterangan" placeholder="Keterangan singkat" value="{{ old('keterangan') }}" />
+                    <input name="tanggal" placeholder="Tanggal kejadian/surat" value="{{ old('tanggal') }}" required />
+                    <input name="keterangan" placeholder="Keterangan singkat" value="{{ old('keterangan') }}" required />
                 </div>
 
                 <div class="grid-2" style="margin-top:10px;" id="fieldTanggalMeninggal">
-                    <input name="tanggal_meninggal" placeholder="Tanggal meninggal" value="{{ old('tanggal_meninggal') }}" />
+                    <input name="tanggal_meninggal" placeholder="Tanggal meninggal" value="{{ old('tanggal_meninggal') }}" required />
                 </div>
 
                 <div class="grid-2" style="margin-top:10px;" id="fieldTujuanPindah">
-                    <input name="tujuan_pindah" placeholder="Tujuan Pindah" value="{{ old('tujuan_pindah') }}" />
+                    <input name="tujuan_pindah" placeholder="Tujuan Pindah" value="{{ old('tujuan_pindah') }}" required />
                 </div>
 
                 <div class="help" style="margin-top:8px;">Catatan: data ini disimpan ke <b>data_pengajuan</b> (JSON) dan diproses oleh Kasi via menu resmi.</div>
@@ -146,6 +166,24 @@
                     const fieldTanggalMeninggal = document.getElementById('fieldTanggalMeninggal');
                     const fieldTujuanPindah = document.getElementById('fieldTujuanPindah');
                     const fieldJenis = document.getElementById('fieldJenis');
+
+                    function syncNikRequired() {
+                        const fieldNikEl = document.getElementById('fieldNik');
+                        const nikSelectEl = document.getElementById('nik');
+                        const nikSearchEl = document.getElementById('nik_search');
+                        if (!fieldNikEl || !nikSelectEl || !nikSearchEl) return;
+
+                        const jenis = jenisSelect?.value;
+                        const isIndividu = jenis === 'kematian' || jenis === 'migrasi_keluar';
+
+                        if (isIndividu) {
+                            nikSelectEl.setAttribute('required', 'required');
+                            nikSearchEl.setAttribute('required', 'required');
+                        } else {
+                            nikSelectEl.removeAttribute('required');
+                            nikSearchEl.removeAttribute('required');
+                        }
+                    }
 
                     function updateVisibility() {
                         const jenis = jenisSelect?.value;
@@ -168,6 +206,83 @@
                     if (jenisSelect) {
                         jenisSelect.addEventListener('change', updateVisibility);
                         updateVisibility();
+                    }
+
+                    // Autocomplete untuk pencarian penduduk (nama) => tampilkan pilihan + NIK
+                    const nikSearch = document.getElementById('nik_search');
+                    const nikSelect = document.getElementById('nik');
+                    const nikResults = document.getElementById('nikResults');
+                    if (nikSearch && nikSelect && nikResults) {
+                        const renderResults = (q) => {
+                            const query = (q || '').toLowerCase().trim();
+                            const opts = Array.from(nikSelect.querySelectorAll('option[data-nama]'));
+
+                            // reset results
+                            nikResults.innerHTML = '';
+
+                            if (query === '') {
+                                const empty = document.createElement('div');
+                                empty.style.color = '#6b7280';
+                                empty.style.fontWeight = '800';
+                                empty.style.padding = '8px 6px';
+                                empty.textContent = 'Ketik untuk mencari...';
+                                nikResults.appendChild(empty);
+                                return;
+                            }
+
+                            const matched = opts.filter(opt => {
+                                const nama = (opt.getAttribute('data-nama') || '').toLowerCase();
+                                const nik = (opt.value || '').toLowerCase();
+                                return nama.includes(query) || nik.includes(query);
+                            }).slice(0, 10);
+
+                            if (matched.length === 0) {
+                                const none = document.createElement('div');
+                                none.style.color = '#6b7280';
+                                none.style.fontWeight = '800';
+                                none.style.padding = '8px 6px';
+                                none.textContent = 'Tidak ada data';
+                                nikResults.appendChild(none);
+                                return;
+                            }
+
+                            matched.forEach(opt => {
+                                const item = document.createElement('div');
+                                item.style.padding = '8px 10px';
+                                item.style.cursor = 'pointer';
+                                item.style.borderRadius = '10px';
+                                item.style.fontWeight = '800';
+                                item.style.color = '#0C342C';
+
+                                const nama = opt.getAttribute('data-nama') || '-';
+                                const nikVal = opt.value;
+                                item.innerHTML = `<div style="font-weight:900;">${nama}</div><div style="margin-top:4px; font-weight:700; color:#6b7280; font-size:12px;">NIK: ${nikVal}</div>`;
+
+                                item.addEventListener('click', () => {
+                                    nikSelect.value = nikVal;
+                                    // tampilkan nama + NIK supaya terlihat jelas
+                                    nikSearch.value = `${nama} (${nikVal})`;
+                                    // sembunyikan hasil
+                                    nikResults.innerHTML = '';
+                                });
+
+                                item.addEventListener('mouseover', () => {
+                                    item.style.background = 'rgba(96,225,194,0.18)';
+                                });
+                                item.addEventListener('mouseout', () => {
+                                    item.style.background = 'transparent';
+                                });
+
+                                nikResults.appendChild(item);
+                            });
+                        };
+
+                        nikSearch.addEventListener('input', () => {
+                            renderResults(nikSearch.value);
+                        });
+
+                        // init
+                        renderResults('');
                     }
                 })();
             </script>

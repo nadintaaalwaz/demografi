@@ -509,12 +509,16 @@
                 </div>
             @endif
 
-            @if(session('success'))
-                <div class="alert alert-success">
-                    <i class="fas fa-check-circle"></i>
-                    <span>{{ session('success') }}</span>
-                </div>
+            {{-- Hanya tampilkan session sukses dari halaman utama (hindari duplikasi alert) --}}
+            @if(false)
+                @if(session('success'))
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i>
+                        <span>{{ session('success') }}</span>
+                    </div>
+                @endif
             @endif
+
 
             @if(session('error'))
                 <div class="alert alert-danger">
