@@ -514,9 +514,6 @@ class ReportController extends Controller
     {
         $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
-        $sheetTitle = $sheet->getTitle();
-
-        $demografi = $this->buildDemografiData($tahun, $dusunId);
 
         // Title
         $sheet->setCellValue('A1', 'LAPORAN DEMOGRAFI PENDUDUK');
@@ -524,84 +521,54 @@ class ReportController extends Controller
         $sheet->getStyle('A1:P1')->getFont()->setBold(true)->setSize(14);
         $sheet->getStyle('A2:P2')->getFont()->setSize(12);
 
-        // Summary
-        $sheet->setCellValue('A4', 'RINGKASAN');
-        $sheet->getStyle('A4')->getFont()->setBold(true);
+        // Fokus: tabel lengkap penduduk (Aktif + Meninggal + Keluar)
+        $sheet->setCellValue('A4', 'DATA LENGKAP PENDUDUK (SEMUA STATUS)');
+        $sheet->getStyle('A4')->getFont()->setBold(true)->setSize(12);
 
-        $totalPenduduk = (int) ($demografi['summary']['totalPenduduk'] ?? 0);
-        $totalLakiLaki = (int) ($demografi['summary']['totalLakiLaki'] ?? 0);
-        $totalPerempuan = (int) ($demografi['summary']['totalPerempuan'] ?? 0);
+        $sheetDataStartRow = 6;
+        $pendudukModel = new Penduduk();
+        $columns = $pendudukModel->getFillable();
 
-        $sheet->setCellValue('A5', 'Total Penduduk Aktif');
-        $sheet->setCellValue('B5', $totalPenduduk);
-        $sheet->setCellValue('A6', 'Laki-laki');
-        $sheet->setCellValue('B6', $totalLakiLaki);
-        $sheet->setCellValue('A7', 'Perempuan');
-        $sheet->setCellValue('B7', $totalPerempuan);
-
-        // Data tabel pendukung untuk export Excel
-        $sheet->setCellValue('A9', 'DATA JENIS KELAMIN');
-        $sheet->setCellValue('A10', 'Kategori');
-        $sheet->setCellValue('B10', 'Jumlah');
-        $sheet->setCellValue('A11', 'Laki-laki');
-        $sheet->setCellValue('B11', $totalLakiLaki);
-        $sheet->setCellValue('A12', 'Perempuan');
-        $sheet->setCellValue('B12', $totalPerempuan);
-        $sheet->getStyle('A9:B10')->getFont()->setBold(true);
-
-        // Data tingkat pendidikan
-        $sheet->setCellValue('D9', 'DATA TINGKAT PENDIDIKAN');
-        $sheet->setCellValue('D10', 'Tingkat Pendidikan');
-        $sheet->setCellValue('E10', 'Jumlah');
-        $educationLabels = $demografi['educationChart']['labels'] ?? [];
-        $educationValues = $demografi['educationChart']['data'] ?? [];
-        $educationStart = 11;
-        foreach ($educationLabels as $i => $label) {
-            $row = $educationStart + $i;
-            $sheet->setCellValue('D' . $row, $label);
-            $sheet->setCellValue('E' . $row, (int) ($educationValues[$i] ?? 0));
-        }
-        $sheet->getStyle('D9:E10')->getFont()->setBold(true);
-
-        // Data tingkat pekerjaan
-        $sheet->setCellValue('H9', 'DATA TINGKAT PEKERJAAN');
-        $sheet->setCellValue('H10', 'Pekerjaan');
-        $sheet->setCellValue('I10', 'Jumlah');
-        $occupationLabels = $demografi['occupationChart']['labels'] ?? [];
-        $occupationValues = $demografi['occupationChart']['data'] ?? [];
-        $occupationStart = 11;
-        foreach ($occupationLabels as $i => $label) {
-            $row = $occupationStart + $i;
-            $sheet->setCellValue('H' . $row, $label);
-            $sheet->setCellValue('I' . $row, (int) ($occupationValues[$i] ?? 0));
-        }
-        $sheet->getStyle('H9:I10')->getFont()->setBold(true);
-
-        // Breakdown per Dusun
-        $sheet->setCellValue('A31', 'BREAKDOWN PER DUSUN');
-        $sheet->getStyle('A31')->getFont()->setBold(true);
-
-        $dusunData = $this->getDusunDemografiBreakdown($tahun, $dusunId);
-
-        $sheet->setCellValue('A32', 'Dusun');
-        $sheet->setCellValue('B32', 'Total');
-        $sheet->setCellValue('C32', 'Laki-laki');
-        $sheet->setCellValue('D32', 'Perempuan');
-
-        $sheet->getStyle('A32:D32')->getFont()->setBold(true)->getColor()->setARGB(\PhpOffice\PhpSpreadsheet\Style\Color::COLOR_DARKBLUE);
-
-        $row = 33;
-        foreach ($dusunData as $data) {
-            $sheet->setCellValue('A' . $row, $data['dusun']);
-            $sheet->setCellValue('B' . $row, $data['total']);
-            $sheet->setCellValue('C' . $row, $data['laki_laki']);
-            $sheet->setCellValue('D' . $row, $data['perempuan']);
-            $row++;
+        // tampilkan juga nik sebagai kolom (karena bukan fillable di model)
+        if (!in_array('nik', $columns, true)) {
+            $columns = array_merge(['nik'], $columns);
         }
 
-        // Auto width
-        foreach (range('A', 'P') as $col) {
-            $sheet->getColumnDimension($col)->setAutoSize(true);
+        // header row
+        $colIndex = 0;
+        foreach ($columns as $colName) {
+            $excelCol = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex + 1);
+            $sheet->setCellValue($excelCol . $sheetDataStartRow, $colName);
+            $sheet->getStyle($excelCol . $sheetDataStartRow)->getFont()->setBold(true);
+            $colIndex++;
+        }
+
+        $pendudukQuery = Penduduk::query();
+        if ($dusunId) {
+            $pendudukQuery->where('id_dusun', $dusunId);
+        }
+
+        // ambil semua kolom yang relevan
+        $selectCols = $columns;
+        $pendudukRows = $pendudukQuery->select($selectCols)->orderBy('id_dusun')->orderBy('nama_lengkap')->get();
+
+        $currentRow = $sheetDataStartRow + 1;
+        foreach ($pendudukRows as $p) {
+            $colIndex = 0;
+            foreach ($columns as $colName) {
+                $value = $p->{$colName} ?? null;
+                $excelCol = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex + 1);
+                $sheet->setCellValue($excelCol . $currentRow, $value);
+                $colIndex++;
+            }
+            $currentRow++;
+        }
+
+        // Auto width (A sampai kolom terakhir)
+        $maxColumns = max(26, count($columns));
+        foreach (range(1, $maxColumns) as $i) {
+            $excelCol = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($i);
+            $sheet->getColumnDimension($excelCol)->setAutoSize(true);
         }
 
         $filename = 'Laporan_Demografi_' . $tahun . '_' . now()->format('YmdHis') . '.xlsx';
