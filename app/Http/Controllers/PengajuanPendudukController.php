@@ -63,14 +63,10 @@ class PengajuanPendudukController extends Controller
                 $lampiran[] = $file->store('lampiran_pengajuan', 'public');
             }
         }
-        dd([
-            'auth_check' => Auth::check(),
-            'auth_id' => Auth::id(),
-            'user' => Auth::user(),
-        ]);
+        
         PengajuanPenduduk::create([
             // Pastikan id_pengaju berupa integer (sesuai foreignId)
-            'id_pengaju' => (int) Auth::id(),
+            'id_pengaju' => Auth::user()->id,
             'nik' => $request->nik,
             'kode_pengajuan' => 'PGJ-' . now()->format('YmdHis'),
             'jenis_pengajuan' => $request->jenis_pengajuan,
