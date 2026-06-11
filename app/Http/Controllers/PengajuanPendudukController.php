@@ -15,9 +15,17 @@ class PengajuanPendudukController extends Controller
      */
     public function index()
     {
+        $idDusun = Auth::user()->id_dusun;
+
         $pengajuan = PengajuanPenduduk::with([
             'pengaju.dusun'
-        ])->latest()->paginate(10);
+        ])
+            ->whereHas('pengaju.dusun', function ($q) use ($idDusun) {
+                $q->where('id', $idDusun);
+            })
+            ->latest()
+            ->paginate(10);
+
 
         return view('kasun.pengajuan', compact('pengajuan'));
 
@@ -135,8 +143,18 @@ class PengajuanPendudukController extends Controller
      */
     public function show(PengajuanPenduduk $pengajuan)
     {
-        // Untuk sementara, render menggunakan tampilan yang disiapkan untuk Kasun.
-        // Jika Anda memiliki halaman detail versi Kasi, bisa dibuat terpisah.
+        // Pastikan Kasun hanya bisa lihat pengajuan milik dusunnya sendiri
+        $idDusun = Auth::user()->id_dusun;
+
+        $valid = PengajuanPenduduk::query()
+            ->where('id', $pengajuan->id)
+            ->whereHas('pengaju.dusun', function ($q) use ($idDusun) {
+                $q->where('id', $idDusun);
+            })
+            ->exists();
+
+        abort_unless($valid, 403);
+
         return view('kasun.pengajuan', compact('pengajuan'));
     }
     /**
