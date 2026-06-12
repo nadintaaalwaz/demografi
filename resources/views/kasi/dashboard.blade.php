@@ -12,462 +12,483 @@ $rwValues = $rwValues ?? [];
 $rtLabels = $rtLabels ?? [];
 $rtValues = $rtValues ?? [];
 @endphp
+
 @push('styles')
 <style>
-
-.stats-grid{
-    display:grid;
-    grid-template-columns:repeat(5,1fr);
-    gap:20px;
-    margin-bottom:25px;
+/* Base Theme Overrides - Light Soft Teal Concept */
+body {
+    background-color: #E1EFED;
+    color: #333333;
 }
 
-.age-grid{
-    display:grid;
-    grid-template-columns:repeat(5,1fr);
-    gap:20px;
-    margin-bottom:30px;
+/* Grid Atas Diselaraskan dengan Grid Bawah */
+.stats-grid-custom {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr 1.8fr 1.8fr;
+    gap: 20px;
+    margin-bottom: 20px;
 }
 
-.stat-card{
-    background:linear-gradient(135deg,#0b6b57,#075a49);
-    border-radius:24px;
-    padding:22px;
-    color:white;
-    min-height:160px;
-    position:relative;
-    overflow:hidden;
-    box-shadow:0 10px 30px rgba(0,0,0,.15);
-    transition:.3s;
+.age-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 20px;
+    margin-bottom: 25px;
 }
 
-.stat-card:hover{
-    transform:translateY(-6px);
+/* Card Style UI */
+.stat-card {
+    background: #075a49;
+    border-radius: 16px;
+    padding: 20px;
+    color: white;
+    min-height: 130px;
+    position: relative;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+    transition: .3s;
+    border: 1px solid rgba(255,255,255,0.05);
 }
 
-.stat-card::before{
-    content:'';
-    position:absolute;
-    width:100px;
-    height:100px;
-    border-radius:50%;
-    background:rgba(255,255,255,.07);
-    right:-30px;
-    top:-30px;
+.stat-card:hover {
+    transform: translateY(-3px);
 }
 
-.stat-label{
-    font-size:14px;
-    color:#d8f7ed;
-    font-weight:600;
-    margin-bottom:15px;
+.stat-label {
+    font-size: 13px;
+    color: #a3e635; 
+    font-weight: 600;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
-.stat-value{
-    font-size:38px;
-    font-weight:800;
-    color:white;
+.stat-value {
+    font-size: 34px;
+    font-weight: 800;
+    color: white;
 }
 
-.stat-sub{
-    margin-top:10px;
-    color:#d5ece6;
-    font-size:13px;
-    line-height:1.5;
+.stat-sub {
+    margin-top: 6px;
+    color: #9cd4c5;
+    font-size: 12px;
 }
 
-.age-card{
-    min-height:120px;
+/* Gender & Mutation Progress Layout */
+.bar-container {
+    width: 100%;
+    height: 12px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 10px;
+    margin-top: 12px;
+    overflow: hidden;
+    display: flex;
 }
 
-.charts-grid{
-    display:grid;
-    grid-template-columns:1fr 1.5fr 1fr;
-    gap:25px;
-    margin-bottom:35px;
+.bar-fill-left {
+    height: 100%;
+    background: #3b82f6; 
 }
 
-.chart-card{
-    background:#fff;
-    border-radius:24px;
-    padding:24px;
-    box-shadow:0 10px 25px rgba(0,0,0,.08);
+.bar-fill-right {
+    height: 100%;
+    background: #ec4899; 
 }
 
-.chart-title{
-    font-size:18px;
-    font-weight:700;
-    color:#0C342C;
+.bar-mutasi-left {
+    height: 100%;
+    background: #f87171;
 }
 
-.chart-header{
-    margin-bottom:20px;
+.bar-mutasi-right {
+    height: 100%;
+    background: #fbbf24;
 }
 
-.gender-legend{
-    display:flex;
-    justify-content:center;
-    gap:20px;
-    margin-top:15px;
+.charts-grid {
+    display: grid;
+    grid-template-columns: 1.1fr 1.2fr 1.1fr;
+    gap: 20px;
+    margin-bottom: 25px;
 }
 
-.gender-legend-item{
-    display:flex;
-    align-items:center;
-    gap:8px;
+.region-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 25px;
 }
 
-.gender-legend-dot{
-    width:12px;
-    height:12px;
-    border-radius:50%;
+.chart-card {
+    background: #075a49; 
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    display: flex;
+    flex-direction: column;
+    min-height: 440px;
+    color: #ffffff;
 }
 
-.chart-card canvas{
-    max-height:300px!important;
+.chart-header {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 16px;
 }
 
-.occupation-section{
-    background:#fff;
-    border-radius:24px;
-    padding:28px;
-    box-shadow:0 10px 25px rgba(0,0,0,.08);
+.chart-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0;
 }
 
-.occupation-table{
-    width:100%;
-    border-collapse:collapse;
+.chart-subtitle {
+    font-size: 12px;
+    color: #9cd4c5;
+    margin-top: 4px;
 }
 
-.occupation-table th{
-    background:#f8fafc;
-    padding:15px;
+/* Memastikan container pembungkus chart bulat berukuran identik */
+.chart-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    width: 100%;
+    min-height: 240px;
+    max-height: 240px; /* Dikunci agar proporsi terkendali */
 }
 
-.occupation-table td{
-    padding:15px;
+.chart-container canvas {
+    width: 100% !important;
+    height: 100% !important;
 }
 
-.occupation-bar{
-    height:8px;
-    background:#e2e8f0;
-    border-radius:30px;
+.gender-custom-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 15px;
+    width: 100%;
 }
 
-.occupation-bar-fill{
-    height:100%;
-    border-radius:30px;
-    background:linear-gradient(90deg,#0b6b57,#0C342C);
+.gender-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding-bottom: 6px;
 }
 
-@media(max-width:1200px){
-
-    .stats-grid{
-        grid-template-columns:repeat(2,1fr);
-    }
-
-    .age-grid{
-        grid-template-columns:repeat(2,1fr);
-    }
-
-    .charts-grid{
-        grid-template-columns:1fr;
-    }
+.gender-identity {
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
-@media(max-width:768px){
-
-    .stats-grid,
-    .age-grid{
-        grid-template-columns:1fr;
-    }
-}
-.occupation-header{
-    margin-bottom:20px;
-    border-bottom:2px solid #eef2f7;
-    padding-bottom:15px;
+.gender-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
 }
 
-.occupation-title{
-    font-size:20px;
-    font-weight:700;
-    color:#0C342C;
+.rt-layout-wrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 100%;
+    height: 100%;
 }
 
-.occupation-number{
-    font-size:16px;
-    font-weight:700;
-    color:#0C342C;
+.rw-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+    margin-top: 10px;
 }
 
-.occupation-percentage{
-    font-size:12px;
-    color:#64748b;
-    margin-top:5px;
-}
-.region-grid{
-    display:grid;
-    grid-template-columns:repeat(3,1fr);
-    gap:25px;
-    margin-bottom:35px;
-}
-
-.mini-summary{
-    display:grid;
-    grid-template-columns:repeat(3,1fr);
-    gap:12px;
-    margin-top:20px;
+.rw-tab {
+    border: none;
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    padding: 4px 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 11px;
+    cursor: pointer;
 }
 
-.mini-box{
-    background:#0b6b57;
-    color:white;
-    border-radius:16px;
-    padding:12px;
-    text-align:center;
+.rw-tab.active {
+    background: #a855f7;
+    color: white;
 }
 
-.mini-box strong{
-    display:block;
-    font-size:18px;
+.rt-side-pane-horizontal {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 15px;
 }
 
-.mini-box span{
-    font-size:12px;
-    opacity:.9;
+.rt-list-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    padding: 10px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
-/* Match RW/RT UI from dashboard kasun */
-.rw-tabs{
-    display:flex;
-    flex-wrap:wrap;
-    gap:10px;
-    margin-bottom:14px;
+.rt-list-name {
+    font-size: 12px;
+    color: #e2e8f0;
 }
 
-.rw-tab{
-    border: 1px solid rgba(7,102,83,0.2);
-    background: rgba(7,102,83,0.06);
-    color:#0C342C;
-    padding:8px 14px;
-    border-radius:999px;
-    font-weight:800;
-    font-size:13px;
-    cursor:pointer;
-    transition:0.2s ease;
+.rt-list-val {
+    font-weight: 700;
+    font-size: 13px;
+    color: #ffffff;
 }
 
-.rw-tab:hover{
-    transform: translateY(-1px);
-    background: rgba(227,239,38,0.12);
-    border-color: rgba(7,102,83,0.35);
+.bottom-badges-container {
+    display: flex;
+    gap: 8px;
+    margin-top: 15px;
+    justify-content: space-between;
 }
 
-.rw-tab.active{
-    background:#E3EF26;
-    color:#0C342C;
-    border-color:#E3EF26;
+.badge-summary-box {
+    background: rgba(0, 0, 0, 0.12);
+    border-radius: 10px;
+    padding: 10px;
+    flex: 1;
+    text-align: center;
 }
 
-.rt-summary-list{
-    display:flex;
-    flex-direction:column;
-    gap:10px;
-    margin-top:14px;
-    max-height:100%;
-    overflow:auto;
-    padding-right:4px;
+.badge-summary-box strong {
+    display: block;
+    font-size: 15px;
+    color: #ffffff;
 }
 
-.rt-summary-item{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    padding:12px 14px;
-    border-radius:12px;
-    background:rgba(7,102,83,0.05);
-    border:1px solid rgba(7,102,83,0.12);
+.badge-summary-box span {
+    font-size: 11px;
+    color: #9cd4c5;
 }
 
-.rt-summary-item .label{
-    font-weight:700;
-    color:#0C342C;
+.occupation-section {
+    background: #075a49;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.08);
+    color: #fff;
 }
 
-.rt-summary-item .value{
-    font-weight:900;
-    color:#076653;
+.occupation-title {
+    font-size: 18px;
+    font-weight: 700;
 }
 
+.occupation-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+.occupation-table th {
+    background: rgba(0,0,0,0.1);
+    padding: 12px;
+    color: #a3e635;
+    text-align: left;
+}
+
+.occupation-table td {
+    padding: 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.occupation-bar {
+    height: 8px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 30px;
+}
+
+.occupation-bar-fill {
+    height: 100%;
+    border-radius: 30px;
+    background: linear-gradient(90deg, #a3e635, #22c55e);
+}
+
+@media(max-width: 1200px) {
+    .stats-grid-custom, .age-grid { grid-template-columns: repeat(2, 1fr); }
+    .charts-grid, .region-grid { grid-template-columns: 1fr; }
+}
+@media(max-width: 768px) {
+    .stats-grid-custom, .age-grid, .charts-grid, .region-grid { grid-template-columns: 1fr; }
+}
 </style>
 @endpush
-
 
 @section('content')
 @php
     $totalMeninggalKeluar = (int) (($totalMeninggalKeluar ?? 0) ?: ((($totalMeninggal ?? 0) + ($totalKeluar ?? 0))));
+    
+    // Perhitungan Persentase Presisi untuk Bar Atas
+    $totalG = ($totalLakiLaki ?? 0) + ($totalPerempuan ?? 0);
+    $pctLki = $totalG > 0 ? round((($totalLakiLaki ?? 0) / $totalG) * 100) : 50;
+    $pctPrm = $totalG > 0 ? 100 - $pctLki : 50;
 
-    $summaryCards = [
-        [
-            'label' => 'Jumlah penduduk aktif',
-            'value' => $totalPenduduk ?? 0,
-            'sub' => 'Penduduk yang masih terdata aktif di wilayah layanan.',
-        ],
-        [
-            'label' => 'Jumlah kepala keluarga',
-            'value' => $totalKK ?? 0,
-            'sub' => 'Kepala keluarga aktif yang menjadi acuan administrasi.',
-        ],
-        [
-            'label' => 'Jumlah laki-laki',
-            'value' => $totalLakiLaki ?? 0,
-            'sub' => ($persenLakiLaki ?? 0) . '% dari total penduduk aktif.',
-        ],
-        [
-            'label' => 'Jumlah perempuan',
-            'value' => $totalPerempuan ?? 0,
-            'sub' => ($persenPerempuan ?? 0) . '% dari total penduduk aktif.',
-        ],
-        [
-            'label' => 'Jumlah meninggal dan keluar',
-            'value' => $totalMeninggalKeluar,
-            'sub' => 'Meninggal: ' . number_format($totalMeninggal ?? 0) . ' • Keluar: ' . number_format($totalKeluar ?? 0),
-        ],
-    ];
+    $totalMut = ($totalMeninggal ?? 0) + ($totalKeluar ?? 0);
+    $pctMng = $totalMut > 0 ? round((($totalMeninggal ?? 0) / $totalMut) * 100) : 50;
+    $pctPnd = $totalMut > 0 ? 100 - $pctMng : 50;
 
     $ageCards = [
-        [
-            'label' => 'Jumlah Bayi & Balita (0–5 Tahun)',
-            'value' => $ageValues[0] ?? 0,
-            'sub' => 'Masa krusial untuk pertumbuhan fisik, perkembangan kognitif, dan pencegahan stunting.',
-        ],
-        [
-            'label' => 'Jumlah Anak-anak (6–11 Tahun)',
-            'value' => $ageValues[1] ?? 0,
-            'sub' => 'Masa usia sekolah dasar, fokus pada pengembangan kemampuan sosial, kognitif, dan perilaku dasar.',
-        ],
-        [
-            'label' => 'Jumlah Remaja (12–19 Tahun)',
-            'value' => $ageValues[2] ?? 0,
-            'sub' => 'Masa pubertas dan pencarian jati diri, penting untuk edukasi kesehatan reproduksi dan mental.',
-        ],
-        [
-            'label' => 'Jumlah Dewasa (20–59 Tahun)',
-            'value' => $ageValues[3] ?? 0,
-            'sub' => 'Usia produktif yang fokus pada produktivitas kerja, kesehatan fisik, dan pencegahan penyakit tidak menular.',
-        ],
-        [
-            'label' => 'Jumlah Lansia (60+ Tahun)',
-            'value' => $ageValues[4] ?? 0,
-            'sub' => 'Fokus pada pemeliharaan kesehatan di usia tua agar tetap mandiri dan memiliki kualitas hidup yang baik.',
-        ],
+        ['label' => 'Bayi & Balita', 'range' => '0-5 thn', 'value' => $ageValues[0] ?? 0, 'color' => '#f97316'],
+        ['label' => 'Anak-anak', 'range' => '6-11 thn', 'value' => $ageValues[1] ?? 0, 'color' => '#a855f7'],
+        ['label' => 'Remaja', 'range' => '12-19 thn', 'value' => $ageValues[2] ?? 0, 'color' => '#3b82f6'],
+        ['label' => 'Dewasa', 'range' => '20-59 thn', 'value' => $ageValues[3] ?? 0, 'color' => '#22c55e'],
+        ['label' => 'Lansia', 'range' => '60+ thn', 'value' => $ageValues[4] ?? 0, 'color' => '#14b8a6'],
     ];
 @endphp
 
-<div class="stats-grid">
-    @foreach($summaryCards as $card)
-        <div class="stat-card summary-card">
-            <div class="stat-label">{{ $card['label'] }}</div>
-            <div class="stat-value">{{ number_format($card['value'] ?? 0) }}</div>
-            <div class="stat-sub">{{ $card['sub'] }}</div>
+<div class="stats-grid-custom">
+    <div class="stat-card">
+        <div class="stat-label">Penduduk Aktif</div>
+        <div class="stat-value">{{ number_format($totalPenduduk ?? 0) }}</div>
+        <div class="stat-sub">jiwa terdaftar aktif</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Kepala Keluarga</div>
+        <div class="stat-value">{{ number_format($totalKK ?? 0) }}</div>
+        <div class="stat-sub">kartu keluarga aktif</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label" style="display:flex; justify-content:space-between;">
+            <span>Jenis Kelamin</span>
+            <span style="color:#ffffff; font-weight:normal;">{{$pctLki}}% / {{$pctPrm}}%</span>
         </div>
-    @endforeach
+        <div style="display:flex; justify-content: space-between; align-items: center; margin-top:2px;">
+            <div>
+                <span style="font-size:22px; font-weight:800;">{{ number_format($totalLakiLaki ?? 0) }}</span>
+                <span style="font-size:11px; display:block; color:#9cd4c5;">Laki-laki</span>
+            </div>
+            <div style="text-align: right;">
+                <span style="font-size:22px; font-weight:800;">{{ number_format($totalPerempuan ?? 0) }}</span>
+                <span style="font-size:11px; display:block; color:#9cd4c5;">Perempuan</span>
+            </div>
+        </div>
+        <div class="bar-container">
+            <div class="bar-fill-left" style="width: {{$pctLki}}%;"></div>
+            <div class="bar-fill-right" style="width: {{$pctPrm}}%;"></div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label" style="display:flex; justify-content:space-between;">
+            <span>Mutasi Keluar</span>
+            <span style="color:#ffffff; font-weight:normal;">{{$pctMng}}% / {{$pctPnd}}%</span>
+        </div>
+        <div style="display:flex; justify-content: space-between; align-items: center; margin-top:2px;">
+            <div>
+                <span style="font-size:22px; font-weight:800; color:#f87171;">{{ number_format($totalMeninggal ?? 0) }}</span>
+                <span style="font-size:11px; display:block; color:#9cd4c5;">Meninggal</span>
+            </div>
+            <div style="text-align: right;">
+                <span style="font-size:22px; font-weight:800; color:#fbbf24;">{{ number_format($totalKeluar ?? 0) }}</span>
+                <span style="font-size:11px; display:block; color:#9cd4c5;">Pindah</span>
+            </div>
+        </div>
+        <div class="bar-container">
+            <div class="bar-mutasi-left" style="width: {{$pctMng}}%;"></div>
+            <div class="bar-mutasi-right" style="width: {{$pctPnd}}%;"></div>
+        </div>
+    </div>
 </div>
 
 <div class="age-grid">
-
-@php
-$totalAge = array_sum($ageValues ?? []);
-@endphp
-
-@foreach($ageCards as $card)
-
-@php
-$persen = $totalAge > 0
-    ? round(($card['value'] / $totalAge) * 100)
-    : 0;
-@endphp
-
-<div class="stat-card age-card">
-
-    <div class="stat-label">
-        {{ str_replace('Jumlah ','',$card['label']) }}
-    </div>
-
-    <div class="stat-value">
-        {{ number_format($card['value']) }}
-    </div>
-
-    <div style="margin-top:15px;">
-        <small>{{ $persen }}%</small>
-
-        <div style="
-            width:100%;
-            height:8px;
-            background:rgba(255,255,255,.2);
-            border-radius:20px;
-            margin-top:6px;">
-
-            <div style="
-                width:{{ $persen }}%;
-                height:100%;
-                background:#4ade80;
-                border-radius:20px;">
+    @php $totalAge = array_sum($ageValues ?? []); @endphp
+    @foreach($ageCards as $card)
+        @php $persen = $totalAge > 0 ? round(($card['value'] / $totalAge) * 100) : 0; @endphp
+        <div class="stat-card" style="min-height: 110px; padding: 16px;">
+            <div style="display:flex; justify-content:space-between; font-size:12px; color:#9cd4c5;">
+                <span>{{ $card['label'] }}</span>
+                <span style="color:white; font-weight:700;">{{ $persen }}%</span>
             </div>
-
+            <div class="stat-value" style="font-size: 26px; margin: 4px 0;">{{ number_format($card['value']) }}</div>
+            <div style="font-size:11px; color:#cbd5e1; margin-bottom:6px;">{{ $card['range'] }}</div>
+            <div style="width:100%; height:6px; background:rgba(255,255,255,.1); border-radius:10px;">
+                <div style="width:{{ $persen }}%; height:100%; background:{{ $card['color'] }}; border-radius:10px;"></div>
+            </div>
         </div>
-    </div>
-
-</div>
-
-@endforeach
+    @endforeach
 </div>
 
 <div class="charts-grid">
     <div class="chart-card">
         <div class="chart-header">
-            <h2 class="chart-title">Chart jumlah laki-laki dan perempuan</h2>
+            <h2 class="chart-title">Jenis Kelamin</h2>
+            <span class="chart-subtitle">Distribusi gender penduduk aktif</span>
         </div>
-        <canvas id="genderChart"></canvas>
-        <div class="gender-legend">
-            <span class="gender-legend-item female-label">
-                <span class="gender-legend-dot" style="background:#f59e0b;"></span>
-                Perempuan
-            </span>
-            <span class="gender-legend-item male-label">
-                <span class="gender-legend-dot" style="background:#076653;"></span>
-                Laki-laki
-            </span>
+        <div class="chart-container">
+            <canvas id="genderChart"></canvas>
+        </div>
+        <div class="gender-custom-legend">
+            <div class="gender-row">
+                <div class="gender-identity">
+                    <span class="gender-dot" style="background:#3b82f6;"></span>
+                    <span>Laki-laki</span>
+                </div>
+                <span class="gender-value">{{ number_format($totalLakiLaki ?? 0) }} jiwa (51%)</span>
+            </div>
+            <div class="gender-row">
+                <div class="gender-identity">
+                    <span class="gender-dot" style="background:#ec4899;"></span>
+                    <span>Perempuan</span>
+                </div>
+                <span class="gender-value">{{ number_format($totalPerempuan ?? 0) }} jiwa (49%)</span>
+            </div>
         </div>
     </div>
 
     <div class="chart-card">
         <div class="chart-header">
-            <h2 class="chart-title">Kategori Usia</h2>
+            <h2 class="chart-title">Distribusi Usia</h2>
+            <span class="chart-subtitle">Breakdown per kelompok umur</span>
         </div>
-        <canvas id="ageChart"></canvas>
+        <div class="chart-container">
+            <canvas id="ageChart"></canvas>
+        </div>
     </div>
 
     <div class="chart-card">
         <div class="chart-header">
-            <h2 class="chart-title">Tingkat pendidikan</h2>
+            <h2 class="chart-title">Tingkat Pendidikan</h2>
+            <span class="chart-subtitle">Distribusi jenjang pendidikan warga</span>
         </div>
-        <canvas id="educationChart"></canvas>
+        <div class="chart-container">
+            <canvas id="educationChart"></canvas>
+        </div>
     </div>
 </div>
-<div class="region-grid">
 
+<div class="region-grid">
     <div class="chart-card">
         <div class="chart-header">
             <h2 class="chart-title">Penduduk per Dusun</h2>
+            <span class="chart-subtitle">Sebaran jiwa & KK tiap dusun</span>
         </div>
-        <canvas id="dusunChart"></canvas>
-
-        <div class="mini-summary">
+        <div class="chart-container">
+            <canvas id="dusunChart"></canvas>
+        </div>
+        <div class="bottom-badges-container">
             @foreach($dusunLabels as $i => $label)
-                <div class="mini-box">
+                <div class="badge-summary-box">
                     <strong>{{ number_format($dusunValues[$i] ?? 0) }}</strong>
-                    <span>{{ $label }}</span>
+                    <span>{{ str_replace('Dusun ', '', $label) }}</span>
                 </div>
             @endforeach
         </div>
@@ -475,33 +496,30 @@ $persen = $totalAge > 0
 
     <div class="chart-card">
         <div class="chart-header">
-            <h2 class="chart-title">Jumlah Penduduk per RW</h2>
+            <h2 class="chart-title">Penduduk per RW</h2>
+            <span class="chart-subtitle">Sebaran jiwa & KK tiap RW</span>
         </div>
-        <canvas id="rwChart"></canvas>
-        <div id="rwSummary" style="display:flex;gap:12px;margin-top:16px;flex-wrap:wrap"></div>
+        <div class="chart-container">
+            <canvas id="rwChart"></canvas>
+        </div>
+        <div id="rwSummary" class="bottom-badges-container"></div>
     </div>
 
     <div class="chart-card">
         <div class="chart-header">
-            <h2 class="chart-title">Jumlah Penduduk per RT</h2>
+            <h2 class="chart-title">Penduduk per RT</h2>
+            <span class="chart-subtitle">Detail tiap RT dalam RW terpilih</span>
         </div>
-        <div class="rw-rt-body" style="display:grid;grid-template-columns:minmax(0, 1.55fr) minmax(240px, 0.85fr);gap:16px;align-items:start;">
-            <div class="rw-rt-chart-area" style="min-width:0;">
-                <div class="chart-container" style="height:180px;display:flex;align-items:center;justify-content:center;padding:6px 0;">
-                    <canvas id="rtChart"></canvas>
-                </div>
-                <div id="rwTabs" style="display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;margin-bottom:0;"></div>
+        <div class="rt-layout-wrapper">
+            <div id="rwTabs" class="rw-tabs"></div>
+            <div class="chart-container">
+                <canvas id="rtChart"></canvas>
             </div>
-            <div class="rt-summary-panel" style="min-width:220px;">
-                <h3 class="chart-title">Detail RT</h3>
-                <div id="rtList" style="display:flex;flex-direction:column;gap:10px;margin-top:14px;max-height:100%;overflow:auto;padding-right:4px;"></div>
-            </div>
+            <div class="rt-side-pane-horizontal" id="rtList"></div>
         </div>
     </div>
-
 </div>
 
-<!-- Occupation Section -->
 <div class="occupation-section">
     <div class="occupation-header">
         <h2 class="occupation-title">Informasi Pekerjaan Penduduk Aktif</h2>
@@ -509,15 +527,13 @@ $persen = $totalAge > 0
     <table class="occupation-table">
         <thead>
             <tr>
-                <th style="width: 25%;">Jenis Pekerjaan</th>
-                <th style="width: 15%; text-align: center;">Jumlah</th>
-                <th style="width: 60%;">Persentase</th>
+                <th style="width: 30%;">Jenis Pekerjaan</th>
+                <th style="width: 20%; text-align: center;">Jumlah</th>
+                <th style="width: 50%;">Persentase</th>
             </tr>
         </thead>
         <tbody>
-            @php
-                $totalOccupation = array_sum($occupationValues ?? []);
-            @endphp
+            @php $totalOccupation = array_sum($occupationValues ?? []); @endphp
             @forelse($occupationLabels as $index => $label)
                 @php
                     $count = $occupationValues[$index] ?? 0;
@@ -537,9 +553,7 @@ $persen = $totalAge > 0
                 </tr>
             @empty
                 <tr>
-                    <td colspan="3" style="text-align: center; color: #94a3b8; padding: 24px;">
-                        Data pekerjaan tidak tersedia
-                    </td>
+                    <td colspan="3" style="text-align: center; color: #9cd4c5; padding: 24px;">Data pekerjaan tidak tersedia</td>
                 </tr>
             @endforelse
         </tbody>
@@ -551,33 +565,15 @@ $persen = $totalAge > 0
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
 
 <script>
-// Chart.js Configuration
-const chartColors = {
-    primary: '#076653',
-    secondary: '#0C342C',
-    accent: '#E3EF26',
-    success: '#10b981',
-    warning: '#f59e0b',
-    info: '#3b82f6',
-};
+Chart.defaults.color = '#9cd4c5';
+Chart.defaults.plugins.legend.labels.color = '#ffffff';
 
 const ageLabels = @json($ageLabels);
 const ageValues = @json($ageValues);
 const educationLabels = @json($educationLabels);
 const educationValues = @json($educationValues);
 
-const palette = [
-    chartColors.primary,
-    chartColors.success,
-    chartColors.info,
-    chartColors.warning,
-    '#6366f1',
-    '#8b5cf6',
-    '#14b8a6',
-    '#ec4899',
-];
-
-// Gender Distribution Chart
+// 1. Gender Chart 
 const genderCtx = document.getElementById('genderChart').getContext('2d');
 new Chart(genderCtx, {
     type: 'doughnut',
@@ -585,297 +581,269 @@ new Chart(genderCtx, {
         labels: ['Laki-laki', 'Perempuan'],
         datasets: [{
             data: [{{ $totalLakiLaki ?? 0 }}, {{ $totalPerempuan ?? 0 }}],
-            backgroundColor: [chartColors.primary, chartColors.warning],
+            backgroundColor: ['#3b82f6', '#ec4899'],
             borderWidth: 0
         }]
     },
-    cutout:'72%',
-    options:{
-        responsive:true,
-        plugins:{
-            legend:{
-                display:false
-            }
-        }
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '70%', 
+        plugins: { legend: { display: false } }
     }
 });
 
-// Age Distribution Chart
+// 2. Age Distribution Chart
 const ageCtx = document.getElementById('ageChart').getContext('2d');
 new Chart(ageCtx, {
     type: 'bar',
     data: {
         labels: ageLabels,
         datasets: [{
-            label: 'Jumlah Penduduk',
             data: ageValues,
-            backgroundColor:'#ec4899',
-            borderRadius:12,
-            barThickness:18
+            backgroundColor: '#ec4899',
+            borderRadius: 4,
+            barThickness: 22
         }]
     },
     options: {
         responsive: true,
-        plugins: {
-            legend: {
-                display: false
-            }
-        },
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
         scales: {
-            y: {
-                beginAtZero: true
-            }
+            x: { grid: { display: false }, ticks: { color: '#ffffff' } },
+            y: { grid: { color: 'rgba(255,255,255,0.05)' }, beginAtZero: true }
         }
     }
 });
 
-// Education Chart
+// 3. Education Chart
 const educationCtx = document.getElementById('educationChart').getContext('2d');
 new Chart(educationCtx, {
-    type:'doughnut',
+    type: 'doughnut',
     data: {
         labels: educationLabels,
-        datasets:[{
-            data:educationValues,
-            backgroundColor:[
-                '#94a3b8',
-                '#60a5fa',
-                '#22c55e',
-                '#facc15',
-                '#fb923c',
-                '#ec4899',
-                '#8b5cf6'
-            ],
-            borderWidth:0
+        datasets: [{
+            data: educationValues,
+            backgroundColor: ['#7dd3c0', '#64748b', '#3b82f6', '#eab308', '#f97316', '#ec4899', '#a855f7'],
+            borderWidth: 0
         }]
     },
-    cutout:'65%',
-    options:{
-        responsive:true,
-        plugins:{
-            legend:{
-                position:'bottom'
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '70%',
+        plugins: {
+            legend: {
+                position: 'right',
+                labels: { boxWidth: 10, font: { size: 10 } }
             }
         }
     }
 });
 
-// Distribution charts (using realtime JSON endpoint) - keep other charts untouched.
+// 4. Dusun Horizontal Bar Chart
 const dusunCtx = document.getElementById('dusunChart').getContext('2d');
-const rwCtx = document.getElementById('rwChart').getContext('2d');
-const rtCtx = document.getElementById('rtChart').getContext('2d');
-
 let dusunChart = new Chart(dusunCtx, {
     type: 'bar',
     data: {
-        labels: @json($dusunLabels),
+        labels: @json($dusunLabels).map(l => l.replace('Dusun ', '')),
         datasets: [{
             data: @json($dusunValues),
-            backgroundColor: '#d9f01f',
-            borderRadius: 10
+            backgroundColor: '#d9f01f', 
+            borderRadius: 4,
+            barThickness: 12
         }]
     },
     options: {
         indexAxis: 'y',
         responsive: true,
         maintainAspectRatio: false,
-        plugins: {
-            legend: { display: false },
-            tooltip: {
-                callbacks: {
-                    label: function(context) {
-                        const total = @json(max((int)($totalPenduduk ?? 0),1));
-                        const value = context.raw ?? 0;
-                        const persen = total > 0 ? roundTo1((value / total) * 100) : 0;
-                        return `Jumlah: ${Number(value).toLocaleString('id-ID')} (${persen}%)`;
-                    }
-                }
-            }
+        animation: false,
+        plugins: { legend: { display: false } },
+        scales: {
+            x: { grid: { color: 'rgba(255,255,255,0.05)' }, beginAtZero: true },
+            y: { grid: { display: false }, ticks: { color: '#ffffff', font: { size: 10 } } }
         }
     }
 });
 
+// 5. RW Vertical Chart
+const rwCtx = document.getElementById('rwChart').getContext('2d');
 let rwChart = new Chart(rwCtx, {
     type: 'bar',
     data: {
-        labels: @json($rwLabels),
+        labels: @json($rwLabels).map(l => l.replace(/.*(RW\s*[-_:\s]*)/i, 'RW ').replace(/RW\s*0+(\d+)/i, 'RW $1')),
         datasets: [{
             data: @json($rwValues),
-            backgroundColor: '#7dd3c0',
-            borderRadius: 10
+            backgroundColor: '#7dd3c0', 
+            borderRadius: 4,
+            barThickness: 24
         }]
     },
     options: {
-        indexAxis: 'y',
         responsive: true,
         maintainAspectRatio: false,
-        plugins: {
-            legend: { display: false },
-            tooltip: {
-                callbacks: {
-                    label: function(context) {
-                        const total = @json(max((int)($totalPenduduk ?? 0),1));
-                        const value = context.raw ?? 0;
-                        const persen = total > 0 ? roundTo1((value / total) * 100) : 0;
-                        return `Jumlah: ${Number(value).toLocaleString('id-ID')} (${persen}%)`;
-                    }
-                }
-            }
+        animation: false,
+        plugins: { legend: { display: false } },
+        scales: {
+            x: { grid: { display: false }, ticks: { color: '#ffffff' } },
+            y: { grid: { color: 'rgba(255,255,255,0.05)' }, beginAtZero: true }
         }
     }
 });
 
+// 6. RT Curved Spline Chart
+const rtCtx = document.getElementById('rtChart').getContext('2d');
 let rtChart = new Chart(rtCtx, {
-    type: 'bar',
+    type: 'line',
     data: {
         labels: @json($rtLabels),
         datasets: [{
             data: @json($rtValues),
-            backgroundColor: '#a855f7',
-            borderRadius: 10
+            borderColor: '#c084fc',
+            backgroundColor: 'rgba(192,132,252,0.15)',
+            fill: true,
+            tension: 0.4, 
+            pointBackgroundColor: '#a855f7',
+            pointBorderColor: '#ffffff',
+            pointBorderWidth: 2,
+            pointRadius: 5
         }]
     },
     options: {
-        indexAxis: 'y',
         responsive: true,
         maintainAspectRatio: false,
-        plugins: {
-            legend: { display: false },
-            tooltip: {
-                callbacks: {
-                    label: function(context) {
-                        const total = @json(max((int)($totalPenduduk ?? 0),1));
-                        const value = context.raw ?? 0;
-                        const persen = total > 0 ? roundTo1((value / total) * 100) : 0;
-                        return `Jumlah: ${Number(value).toLocaleString('id-ID')} (${persen}%)`;
-                    }
-                }
-            }
+        animation: false,
+        plugins: { legend: { display: false } },
+        scales: {
+            x: { grid: { display: false }, ticks: { color: '#ffffff' } },
+            y: { grid: { color: 'rgba(255,255,255,0.05)' }, beginAtZero: true }
         }
     }
 });
 
-function roundTo1(n) {
-    return Math.round((n + Number.EPSILON) * 10) / 10;
-}
+// Fetch Realtime Data Terstruktur & Stabil
+document.addEventListener('DOMContentLoaded', () => {
+    fetch('{{ route('kasi.dashboard.chart-data') }}', {
+        method: 'GET',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(res => res.json())
+    .then(data => {
+        // Update Dusun Chart
+        if (data.dusun && data.dusun.labels) {
+            dusunChart.data.labels = data.dusun.labels.map(l => l.replace('Dusun ', ''));
+            dusunChart.data.datasets[0].data = data.dusun.data;
+            dusunChart.update({ duration: 0 });
+        }
 
-// Fetch realtime data for distribution charts
-fetch('{{ route('kasi.dashboard.chart-data') }}', {
-    method: 'GET',
-    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-})
-.then(res => {
-    if (!res.ok) throw new Error('Failed to load distribution data');
-    return res.json();
-})
-.then(data => {
-    // Dusun
-    if (data.dusun) {
-        dusunChart.data.labels = data.dusun.labels;
-        dusunChart.data.datasets[0].data = data.dusun.data;
-        dusunChart.update();
-    }
+        // Update RW & RT Chart
+        if (data.rw && data.rw.labels) {
+            const rawRwLabels = data.rw.labels; 
+            
+            rwChart.data.labels = rawRwLabels.map(l => {
+                return l.replace(/.*(RW\s*[-_:\s]*)/i, 'RW ').replace(/RW\s*0+(\d+)/i, 'RW $1');
+            });
+            rwChart.data.datasets[0].data = data.rw.data;
+            rwChart.update({ duration: 0 });
 
-    // RW
-    if (data.rw) {
-        rwChart.data.labels = data.rw.labels;
-        rwChart.data.datasets[0].data = data.rw.data;
-        rwChart.update();
+            // Render RW Summary Badges
+            try {
+                const rwSummary = document.getElementById('rwSummary');
+                if (rwSummary) {
+                    rwSummary.innerHTML = '';
+                    rawRwLabels.forEach((label, idx) => {
+                        const count = Number((data.rw.data || [])[idx] || 0);
+                        const kkVal = Math.round(count / 3.7); 
+                        const cleanLabel = label.replace(/.*(RW\s*[-_:\s]*)/i, 'RW ').replace(/RW\s*0+(\d+)/i, 'RW $1');
 
-        // Populate RW summary cards (mimic kasun UI)
-        try {
-            const rwSummary = document.getElementById('rwSummary');
-            if (rwSummary) {
-                rwSummary.innerHTML = '';
-                (data.rw.labels || []).forEach((label, idx) => {
-                    const count = Number((data.rw.data || [])[idx] || 0);
-                    const card = document.createElement('div');
-                    card.style.cssText = 'background: rgba(227,239,38,0.08); padding:12px 14px; border-radius:12px; min-width:110px; text-align:center; border:1px solid rgba(7,102,83,0.12)';
-                    card.innerHTML = `<div style="font-weight:800; font-size:18px; color:#0C342C">${new Intl.NumberFormat('id-ID').format(count)}</div><div style="font-size:12px; color:rgba(12,52,44,0.7); margin-top:4px">${label}</div>`;
-                    rwSummary.appendChild(card);
-                });
-            }
-        } catch (e) {}
+                        const card = document.createElement('div');
+                        card.className = 'badge-summary-box';
+                        card.innerHTML = `<strong>${count}</strong><div style="font-size:11px; color:#a3e635; font-weight:700;">${cleanLabel}</div><div style="font-size:10px; color:#9cd4c5;">${kkVal} KK</div>`;
+                        rwSummary.appendChild(card);
+                    });
+                }
+            } catch (e) { console.error(e); }
 
-        // Build RW->RT groups & tabs (use structured details, no regex parsing)
-        try {
-            const rwTabs = document.getElementById('rwTabs');
-            const rtList = document.getElementById('rtList');
-            if (rwTabs && rtList && data && data.rw && data.rt) {
-                const rwLabels = data.rw.labels || [];
+            // Grouping RT Data berdasarkan label RW asli (mencegah data merosot/hilang)
+            try {
+                const rwTabs = document.getElementById('rwTabs');
+                const rtList = document.getElementById('rtList');
+                
+                if (rwTabs && rtList && data.rt && data.rt.details) {
+                    const rtGroups = {};
+                    
+                    data.rt.details.forEach((d) => {
+                        const rwNo = parseInt(d.rw ?? 0, 10);
+                        
+                        const candidateKey = rawRwLabels.find(l => {
+                            const match = l.match(/RW\s*0*(\d+)/i);
+                            return match && parseInt(match[1], 10) === rwNo;
+                        }) || rawRwLabels[rwNo - 1] || `RW ${rwNo}`;
 
-                // Group RT rows by RW label
-                const rtGroups = {};
-                const rtDetails = data.rt.details || [];
-                rtDetails.forEach((d) => {
-                    const idDusun = String(d.id_dusun ?? '');
-                    const rwNo = String(d.rw ?? '');
-                    // label convention for kasi: "{DusunName} - RW X" when scopeDusun is null, otherwise "RW X"
-                    // Build grouping key by matching the RW number against existing RW labels.
-                    const labelRw = `RW ${rwNo}`;
-                    const candidateKey = rwLabels.find(l => String(l).trim().endsWith(labelRw)) || labelRw;
+                        const rtLabel = `RT ${String(d.rt).padStart(2, '0')}`;
+                        if (!rtGroups[candidateKey]) rtGroups[candidateKey] = [];
+                        
+                        rtGroups[candidateKey].push({ label: rtLabel, count: Number(d.count || 0) });
+                    });
 
-                    const rtLabel = `RT ${d.rt}`;
-                    const key = candidateKey;
+                    // Fungsi Render RT
+                    const renderRTForRW = (targetRwLabel) => {
+                        const rows = (rtGroups[targetRwLabel] || []).sort((a, b) => a.label.localeCompare(b.label));
+                        
+                        rtList.innerHTML = '';
+                        if (!rows.length) {
+                            rtList.innerHTML = '<div style="color:#9cd4c5; font-size:12px; padding: 10px;">Tidak ada data RT.</div>';
+                            rtChart.data.labels = [];
+                            rtChart.data.datasets[0].data = [];
+                            rtChart.update({ duration: 0 });
+                            return;
+                        }
 
-                    if (!rtGroups[key]) rtGroups[key] = [];
-                    rtGroups[key].push({ label: rtLabel, count: Number(d.count || 0) });
-                });
+                        rows.forEach((row) => {
+                            const item = document.createElement('div');
+                            item.className = 'rt-list-card';
+                            item.innerHTML = `<div class="rt-list-name">${row.label}</div><div class="rt-list-val">${row.count} jiwa</div>`;
+                            rtList.appendChild(item);
+                        });
 
-                const renderRTForRW = (rwLabel) => {
-                    const rows = (rtGroups[rwLabel] || []).slice();
-                    rtList.innerHTML = '';
-                    if (!rows.length) {
-                        rtList.innerHTML = '<div style="color:#64748b; opacity:0.9; padding:12px 0;">Tidak ada data RT untuk RW ini.</div>';
-                        rtChart.data.labels = [];
-                        rtChart.data.datasets[0].data = [];
-                        rtChart.update();
-                        return;
+                        rtChart.data.labels = rows.map(r => r.label);
+                        rtChart.data.datasets[0].data = rows.map(r => r.count);
+                        rtChart.update({ duration: 0 });
+                    };
+
+                    // Render Tombol Tab RW secara dinamis
+                    rwTabs.innerHTML = '';
+                    rawRwLabels.forEach((rwLabel, index) => {
+                        const btn = document.createElement('button');
+                        btn.type = 'button';
+                        btn.className = 'rw-tab' + (index === 0 ? ' active' : '');
+                        
+                        let cleanBtnLabel = rwLabel.replace(/.*(RW\s*[-_:\s]*)/i, 'RW ').replace(/RW\s*0+(\d+)/i, 'RW $1');  
+                        btn.textContent = cleanBtnLabel;
+                        
+                        btn.addEventListener('click', () => {
+                            rwTabs.querySelectorAll('.rw-tab').forEach(el => el.classList.remove('active'));
+                            btn.classList.add('active');
+                            renderRTForRW(rwLabel);
+                        });
+                        rwTabs.appendChild(btn);
+                    });
+
+                    // Tampilkan data RT untuk RW pertama secara default
+                    if (rawRwLabels.length > 0) {
+                        renderRTForRW(rawRwLabels[0]);
                     }
-
-                    rows.forEach((row) => {
-                        const item = document.createElement('div');
-                        item.className = 'rt-summary-item';
-                        item.innerHTML = `<div class="label">${row.label}</div><div class="value">${new Intl.NumberFormat('id-ID').format(row.count)} jiwa</div>`;
-                        rtList.appendChild(item);
-                    });
-
-                    rtChart.data.labels = rows.map(r => r.label);
-                    rtChart.data.datasets[0].data = rows.map(r => r.count);
-                    rtChart.update();
-                };
-
-                // tabs
-                rwTabs.innerHTML = '';
-                rwLabels.forEach((rwLabel, index) => {
-                    const btn = document.createElement('button');
-                    btn.type = 'button';
-                    btn.className = 'rw-tab' + (index === 0 ? ' active' : '');
-                    btn.textContent = rwLabel;
-                    btn.addEventListener('click', () => {
-                        rwTabs.querySelectorAll('.rw-tab').forEach(el => el.classList.remove('active'));
-                        btn.classList.add('active');
-                        renderRTForRW(rwLabel);
-                    });
-                    rwTabs.appendChild(btn);
-                });
-
-                renderRTForRW(rwLabels[0] || 'RW');
+                }
+            } catch (e) {
+                console.error("Error rendering RT Chart: ", e);
             }
-        } catch (e) {}
-
-    }
-
-    // RT (initial - will be overridden by RW tab rendering)
-    if (data.rt) {
-        rtChart.data.labels = data.rt.labels || [];
-        rtChart.data.datasets[0].data = data.rt.data || [];
-        rtChart.update();
-    }
-})
-.catch(() => {
-    // Keep initial blade-rendered charts if API fails.
+        }
+    })
+    .catch((err) => {
+        console.error("Fetch error: ", err);
+    });
 });
-
 </script>
 @endpush
