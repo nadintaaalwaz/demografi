@@ -187,17 +187,9 @@ Manajemen Wilayah
         flex-shrink: 0;
     }
 
-    .wilayah-dot.yellow {
-        background: #E3EF26;
-    }
-
-    .wilayah-dot.green {
-        background: #10b981;
-    }
-
-    .wilayah-dot.blue {
-        background: #3b82f6;
-    }
+    .wilayah-dot.yellow { background: #E3EF26; }
+    .wilayah-dot.green { background: #10b981; }
+    .wilayah-dot.blue { background: #3b82f6; }
 
     .wilayah-name span {
         font-weight: 600;
@@ -230,20 +222,9 @@ Manajemen Wilayah
         text-transform: uppercase;
     }
 
-    .badge-dusun {
-        background: #dbeafe;
-        color: #1e40af;
-    }
-
-    .badge-rt {
-        background: #d1fae5;
-        color: #065f46;
-    }
-
-    .badge-rw {
-        background: #fef3c7;
-        color: #92400e;
-    }
+    .badge-dusun { background: #fef3c7; color: #92400e; }
+    .badge-rt { background: #d1fae5; color: #065f46; }
+    .badge-rw { background: #dbeafe; color: #1e40af; }
 
     .action-btns {
         display: flex;
@@ -263,25 +244,11 @@ Manajemen Wilayah
         font-size: 14px;
     }
 
-    .btn-edit {
-        background: #fef3c7;
-        color: #d97706;
-    }
+    .btn-edit { background: #fef3c7; color: #d97706; }
+    .btn-edit:hover { background: #fde68a; transform: translateY(-2px); }
 
-    .btn-edit:hover {
-        background: #fde68a;
-        transform: translateY(-2px);
-    }
-
-    .btn-delete {
-        background: #fee2e2;
-        color: #dc2626;
-    }
-
-    .btn-delete:hover {
-        background: #fecaca;
-        transform: translateY(-2px);
-    }
+    .btn-delete { background: #fee2e2; color: #dc2626; }
+    .btn-delete:hover { background: #fecaca; transform: translateY(-2px); }
 
     .map-container {
         background: #fff;
@@ -345,21 +312,38 @@ Manajemen Wilayah
     }
 
     .legend-dot {
-        width: 10px;
-        height: 10px;
+        width: 12px;
+        height: 12px;
         border-radius: 50%;
         display: inline-block;
+        border: 2px solid #fff;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.3);
     }
 
-    .legend-dot.dusun { background: #E3EF26; }
+    .legend-dot.dusun { background: #ff9f43; }
     .legend-dot.rw { background: #10b981; }
     .legend-dot.rt { background: #3b82f6; }
 
-    .legend-line {
-        display: inline-block;
-        width: 20px;
-        height: 3px;
-        background: #dc2626;
+    /* Custom Beautiful Pin Markers CSS */
+    .custom-marker-pin {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 50% 50% 50% 0;
+        transform: rotate(-45deg);
+        box-shadow: -1px 3px 6px rgba(0,0,0,0.3);
+    }
+
+    .custom-marker-pin::after {
+        content: '';
+        width: 14px;
+        height: 14px;
+        margin: 0 0 1px 1px;
+        background: #fff;
+        border-radius: 50%;
+        transform: rotate(45deg);
     }
 
     .empty-state {
@@ -380,11 +364,8 @@ Manajemen Wilayah
         margin-bottom: 8px;
     }
 
-    .empty-state p {
-        font-size: 13px;
-    }
+    .empty-state p { font-size: 13px; }
 
-    /* Delete Modal */
     .modal {
         display: none;
         position: fixed;
@@ -464,43 +445,20 @@ Manajemen Wilayah
         gap: 8px;
     }
 
-    .btn-cancel {
-        background: #e5e7eb;
-        color: #374151;
-    }
+    .btn-cancel { background: #e5e7eb; color: #374151; }
+    .btn-cancel:hover { background: #d1d5db; }
 
-    .btn-cancel:hover {
-        background: #d1d5db;
-    }
-
-    .btn-danger {
-        background: linear-gradient(135deg, #ef4444, #dc2626);
-        color: #fff;
-    }
-
-    .btn-danger:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
-    }
+    .btn-danger { background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; }
+    .btn-danger:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); }
 
     @media (max-width: 1200px) {
-        .wilayah-container {
-            grid-template-columns: 1fr;
-        }
-
-        .wilayah-summary {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-
-        .map-container {
-            position: static;
-        }
+        .wilayah-container { grid-template-columns: 1fr; }
+        .wilayah-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .map-container { position: static; }
     }
 
     @media (max-width: 768px) {
-        .wilayah-summary {
-            grid-template-columns: 1fr;
-        }
+        .wilayah-summary { grid-template-columns: 1fr; }
     }
 </style>
 @endpush
@@ -655,7 +613,7 @@ Manajemen Wilayah
         <div id="map"></div>
         <div class="map-legend">
             <div class="map-legend-items">
-                <span><i class="legend-dot dusun"></i>Dusun</span>
+                <span><i class="legend-dot dusun"></i>Dusun (Pin Oranye)</span>
                 <span><i class="legend-dot rw"></i>RW (Pin Hijau)</span>
                 <span><i class="legend-dot rt"></i>RT (Pin Biru)</span>
             </div>
@@ -665,7 +623,7 @@ Manajemen Wilayah
             </div>
         </div>
         <div class="map-hint">
-            Peta menampilkan garis batas merah polygon (GeoJSON) beserta sebaran marker titik internal.
+            Peta menampilkan garis batas merah polygon (GeoJSON) beserta sebaran marker titik internal. Klik pada area atau pin untuk melihat info detail.
         </div>
     </div>
 </div>
@@ -683,9 +641,7 @@ Manajemen Wilayah
             <p>Tindakan ini tidak dapat dibatalkan.</p>
         </div>
         <div class="modal-footer">
-            <button type="button" class="btn btn-cancel" onclick="closeDeleteModal()">
-                Batal
-            </button>
+            <button type="button" class="btn btn-cancel" onclick="closeDeleteModal()">Batal</button>
             <form id="deleteForm" method="POST" style="display: inline;">
                 @csrf
                 @method('DELETE')
@@ -715,38 +671,27 @@ Manajemen Wilayah
     const dusunPendudukMap = new Map(dusunSummary.map(item => [Number(item.id), Number(item.total_penduduk || 0)]));
     const bounds = [];
 
+    // Fungsi pembuat marker modern baru agar selaras & elegan
     function buildPinIcon(color) {
         return L.divIcon({
-            className: 'custom-pin-icon',
-            html: `<i class="fas fa-map-marker-alt" style="color: ${color}; font-size: 24px; text-shadow: 0 2px 6px rgba(0,0,0,0.35);"></i>`,
-            iconSize: [24, 24],
-            iconAnchor: [12, 24],
-            popupAnchor: [0, -20],
+            className: 'custom-div-icon',
+            html: `<div class="custom-marker-pin" style="background: ${color};"></div>`,
+            iconSize: [32, 32],
+            iconAnchor: [16, 32],
+            popupAnchor: [0, -28],
         });
     }
 
-    // 2. Render Markers bawaan Database
+    // 2. Render Markers bawaan Database dengan Pin Baru yang Selaras
     wilayahData.forEach(item => {
         if (item.latitude && item.longitude) {
             let markerColor = '';
-            if (item.tipe === 'dusun') markerColor = '#E3EF26';
-            else if (item.tipe === 'rt') markerColor = '#3b82f6';
-            else markerColor = '#10b981';
+            if (item.tipe === 'dusun') markerColor = '#ff9f43'; // Oranye Cerah agar kontras dibanding kuning kusam
+            else if (item.tipe === 'rt') markerColor = '#3b82f6';    // Biru modern
+            else markerColor = '#10b981';                           // Hijau emerald
 
-            let marker;
-            if (item.tipe === 'dusun') {
-                const jumlah = dusunPendudukMap.get(Number(item.id)) || 0;
-                const radius = Math.max(8, Math.min(24, 8 + Math.sqrt(jumlah)));
-                marker = L.circleMarker([item.latitude, item.longitude], {
-                    radius,
-                    color: '#ca8a04',
-                    weight: 2,
-                    fillColor: markerColor,
-                    fillOpacity: 0.5,
-                });
-            } else {
-                marker = L.marker([item.latitude, item.longitude], { icon: buildPinIcon(markerColor) });
-            }
+            // Menggunakan Pin terstandarisasi untuk semua jenis penanda agar selaras
+            const marker = L.marker([item.latitude, item.longitude], { icon: buildPinIcon(markerColor) });
 
             marker.addTo(mainLayer);
             bounds.push([Number(item.latitude), Number(item.longitude)]);
@@ -765,7 +710,7 @@ Manajemen Wilayah
         }
     });
 
-    // 3. Data GeoJSON Batas Wilayah Baru (Dua Polygon & Satu LineString)
+    // 3. Data GeoJSON Batas Wilayah Dinamis
     const geojsonData = {
       "type": "FeatureCollection",
       "features": [
@@ -796,7 +741,7 @@ Manajemen Wilayah
             ],
             "type": "LineString"
           },
-          "properties": { "name": "Dusun" },
+          "properties": { "name": "Batas Dusun" },
           "id": "Dui3w"
         },
         {
@@ -814,43 +759,42 @@ Manajemen Wilayah
             ]],
             "type": "Polygon"
           },
-          "properties": { "name": "Wilayah desa sebalor" },
+          "properties": { "name": "Wilayah Desa Sebalor" },
           "id": "Ivo1v"
         }
       ]
     };
 
-    // 4. Render Garis Batas Secara Dinamis Berdasarkan Nama Fitur GeoJSON
+    // 4. Render Garis Batas Secara Dinamis & Mengubah Nama Popup Sesuai yang Diklik
     const geojsonLayer = L.geoJSON(geojsonData, {
         style: function(feature) {
             const name = feature.properties.name.toLowerCase();
             
-            // Jika fitur adalah "Wilayah desa sebalor" -> Beri garis putus-putus merah tegas
             if (name.includes('desa sebalor')) {
                 return {
-                    color: "#dc2626",       // Warna merah solid
-                    weight: 3.5,            // Sedikit tebal agar jelas
-                    dashArray: "8, 6",      // Membuat efek garis putus-putus (panjang garis 8px, jarak 6px)
+                    color: "#dc2626",
+                    weight: 3.5,
+                    dashArray: "8, 6",
                     opacity: 0.9,
                     fillColor: "#fee2e2",
-                    fillOpacity: 0.05       // Arsiran dalam sangat tipis agar tidak menumpuk dengan dusun
+                    fillOpacity: 0.05
                 };
             } 
             
-            // Jika fitur adalah Dusun -> Beri warna polygon pembeda (Oranye/Kuning Emas)
             return {
-                color: "#d97706",           // Garis batas luar oranye gelap
+                color: "#d97706",
                 weight: 2,
                 opacity: 0.8,
-                fillColor: "#fef3c7",       // Isian dalam warna kuning amber transparan
-                fillOpacity: 0.4            // Lebih pekat agar terlihat wilayah pembedanya
+                fillColor: "#fef3c7",
+                fillOpacity: 0.4
             };
         },
         onEachFeature: function (feature, layer) {
             if (feature.properties && feature.properties.name) {
+                // Di sini perbaikan utama dilakukan: Isi popup mengambil secara presisi properti asli dari objek GeoJSON yang diklik
                 layer.bindPopup(`
                     <div style="font-family: 'Segoe UI', sans-serif; padding: 2px;">
-                        <strong style="color: #0c342c; font-size: 13px;">${feature.properties.name}</strong><br>
+                        <strong style="color: #0c342c; font-size: 14px;">${feature.properties.name}</strong><br>
                         <span style="font-size: 11px; color: #6b7280;">Format: ${feature.geometry.type}</span>
                     </div>
                 `);
@@ -858,7 +802,6 @@ Manajemen Wilayah
         }
     }).addTo(map);
 
-    // Zoom peta otomatis menyesuaikan sebaran data objek
     if (bounds.length > 0) {
         map.fitBounds(bounds, { padding: [40, 40] });
     } else {
@@ -869,7 +812,7 @@ Manajemen Wilayah
     function filterWilayah(tipe, button) {
         const tabs = document.querySelectorAll('.filter-tab');
         tabs.forEach(tab => tab.classList.remove('active'));
-        if (button) tab.classList.add('active');
+        if (button) button.classList.add('active');
 
         const rows = document.querySelectorAll('#wilayahTable tbody tr');
         rows.forEach(row => {
@@ -915,6 +858,7 @@ Manajemen Wilayah
         modal.classList.add('active');
     }
 
+    // Close Modal
     function closeDeleteModal() {
         const modal = document.getElementById('deleteModal');
         modal.classList.remove('active');
