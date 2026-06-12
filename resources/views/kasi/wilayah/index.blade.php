@@ -221,7 +221,6 @@ Manajemen Wilayah
         font-size: 12px;
     }
 
-
     .badge {
         display: inline-block;
         padding: 4px 12px;
@@ -324,13 +323,19 @@ Manajemen Wilayah
 
     .map-legend {
         border-top: 1px solid #eef2f7;
-        padding: 10px 15px;
+        padding: 12px 15px;
         font-size: 12px;
         color: #4b5563;
         display: flex;
-        flex-wrap: wrap;
-        gap: 12px;
+        flex-direction: column;
+        gap: 8px;
         background: #fff;
+    }
+
+    .map-legend-items {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
     }
 
     .map-legend span {
@@ -346,16 +351,15 @@ Manajemen Wilayah
         display: inline-block;
     }
 
-    .legend-dot.dusun {
-        background: #E3EF26;
-    }
+    .legend-dot.dusun { background: #E3EF26; }
+    .legend-dot.rw { background: #10b981; }
+    .legend-dot.rt { background: #3b82f6; }
 
-    .legend-dot.rw {
-        background: #10b981;
-    }
-
-    .legend-dot.rt {
-        background: #3b82f6;
+    .legend-line {
+        display: inline-block;
+        width: 20px;
+        height: 3px;
+        background: #dc2626;
     }
 
     .empty-state {
@@ -517,9 +521,7 @@ Manajemen Wilayah
 @endif
 
 <div class="wilayah-container">
-    <!-- Left: Table Section -->
     <div class="wilayah-left">
-        <!-- Search and Add Button -->
         <div class="search-filter-section">
             <div class="search-box">
                 <i class="fas fa-search"></i>
@@ -530,7 +532,6 @@ Manajemen Wilayah
             </a>
         </div>
 
-        <!-- Filter Tabs -->
         <div class="filter-tabs">
             <button class="filter-tab active" onclick="filterWilayah('all', this)">All</button>
             <button class="filter-tab" onclick="filterWilayah('dusun', this)">Dusun</button>
@@ -557,18 +558,8 @@ Manajemen Wilayah
             </div>
         </div>
 
-        <!-- Wilayah Table -->
         <div id="wilayahTableContainer">
             @if($wilayah->count() > 0)
-                @php
-                    $dusunById = $wilayah->where('tipe', 'dusun')->keyBy('id');
-                    $rwTemplate = [
-                        1 => [1, 2, 3, 4],
-                        2 => [1, 2, 3, 4, 5],
-                        3 => [1, 2, 3, 4, 5],
-                        4 => [1, 2, 3, 4, 5],
-                    ];
-                @endphp
                 <table class="wilayah-table" id="wilayahTable">
                     <thead>
                         <tr>
@@ -656,7 +647,6 @@ Manajemen Wilayah
         </div>
     </div>
 
-    <!-- Right: Map Section -->
     <div class="map-container">
         <div class="map-header">
             <i class="fas fa-map-marked-alt"></i>
@@ -664,18 +654,22 @@ Manajemen Wilayah
         </div>
         <div id="map"></div>
         <div class="map-legend">
-            <span><i class="legend-dot dusun"></i>Dusun</span>
-            <span><i class="legend-dot rw"></i>RW (pin hijau)</span>
-            <span><i class="legend-dot rt"></i>RT (pin biru)</span>
-            <span><i class="legend-dot dusun"></i>Ukuran lingkaran dusun = jumlah penduduk</span>
+            <div class="map-legend-items">
+                <span><i class="legend-dot dusun"></i>Dusun</span>
+                <span><i class="legend-dot rw"></i>RW (Pin Hijau)</span>
+                <span><i class="legend-dot rt"></i>RT (Pin Biru)</span>
+            </div>
+            <div style="margin-top: 5px; display: flex; flex-direction: column; gap: 4px;">
+                <span><span style="border-top: 3px dashed #dc2626; width: 25px; display: inline-block; margin-right: 5px;"></span> <strong>Garis Putus Merah:</strong> Batas Wilayah Desa Sebalor</span>
+                <span><span style="background: #fef3c7; border: 1px solid #d97706; width: 25px; height: 12px; display: inline-block; margin-right: 5px;"></span> <strong>Warna Amber:</strong> Area Cakupan Polygon Dusun</span>
+            </div>
         </div>
         <div class="map-hint">
-            Peta menampilkan persebaran Dusun, RT, dan RW. Klik marker untuk detail koordinat.
+            Peta menampilkan garis batas merah polygon (GeoJSON) beserta sebaran marker titik internal.
         </div>
     </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
 <div id="deleteModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -707,19 +701,17 @@ Manajemen Wilayah
 @push('scripts')
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    // Initialize map
-    const map = L.map('map').setView([-7.5, 110.5], 13);
+    // 1. Inisialisasi Objek Peta Leaflet
+    const map = L.map('map').setView([-8.161, 111.758], 14);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors'
     }).addTo(map);
 
-    // Add markers for each wilayah
     const wilayahData = @json($wilayah);
     const dusunSummary = @json($dusunSummary ?? []);
     const markers = [];
-    const dusunLayer = L.layerGroup().addTo(map);
-
+    const mainLayer = L.layerGroup().addTo(map);
     const dusunPendudukMap = new Map(dusunSummary.map(item => [Number(item.id), Number(item.total_penduduk || 0)]));
     const bounds = [];
 
@@ -733,6 +725,7 @@ Manajemen Wilayah
         });
     }
 
+    // 2. Render Markers bawaan Database
     wilayahData.forEach(item => {
         if (item.latitude && item.longitude) {
             let markerColor = '';
@@ -755,22 +748,16 @@ Manajemen Wilayah
                 marker = L.marker([item.latitude, item.longitude], { icon: buildPinIcon(markerColor) });
             }
 
-            marker.addTo(dusunLayer);
+            marker.addTo(mainLayer);
             bounds.push([Number(item.latitude), Number(item.longitude)]);
             
             marker.bindPopup(`
                 <div style="font-family: 'Segoe UI', sans-serif; min-width: 180px;">
                     <h3 style="margin: 0 0 8px 0; color: #0C342C; font-size: 15px;">${item.nama}</h3>
-                    <p style="margin: 4px 0; font-size: 12px; color: #6b7280;">
-                        <strong>Tipe:</strong> ${item.tipe.toUpperCase()}
-                    </p>
-                    <p style="margin: 4px 0; font-size: 12px; color: #6b7280;">
-                        <strong>Luas:</strong> ${item.luas_wilayah ? item.luas_wilayah + ' Ha' : '-'}
-                    </p>
+                    <p style="margin: 4px 0; font-size: 12px; color: #6b7280;"><strong>Tipe:</strong> ${item.tipe.toUpperCase()}</p>
+                    <p style="margin: 4px 0; font-size: 12px; color: #6b7280;"><strong>Luas:</strong> ${item.luas_wilayah ? item.luas_wilayah + ' Ha' : '-'}</p>
                     ${item.tipe === 'dusun' ? `<p style="margin: 4px 0; font-size: 12px; color: #6b7280;"><strong>Penduduk:</strong> ${dusunPendudukMap.get(Number(item.id)) || 0} jiwa</p>` : ''}
-                    <p style="margin: 4px 0; font-size: 12px; color: #6b7280;">
-                        <strong>Koordinat:</strong> ${item.latitude}, ${item.longitude}
-                    </p>
+                    <p style="margin: 4px 0; font-size: 12px; color: #6b7280;"><strong>Koordinat:</strong> ${item.latitude}, ${item.longitude}</p>
                 </div>
             `);
 
@@ -778,22 +765,112 @@ Manajemen Wilayah
         }
     });
 
-    if (bounds.length === 1) {
-        map.setView(bounds[0], 15);
-    } else if (bounds.length > 1) {
-        map.fitBounds(bounds, { padding: [20, 20] });
+    // 3. Data GeoJSON Batas Wilayah Baru (Dua Polygon & Satu LineString)
+    const geojsonData = {
+      "type": "FeatureCollection",
+      "features": [
+        {
+          "type": "Feature",
+          "geometry": {
+            "coordinates": [[
+              [111.751378, -8.16256], [111.754639, -8.158777], [111.757861, -8.156481], 
+              [111.761679, -8.156928], [111.763159, -8.1585], [111.769831, -8.161242], 
+              [111.769209, -8.162751], [111.767149, -8.162878], [111.766656, -8.164812], 
+              [111.765154, -8.165237], [111.764983, -8.168404], [111.759684, -8.168404], 
+              [111.757861, -8.167639], [111.755093, -8.165747], [111.752755, -8.1646], 
+              [111.751378, -8.16256]
+            ]],
+            "type": "Polygon"
+          },
+          "properties": { "name": "Dusun Sebalor" },
+          "id": "2XUvL"
+        },
+        {
+          "type": "Feature",
+          "geometry": {
+            "coordinates": [
+              [111.759678, -8.168443], [111.764922, -8.168447], [111.765095, -8.165267], 
+              [111.766629, -8.164799], [111.767144, -8.162876], [111.769203, -8.162802], 
+              [111.769814, -8.16124], [111.763121, -8.15851], [111.761662, -8.156927], 
+              [111.757859, -8.156523], [111.754561, -8.158988], [111.751321, -8.16261]
+            ],
+            "type": "LineString"
+          },
+          "properties": { "name": "Dusun" },
+          "id": "Dui3w"
+        },
+        {
+          "type": "Feature",
+          "geometry": {
+            "coordinates": [[
+              [111.759665, -8.168445], [111.763354, -8.168445], [111.764981, -8.168471], 
+              [111.76511, -8.165326], [111.766655, -8.164816], [111.767127, -8.162903], 
+              [111.769229, -8.162818], [111.76983, -8.161246], [111.763137, -8.158525], 
+              [111.761678, -8.156953], [111.757859, -8.156528], [111.753612, -8.155083], 
+              [111.752453, -8.15538], [111.748546, -8.154576], [111.74846, -8.156531], 
+              [111.747259, -8.157211], [111.749708, -8.159714], [111.750223, -8.162817], 
+              [111.751338, -8.162605], [111.752797, -8.164602], [111.755071, -8.16575], 
+              [111.757817, -8.167663], [111.759665, -8.168445]
+            ]],
+            "type": "Polygon"
+          },
+          "properties": { "name": "Wilayah desa sebalor" },
+          "id": "Ivo1v"
+        }
+      ]
+    };
+
+    // 4. Render Garis Batas Secara Dinamis Berdasarkan Nama Fitur GeoJSON
+    const geojsonLayer = L.geoJSON(geojsonData, {
+        style: function(feature) {
+            const name = feature.properties.name.toLowerCase();
+            
+            // Jika fitur adalah "Wilayah desa sebalor" -> Beri garis putus-putus merah tegas
+            if (name.includes('desa sebalor')) {
+                return {
+                    color: "#dc2626",       // Warna merah solid
+                    weight: 3.5,            // Sedikit tebal agar jelas
+                    dashArray: "8, 6",      // Membuat efek garis putus-putus (panjang garis 8px, jarak 6px)
+                    opacity: 0.9,
+                    fillColor: "#fee2e2",
+                    fillOpacity: 0.05       // Arsiran dalam sangat tipis agar tidak menumpuk dengan dusun
+                };
+            } 
+            
+            // Jika fitur adalah Dusun -> Beri warna polygon pembeda (Oranye/Kuning Emas)
+            return {
+                color: "#d97706",           // Garis batas luar oranye gelap
+                weight: 2,
+                opacity: 0.8,
+                fillColor: "#fef3c7",       // Isian dalam warna kuning amber transparan
+                fillOpacity: 0.4            // Lebih pekat agar terlihat wilayah pembedanya
+            };
+        },
+        onEachFeature: function (feature, layer) {
+            if (feature.properties && feature.properties.name) {
+                layer.bindPopup(`
+                    <div style="font-family: 'Segoe UI', sans-serif; padding: 2px;">
+                        <strong style="color: #0c342c; font-size: 13px;">${feature.properties.name}</strong><br>
+                        <span style="font-size: 11px; color: #6b7280;">Format: ${feature.geometry.type}</span>
+                    </div>
+                `);
+            }
+        }
+    }).addTo(map);
+
+    // Zoom peta otomatis menyesuaikan sebaran data objek
+    if (bounds.length > 0) {
+        map.fitBounds(bounds, { padding: [40, 40] });
+    } else {
+        map.fitBounds(geojsonLayer.getBounds(), { padding: [40, 40] });
     }
 
     // Filter wilayah function
     function filterWilayah(tipe, button) {
-        // Update tab active state
         const tabs = document.querySelectorAll('.filter-tab');
         tabs.forEach(tab => tab.classList.remove('active'));
-        if (button) {
-            button.classList.add('active');
-        }
+        if (button) tab.classList.add('active');
 
-        // Filter table rows
         const rows = document.querySelectorAll('#wilayahTable tbody tr');
         rows.forEach(row => {
             if (tipe === 'all' || row.dataset.tipe === tipe) {
@@ -802,8 +879,6 @@ Manajemen Wilayah
                 row.style.display = 'none';
             }
         });
-
-        // Peta tetap fokus ke sebaran dusun saja
     }
 
     // Search wilayah function
@@ -820,7 +895,6 @@ Manajemen Wilayah
             }
         });
 
-        // Filter markers
         markers.forEach(item => {
             if (item.nama.includes(searchValue)) {
                 map.addLayer(item.marker);
@@ -846,7 +920,6 @@ Manajemen Wilayah
         modal.classList.remove('active');
     }
 
-    // Close modal when clicking outside
     window.onclick = function(event) {
         const modal = document.getElementById('deleteModal');
         if (event.target === modal) {
