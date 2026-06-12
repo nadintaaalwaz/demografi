@@ -1,18 +1,13 @@
-# TODO - Perubahan Dinamika Penduduk -> Riwayat Dinamika
+# TODO
 
-## Rencana implementasi
-- [x] app/Http/Controllers/DinamikaPendudukController.php
-  - [x] Tambah import `use App\Models\RiwayatDinamika;`
-  - [x] Method `store()`:
-    - [x] Hapus validasi `jumlah_meninggal` dan `jumlah_keluar`
-    - [x] Ubah validasi sesuai requirement (record_id, tahun, bulan, id_dusun, jumlah_lahir, jumlah_masuk)
-    - [x] Hapus field `jumlah_meninggal` dan `jumlah_keluar` dari `$record->fill()`
-    - [x] Pastikan `store()` tetap hanya menyimpan rekap Lahir/Masuk (tanpa buat riwayat untuk Lahir/Masuk karena riwayat butuh `penduduk_nik`)
-  - [x] Method `index()`:
-    - [x] Hapus dependensi agregasi dari `dinamika_penduduk` untuk `SUM(jumlah_meninggal)` dan `SUM(jumlah_keluar)`
-    - [x] Hitung Meninggal/Keluar dari `riwayat_dinamika` berdasarkan `jenis_dinamika` dan filter tahun/bulan
-    - [x] Sesuaikan perhitungan chart/grafik yang menggunakan jumlah meninggal/keluar.
+- [x] Update `app/Http/Controllers/ChartDataController.php`: tambahkan payload `rw.details` dan `rt.details` berisi data numerik terstruktur dari kolom penduduk (dusun, RW, RT) supaya frontend tidak perlu parsing string label.
+
+- [x] Update `resources/views/kasi/dashboard.blade.php`: refactor rendering RW tabs & RT detail list agar pakai `rw.details` & `rt.details` (bukan regex/parsing label). 
+- [x] Samakan tampilan komponen RW tabs & RT list di dashboard kasi dengan style di `resources/views/kasun/dashboard.blade.php` (kelas hijau, aktif kuning, layout list).
+
+- [x] Verifikasi endpoint `kasi.dashboard.chart-data` mengembalikan JSON baru dan halaman dashboard kasi tidak error.
+- [x] Refactor logika RW/RT tabs & list pada dashboard kasi agar memakai `rw.details` dan `rt.details`.
+- [x] Samakan style RW tabs & RT list pada dashboard kasi dengan dashboard kasun.
 
 
-- [x] Jalankan pengecekan cepat aplikasi (manual) / minimal `php artisan test`. (sementara minimal `php -l` sudah sukses)
 

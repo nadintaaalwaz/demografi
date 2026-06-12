@@ -237,8 +237,71 @@ $rtValues = $rtValues ?? [];
     opacity:.9;
 }
 
+/* Match RW/RT UI from dashboard kasun */
+.rw-tabs{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-bottom:14px;
+}
+
+.rw-tab{
+    border: 1px solid rgba(7,102,83,0.2);
+    background: rgba(7,102,83,0.06);
+    color:#0C342C;
+    padding:8px 14px;
+    border-radius:999px;
+    font-weight:800;
+    font-size:13px;
+    cursor:pointer;
+    transition:0.2s ease;
+}
+
+.rw-tab:hover{
+    transform: translateY(-1px);
+    background: rgba(227,239,38,0.12);
+    border-color: rgba(7,102,83,0.35);
+}
+
+.rw-tab.active{
+    background:#E3EF26;
+    color:#0C342C;
+    border-color:#E3EF26;
+}
+
+.rt-summary-list{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    margin-top:14px;
+    max-height:100%;
+    overflow:auto;
+    padding-right:4px;
+}
+
+.rt-summary-item{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:12px 14px;
+    border-radius:12px;
+    background:rgba(7,102,83,0.05);
+    border:1px solid rgba(7,102,83,0.12);
+}
+
+.rt-summary-item .label{
+    font-weight:700;
+    color:#0C342C;
+}
+
+.rt-summary-item .value{
+    font-weight:900;
+    color:#076653;
+}
+
 </style>
 @endpush
+
 
 @section('content')
 @php
@@ -412,27 +475,28 @@ $persen = $totalAge > 0
 
     <div class="chart-card">
         <div class="chart-header">
-            <h2 class="chart-title">Penduduk per RW</h2>
+            <h2 class="chart-title">Jumlah Penduduk per RW</h2>
         </div>
-
         <canvas id="rwChart"></canvas>
-
-        <div class="mini-summary">
-            @foreach($rwLabels as $i => $label)
-                <div class="mini-box">
-                    <strong>{{ number_format($rwValues[$i] ?? 0) }}</strong>
-                    <span>{{ $label }}</span>
-                </div>
-            @endforeach
-        </div>
+        <div id="rwSummary" style="display:flex;gap:12px;margin-top:16px;flex-wrap:wrap"></div>
     </div>
 
     <div class="chart-card">
         <div class="chart-header">
-            <h2 class="chart-title">Penduduk per RT</h2>
+            <h2 class="chart-title">Jumlah Penduduk per RT</h2>
         </div>
-
-        <canvas id="rtChart"></canvas>
+        <div class="rw-rt-body" style="display:grid;grid-template-columns:minmax(0, 1.55fr) minmax(240px, 0.85fr);gap:16px;align-items:start;">
+            <div class="rw-rt-chart-area" style="min-width:0;">
+                <div class="chart-container" style="height:180px;display:flex;align-items:center;justify-content:center;padding:6px 0;">
+                    <canvas id="rtChart"></canvas>
+                </div>
+                <div id="rwTabs" style="display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;margin-bottom:0;"></div>
+            </div>
+            <div class="rt-summary-panel" style="min-width:220px;">
+                <h3 class="chart-title">Detail RT</h3>
+                <div id="rtList" style="display:flex;flex-direction:column;gap:10px;margin-top:14px;max-height:100%;overflow:auto;padding-right:4px;"></div>
+            </div>
+        </div>
     </div>
 
 </div>
@@ -596,64 +660,222 @@ new Chart(educationCtx, {
     }
 });
 
+// Distribution charts (using realtime JSON endpoint) - keep other charts untouched.
 const dusunCtx = document.getElementById('dusunChart').getContext('2d');
-
-new Chart(dusunCtx,{
-    type:'bar',
-    data:{
-        labels:@json($dusunLabels),
-        datasets:[{
-            data:@json($dusunValues),
-            backgroundColor:'#d9f01f',
-            borderRadius:10
-        }]
-    },
-    options:{
-        indexAxis:'y',
-        plugins:{
-            legend:{display:false}
-        }
-    }
-});
-
 const rwCtx = document.getElementById('rwChart').getContext('2d');
-
-new Chart(rwCtx,{
-    type:'bar',
-    data:{
-        labels:@json($rwLabels),
-        datasets:[{
-            data:@json($rwValues),
-            backgroundColor:'#7dd3c0',
-            borderRadius:10
-        }]
-    },
-    options:{
-        plugins:{
-            legend:{display:false}
-        }
-    }
-});
-
 const rtCtx = document.getElementById('rtChart').getContext('2d');
 
-new Chart(rtCtx,{
-    type:'line',
-    data:{
-        labels:@json($rtLabels),
-        datasets:[{
-            data:@json($rtValues),
-            borderColor:'#a855f7',
-            backgroundColor:'rgba(168,85,247,.15)',
-            fill:true,
-            tension:.4
+let dusunChart = new Chart(dusunCtx, {
+    type: 'bar',
+    data: {
+        labels: @json($dusunLabels),
+        datasets: [{
+            data: @json($dusunValues),
+            backgroundColor: '#d9f01f',
+            borderRadius: 10
         }]
     },
-    options:{
-        plugins:{
-            legend:{display:false}
+    options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        const total = @json(max((int)($totalPenduduk ?? 0),1));
+                        const value = context.raw ?? 0;
+                        const persen = total > 0 ? roundTo1((value / total) * 100) : 0;
+                        return `Jumlah: ${Number(value).toLocaleString('id-ID')} (${persen}%)`;
+                    }
+                }
+            }
         }
     }
 });
+
+let rwChart = new Chart(rwCtx, {
+    type: 'bar',
+    data: {
+        labels: @json($rwLabels),
+        datasets: [{
+            data: @json($rwValues),
+            backgroundColor: '#7dd3c0',
+            borderRadius: 10
+        }]
+    },
+    options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        const total = @json(max((int)($totalPenduduk ?? 0),1));
+                        const value = context.raw ?? 0;
+                        const persen = total > 0 ? roundTo1((value / total) * 100) : 0;
+                        return `Jumlah: ${Number(value).toLocaleString('id-ID')} (${persen}%)`;
+                    }
+                }
+            }
+        }
+    }
+});
+
+let rtChart = new Chart(rtCtx, {
+    type: 'bar',
+    data: {
+        labels: @json($rtLabels),
+        datasets: [{
+            data: @json($rtValues),
+            backgroundColor: '#a855f7',
+            borderRadius: 10
+        }]
+    },
+    options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        const total = @json(max((int)($totalPenduduk ?? 0),1));
+                        const value = context.raw ?? 0;
+                        const persen = total > 0 ? roundTo1((value / total) * 100) : 0;
+                        return `Jumlah: ${Number(value).toLocaleString('id-ID')} (${persen}%)`;
+                    }
+                }
+            }
+        }
+    }
+});
+
+function roundTo1(n) {
+    return Math.round((n + Number.EPSILON) * 10) / 10;
+}
+
+// Fetch realtime data for distribution charts
+fetch('{{ route('kasi.dashboard.chart-data') }}', {
+    method: 'GET',
+    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+})
+.then(res => {
+    if (!res.ok) throw new Error('Failed to load distribution data');
+    return res.json();
+})
+.then(data => {
+    // Dusun
+    if (data.dusun) {
+        dusunChart.data.labels = data.dusun.labels;
+        dusunChart.data.datasets[0].data = data.dusun.data;
+        dusunChart.update();
+    }
+
+    // RW
+    if (data.rw) {
+        rwChart.data.labels = data.rw.labels;
+        rwChart.data.datasets[0].data = data.rw.data;
+        rwChart.update();
+
+        // Populate RW summary cards (mimic kasun UI)
+        try {
+            const rwSummary = document.getElementById('rwSummary');
+            if (rwSummary) {
+                rwSummary.innerHTML = '';
+                (data.rw.labels || []).forEach((label, idx) => {
+                    const count = Number((data.rw.data || [])[idx] || 0);
+                    const card = document.createElement('div');
+                    card.style.cssText = 'background: rgba(227,239,38,0.08); padding:12px 14px; border-radius:12px; min-width:110px; text-align:center; border:1px solid rgba(7,102,83,0.12)';
+                    card.innerHTML = `<div style="font-weight:800; font-size:18px; color:#0C342C">${new Intl.NumberFormat('id-ID').format(count)}</div><div style="font-size:12px; color:rgba(12,52,44,0.7); margin-top:4px">${label}</div>`;
+                    rwSummary.appendChild(card);
+                });
+            }
+        } catch (e) {}
+
+        // Build RW->RT groups & tabs (use structured details, no regex parsing)
+        try {
+            const rwTabs = document.getElementById('rwTabs');
+            const rtList = document.getElementById('rtList');
+            if (rwTabs && rtList && data && data.rw && data.rt) {
+                const rwLabels = data.rw.labels || [];
+
+                // Group RT rows by RW label
+                const rtGroups = {};
+                const rtDetails = data.rt.details || [];
+                rtDetails.forEach((d) => {
+                    const idDusun = String(d.id_dusun ?? '');
+                    const rwNo = String(d.rw ?? '');
+                    // label convention for kasi: "{DusunName} - RW X" when scopeDusun is null, otherwise "RW X"
+                    // Build grouping key by matching the RW number against existing RW labels.
+                    const labelRw = `RW ${rwNo}`;
+                    const candidateKey = rwLabels.find(l => String(l).trim().endsWith(labelRw)) || labelRw;
+
+                    const rtLabel = `RT ${d.rt}`;
+                    const key = candidateKey;
+
+                    if (!rtGroups[key]) rtGroups[key] = [];
+                    rtGroups[key].push({ label: rtLabel, count: Number(d.count || 0) });
+                });
+
+                const renderRTForRW = (rwLabel) => {
+                    const rows = (rtGroups[rwLabel] || []).slice();
+                    rtList.innerHTML = '';
+                    if (!rows.length) {
+                        rtList.innerHTML = '<div style="color:#64748b; opacity:0.9; padding:12px 0;">Tidak ada data RT untuk RW ini.</div>';
+                        rtChart.data.labels = [];
+                        rtChart.data.datasets[0].data = [];
+                        rtChart.update();
+                        return;
+                    }
+
+                    rows.forEach((row) => {
+                        const item = document.createElement('div');
+                        item.className = 'rt-summary-item';
+                        item.innerHTML = `<div class="label">${row.label}</div><div class="value">${new Intl.NumberFormat('id-ID').format(row.count)} jiwa</div>`;
+                        rtList.appendChild(item);
+                    });
+
+                    rtChart.data.labels = rows.map(r => r.label);
+                    rtChart.data.datasets[0].data = rows.map(r => r.count);
+                    rtChart.update();
+                };
+
+                // tabs
+                rwTabs.innerHTML = '';
+                rwLabels.forEach((rwLabel, index) => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'rw-tab' + (index === 0 ? ' active' : '');
+                    btn.textContent = rwLabel;
+                    btn.addEventListener('click', () => {
+                        rwTabs.querySelectorAll('.rw-tab').forEach(el => el.classList.remove('active'));
+                        btn.classList.add('active');
+                        renderRTForRW(rwLabel);
+                    });
+                    rwTabs.appendChild(btn);
+                });
+
+                renderRTForRW(rwLabels[0] || 'RW');
+            }
+        } catch (e) {}
+
+    }
+
+    // RT (initial - will be overridden by RW tab rendering)
+    if (data.rt) {
+        rtChart.data.labels = data.rt.labels || [];
+        rtChart.data.datasets[0].data = data.rt.data || [];
+        rtChart.update();
+    }
+})
+.catch(() => {
+    // Keep initial blade-rendered charts if API fails.
+});
+
 </script>
 @endpush

@@ -45,8 +45,19 @@ class ChartDataController extends Controller
 
         $dusunRows = $dusunQuery->get();
 
+        $totalAktif = (int) $dusunRows->sum('total');
+
+        $dusunRows = $dusunRows
+            ->sortByDesc('total')
+            ->values();
+
         $dusunLabels = $dusunRows->pluck('nama')->map(fn($v) => (string) $v)->all();
         $dusunData = $dusunRows->pluck('total')->map(fn($v) => (int) $v)->all();
+        $dusunPersen = array_map(function ($value) use ($totalAktif) {
+            if ($totalAktif <= 0) return 0;
+            return round((($value ?: 0) / $totalAktif) * 100, 1);
+        }, $dusunData);
+
 
         // RW aggregation grouped by id_dusun + rw
         $rwQuery = Penduduk::query()
@@ -65,14 +76,22 @@ class ChartDataController extends Controller
             ->pluck('nama', 'id')
             ->all();
 
+        $rwRows = $rwRows
+            ->sortByDesc('total')
+            ->values();
+
         $rwLabels = [];
         $rwData = [];
+        $rwPersen = [];
         foreach ($rwRows as $r) {
             $dusunName = $dusunMap[$r->id_dusun] ?? 'Dusun';
             $label = $scopeDusun ? sprintf('RW %s', $r->rw) : sprintf('%s - RW %s', $dusunName, $r->rw);
             $rwLabels[] = $label;
-            $rwData[] = (int) $r->total;
+            $value = (int) $r->total;
+            $rwData[] = $value;
+            $rwPersen[] = $totalAktif > 0 ? round(($value / $totalAktif) * 100, 1) : 0;
         }
+
 
         // RT aggregation grouped by id_dusun + rw + rt
         $rtQuery = Penduduk::query()
@@ -86,19 +105,51 @@ class ChartDataController extends Controller
 
         $rtRows = $rtQuery->get();
 
+        // Sort by total desc so chart is ordered correctly
+        $rtRows = $rtRows
+            ->sortByDesc('total')
+            ->values();
+
         $rtLabels = [];
         $rtData = [];
+        $rtPersen = [];
         foreach ($rtRows as $r) {
             $dusunName = $dusunMap[$r->id_dusun] ?? 'Dusun';
             $label = $scopeDusun ? sprintf('RW %s - RT %s', $r->rw, $r->rt) : sprintf('%s - RW %s - RT %s', $dusunName, $r->rw, $r->rt);
             $rtLabels[] = $label;
-            $rtData[] = (int) $r->total;
+            $value = (int) $r->total;
+            $rtData[] = $value;
+            $rtPersen[] = $totalAktif > 0 ? round(($value / $totalAktif) * 100, 1) : 0;
+        }
+
+
+        // Build detail arrays for RW and RT (structure without relying on label parsing)
+        $rwDetails = [];
+        foreach ($rwRows as $r) {
+            $rwDetails[] = [
+                'id_dusun' => (int) $r->id_dusun,
+                'rw' => (string) $r->rw,
+                'count' => (int) $r->total,
+            ];
+        }
+
+        $rtDetails = [];
+        foreach ($rtRows as $r) {
+            $rtDetails[] = [
+                'id_dusun' => (int) $r->id_dusun,
+                'rw' => (string) $r->rw,
+                'rt' => (string) $r->rt,
+                'count' => (int) $r->total,
+            ];
         }
 
         return response()->json([
-            'dusun' => ['labels' => $dusunLabels, 'data' => $dusunData],
-            'rw' => ['labels' => $rwLabels, 'data' => $rwData],
-            'rt' => ['labels' => $rtLabels, 'data' => $rtData],
+            'dusun' => ['labels' => $dusunLabels, 'data' => $dusunData, 'persen' => $dusunPersen ?? []],
+            'rw' => ['labels' => $rwLabels, 'data' => $rwData, 'persen' => $rwPersen ?? [], 'details' => $rwDetails],
+            'rt' => ['labels' => $rtLabels, 'data' => $rtData, 'persen' => $rtPersen ?? [], 'details' => $rtDetails],
         ]);
+
+
+
     }
 }
