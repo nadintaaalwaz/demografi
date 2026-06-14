@@ -70,17 +70,11 @@ class PendudukController extends Controller
             'tanggal_status' => 'nullable|date',
         ]);
 
-        $penduduk = Penduduk::create($data);
-
-        /*
-        |--------------------------------------------------------------------------
-        | Otomatis simpan riwayat lahir
-        |--------------------------------------------------------------------------
-        */
-
+        // Insert penduduk hanya sekali (hindari duplicate NIK saat dijalankan)
         Penduduk::create($data);
 
         return redirect()
+
             ->route('kasi.penduduk.index')
             ->with('success', 'Penduduk berhasil ditambahkan');
     }
