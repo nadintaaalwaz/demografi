@@ -300,12 +300,7 @@ $buildPublicStatisticsData = function () {
         ->first();
 
     $educationFixedOrder = [
-        'Tamat SD',
-        'SMP',
-        'SMA',
-        'DIPLOMA III',
-        'DIPLOMA IV/STRATA I',
-        'STRATA II',
+        'Tamat SD', 'SMP', 'SMA', 'DIPLOMA III', 'DIPLOMA IV/STRATA I', 'STRATA II',
     ];
 
     $educationValuesMap = [
@@ -346,17 +341,7 @@ $buildPublicStatisticsData = function () {
         ->selectRaw("SUM(CASE WHEN UPPER(TRIM(COALESCE(pekerjaan, ''))) IN ('POLRI','POLISI','POLISI NEGARA RI','ANGGOTA POLRI','KEPOLISIAN NEGARA RI','POLRI/ANGGOTA POLRI','POLRI / ANGGOTA POLRI') THEN 1 ELSE 0 END) as polri")
         ->first();
 
-    $occupationFixedOrder = [
-        'Pelajar',
-        'Petani',
-        'IRT',
-        'Wiraswasta',
-        'Guru',
-        'Dosen',
-        'PNS',
-        'TNI',
-        'POLRI',
-    ];
+    $occupationFixedOrder = ['Pelajar', 'Petani', 'IRT', 'Wiraswasta', 'Guru', 'Dosen', 'PNS', 'TNI', 'POLRI'];
 
     $occupationValuesMap = [
         'Pelajar' => (int) ($occupationRaw->pelajar ?? 0),
@@ -413,35 +398,21 @@ $buildPublicStatisticsData = function () {
         $trendLabels[] = $bulanLabels[$m];
 
         $row = $dynamicRows->get($period);
-
         $kelahiranSeries[] = (int) ($row->jumlah_lahir ?? 0);
         $kematianSeries[] = (int) ($row->jumlah_meninggal ?? 0);
         $migrasiMasukSeries[] = (int) ($row->jumlah_masuk ?? 0);
         $migrasiKeluarSeries[] = (int) ($row->jumlah_keluar ?? 0);
     }
 
+    // 🌟 PERBAIKAN 1: Ambil data statistik semua status kependudukan per DUSUN
     $dusunRows = Wilayah::query()
-        ->from('wilayah as w')
-        ->leftJoin('penduduk as p', function ($join) {
-            $join->on('p.id_dusun', '=', 'w.id')
-                ->where('p.status', '=', 'Aktif');
-        })
-        ->where('w.tipe', 'dusun')
-        ->select('w.id', 'w.nama', 'w.latitude', 'w.longitude')
-        ->selectRaw('COUNT(p.nik) as total_penduduk')
-        ->groupBy('w.id', 'w.nama', 'w.latitude', 'w.longitude')
-        ->orderBy('w.nama')
+        ->where('tipe', 'dusun')
+        ->select('id', 'nama', 'latitude', 'longitude')
+        ->selectRaw('(SELECT COUNT(*) FROM penduduk WHERE id_dusun = wilayah.id AND status = "Aktif") as total_aktif')
+        ->selectRaw('(SELECT COUNT(*) FROM penduduk WHERE id_dusun = wilayah.id AND status = "Meninggal") as total_meninggal')
+        ->selectRaw('(SELECT COUNT(*) FROM penduduk WHERE id_dusun = wilayah.id AND status = "Keluar") as total_keluar')
+        ->orderBy('nama')
         ->get();
-
-    $dusunPopulationRows = $dusunRows->map(function ($row) {
-        return [
-            'id' => (int) $row->id,
-            'nama' => $row->nama,
-            'lat' => $row->latitude !== null ? (float) $row->latitude : null,
-            'lng' => $row->longitude !== null ? (float) $row->longitude : null,
-            'total_penduduk' => (int) $row->total_penduduk,
-        ];
-    })->values()->all();
 
     $rwRows = Wilayah::query()
         ->where('tipe', 'rw')
@@ -457,77 +428,58 @@ $buildPublicStatisticsData = function () {
         ->whereNotNull('nomor_rt')
         ->get(['id_dusun', 'nomor_rw', 'nomor_rt']);
 
-    // Get RW and RT with coordinates for map
-    $rwMapRows = Wilayah::query()
-        ->where('tipe', 'rw')
-        ->whereNotNull('id_dusun')
-        ->whereNotNull('nomor_rw')
-        ->get(['id_dusun', 'nomor_rw', 'latitude', 'longitude', 'nama']);
+    // 🌟 PERBAIKAN 2: Gabungkan Struktur Wilayah (RW/RT) langsung ke array dusun agar bisa diparsing di Map Blade
+    $dusunPopulationRows = $dusunRows->map(function ($row) use ($rwRows, $rtRows) {
+        $dusunId = (int) $row->id;
 
-    $rtMapRows = Wilayah::query()
-        ->where('tipe', 'rt')
-        ->whereNotNull('id_dusun')
-        ->whereNotNull('nomor_rw')
-        ->whereNotNull('nomor_rt')
-        ->get(['id_dusun', 'nomor_rw', 'nomor_rt', 'latitude', 'longitude', 'nama']);
-
-    $wilayahStructureRows = collect($dusunPopulationRows)->map(function ($dusun) use ($rwRows, $rtRows) {
-        $dusunId = (int) ($dusun['id'] ?? 0);
-        $rwFromMaster = collect($rwRows->get($dusunId, []))
-            ->pluck('nomor_rw')
-            ->map(fn ($value) => (int) $value)
-            ->unique()
-            ->values();
-
-        $rwFromRt = $rtRows
-            ->where('id_dusun', $dusunId)
-            ->pluck('nomor_rw')
-            ->map(fn ($value) => (int) $value)
-            ->unique()
-            ->values();
-
-        $rwNumbers = $rwFromMaster
-            ->merge($rwFromRt)
-            ->unique()
-            ->sort()
-            ->values();
+        $rwFromMaster = collect($rwRows->get($dusunId, []))->pluck('nomor_rw')->map(fn($v) => (int)$v);
+        $rwFromRt = $rtRows->where('id_dusun', $dusunId)->pluck('nomor_rw')->map(fn($v) => (int)$v);
+        
+        $rwNumbers = $rwFromMaster->merge($rwFromRt)->unique()->sort()->values();
 
         $rwDetail = $rwNumbers->map(function ($rwNumber) use ($rtRows, $dusunId) {
-            $rtNumbers = $rtRows
-                ->where('id_dusun', $dusunId)
+            $rtNumbers = $rtRows->where('id_dusun', $dusunId)
                 ->where('nomor_rw', $rwNumber)
                 ->pluck('nomor_rt')
-                ->map(fn ($value) => (int) $value)
-                ->unique()
-                ->sort()
-                ->values();
-
-            $rtCount = $rtNumbers->count();
+                ->map(fn($v) => (int)$v)->unique()->sort()->values();
 
             return [
                 'nomor_rw' => $rwNumber,
-                'jumlah_rt' => $rtCount,
                 'rt_list' => $rtNumbers->all(),
             ];
         })->values()->all();
 
         return [
-            'dusun' => $dusun['nama'],
-            'rw_list' => $rwNumbers->all(),
-            'rw_detail' => $rwDetail,
+            'id' => $dusunId,
+            'nama' => $row->nama,
+            'lat' => $row->latitude !== null ? (float) $row->latitude : null,
+            'lng' => $row->longitude !== null ? (float) $row->longitude : null,
+            'total_penduduk' => (int) $row->total_aktif,
+            'total_meninggal' => (int) $row->total_meninggal,
+            'total_keluar' => (int) $row->total_keluar,
+            'rw_detail' => $rwDetail // Disisipkan agar JavaScript map bisa membaca strukturnya
         ];
     })->values()->all();
 
-    $coordinatedDusun = collect($dusunPopulationRows)
-        ->filter(fn ($row) => $row['lat'] !== null && $row['lng'] !== null)
-        ->values();
+    // Re-build wilayahStructureRows tetap sama seperti struktur lama Anda untuk tabel statis jika dibutuhkan
+    $wilayahStructureRows = collect($dusunPopulationRows)->map(function ($dusun) {
+        return [
+            'dusun' => $dusun['nama'],
+            'rw_list' => collect($dusun['rw_detail'])->pluck('nomor_rw')->all(),
+            'rw_detail' => collect($dusun['rw_detail'])->map(fn($rw) => [
+                'nomor_rw' => $rw['nomor_rw'],
+                'jumlah_rt' => count($rw['rt_list']),
+                'rt_list' => $rw['rt_list']
+            ])->all(),
+        ];
+    })->values()->all();
 
-    $mapCenterLat = $coordinatedDusun->isNotEmpty()
-        ? (float) $coordinatedDusun->avg('lat')
-        : -7.50;
-    $mapCenterLng = $coordinatedDusun->isNotEmpty()
-        ? (float) $coordinatedDusun->avg('lng')
-        : 110.50;
+    $rwMapRows = Wilayah::query()->where('tipe', 'rw')->whereNotNull('id_dusun')->whereNotNull('nomor_rw')->get(['id_dusun', 'nomor_rw', 'latitude', 'longitude', 'nama']);
+    $rtMapRows = Wilayah::query()->where('tipe', 'rt')->whereNotNull('id_dusun')->whereNotNull('nomor_rw')->whereNotNull('nomor_rt')->get(['id_dusun', 'nomor_rw', 'nomor_rt', 'latitude', 'longitude', 'nama']);
+
+    $coordinatedDusun = collect($dusunPopulationRows)->filter(fn ($row) => $row['lat'] !== null && $row['lng'] !== null)->values();
+    $mapCenterLat = $coordinatedDusun->isNotEmpty() ? (float) $coordinatedDusun->avg('lat') : -7.50;
+    $mapCenterLng = $coordinatedDusun->isNotEmpty() ? (float) $coordinatedDusun->avg('lng') : 110.50;
 
     return [
         'privacyThreshold' => $privacyThreshold,

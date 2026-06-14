@@ -43,7 +43,7 @@
         align-items: stretch;
     }
 
-    /* KARTU UTAMA - DIUBAH MENJADI PUTIH BERSIH SESUAI GAMBAR */
+    /* KARTU UTAMA - PUTIH BERSIH */
     .kpi-card {
         background: #ffffff; 
         border-radius: 16px;
@@ -71,7 +71,7 @@
         flex-shrink: 0;
     }
 
-    /* Khusus variasi warna background ikon di gambar */
+    /* Khusus variasi warna background ikon */
     .kpi-card:nth-child(1) .kpi-icon-wrapper { background-color: #fefde8; color: #eab308; }
     .kpi-card:nth-child(2) .kpi-icon-wrapper { background-color: #f0fdf4; color: #16a34a; }
     .kpi-card:nth-child(3) .kpi-icon-wrapper { background-color: #eff6ff; color: #2563eb; }
@@ -82,7 +82,6 @@
         width: 100%;
     }
 
-    /* Tipografi Teks di dalam Card Putih */
     .kpi-label {
         color: #64748b;
         font-size: 13px;
@@ -331,26 +330,28 @@
 
 <section class="section-wrap">
     @php
-        $rwPerDusun = collect($wilayahStructureRows)->map(function ($row) {
+        // Pemetaan struktur RW dinamis per Dusun dari relasi tabel wilayah
+        $rwPerDusun = collect($wilayahStructureRows ?? [])->map(function ($row) {
             $rwList = $row['rw_list'] ?? [];
             return [
                 'dusun' => $row['dusun'] ?? '-',
                 'jumlah_rw' => count($rwList),
                 'rw_list' => $rwList,
-                'total_jiwa' => $row['total_jiwa'] ?? 0
+                'total_jiwa' => $row['total_jiwa'] ?? 0,
+                'total_rt' => $row['total_rt'] ?? 0
             ];
         })->values();
 
-        $rwRtDetails = collect($wilayahStructureRows)->flatMap(function ($row) {
-            return collect($row['rw_detail'] ?? [])->map(function ($rw) use ($row) {
-                return [
-                    'dusun' => $row['dusun'] ?? '-',
-                    'nomor_rw' => $rw['nomor_rw'] ?? '-',
-                    'jumlah_rt' => $rw['jumlah_rt'] ?? 0,
-                    'rt_list' => $rw['rt_list'] ?? [],
-                ];
-            });
-        })->values();
+        // Hitung persentase rasio jenis kelamin penduduk aktif secara aman
+        $totalAktif = (int)($statusValues[0] ?? $totalPendudukAktif ?? 0);
+        $totalKeluar = (int)($statusValues[1] ?? 0);
+        $totalMeninggal = (int)($statusValues[2] ?? 0);
+        
+        $totalGender = array_sum($genderValues ?? [0,0]);
+        $pctLaki = $genderPercent['L'] ?? 0;
+        $pctPerempuan = $genderPercent['P'] ?? 0;
+        
+        $totalSemuaStatus = $totalAktif + $totalKeluar + $totalMeninggal;
     @endphp
 
     <div class="kpi-grid">
@@ -360,7 +361,7 @@
             </div>
             <div class="kpi-content-wrapper">
                 <div class="kpi-label">Total Penduduk Aktif</div>
-                <div class="kpi-value">{{ number_format($totalPendudukAktif) }} <span style="font-size: 14px; color:#64748b; font-weight: normal;">Jiwa</span></div>
+                <div class="kpi-value">{{ number_format($totalAktif) }} <span style="font-size: 14px; color:#64748b; font-weight: normal;">Jiwa</span></div>
             </div>
         </div>
 
@@ -370,7 +371,7 @@
             </div>
             <div class="kpi-content-wrapper">
                 <div class="kpi-label">Total Kepala Keluarga</div>
-                <div class="kpi-value">{{ number_format($totalKK) }} <span style="font-size: 14px; color:#64748b; font-weight: normal;">KK</span></div>
+                <div class="kpi-value">{{ number_format($totalKK ?? 0) }} <span style="font-size: 14px; color:#64748b; font-weight: normal;">KK</span></div>
             </div>
         </div>
 
@@ -380,8 +381,8 @@
             </div>
             <div class="kpi-content-wrapper">
                 <div class="kpi-label">Luas Wilayah Desa</div>
-                <div class="kpi-value">{{ number_format($totalLuasDesaKm2, 2) }} <span style="font-size: 14px; color:#64748b; font-weight: normal;">km²</span></div>
-                <div class="kpi-sub">Equivalent: ~{{ number_format($kepadatan, 0) }} jiwa/km²</div>
+                <div class="kpi-value">{{ number_format($totalLuasDesaKm2 ?? 0, 2) }} <span style="font-size: 14px; color:#64748b; font-weight: normal;">km²</span></div>
+                <div class="kpi-sub">Equivalent: ~{{ number_format($kepadatan ?? 0, 0) }} jiwa/km²</div>
             </div>
         </div>
     </div>
@@ -404,18 +405,19 @@
                     <div style="width:32px; height:32px; background:#fefde8; color:#eab308; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:14px;"><i class="fas fa-map-pin"></i></div>
                     <span style="font-weight: 700; color:#0f172a; font-size:14px;">Informasi Dusun</span>
                 </div>
-                <div style="font-size: 32px; font-weight: 800; color: #eab308;">{{ $totalDusun }}</div>
+                <div style="font-size: 32px; font-weight: 800; color: #eab308;">{{ $totalDusun ?? 0 }}</div>
             </div>
-            <div class="kpi-sub" style="margin-bottom: 4px;">Total {{ $totalDusun }} Dusun</div>
+            <div class="kpi-sub" style="margin-bottom: 4px;">Total {{ $totalDusun ?? 0 }} Dusun Terdaftar</div>
             <div class="list-wrap">
                 <ul class="mini-list">
-                    @forelse($rwPerDusun as $item)
+                    @forelse($wilayahStructureRows ?? [] as $row)
                         <li>
                             <span>
-                                <strong style="color:#0f172a; font-size:14px;">Dusun {{ $item['dusun'] }}</strong>
-                                <br><small style="color: #94a3b8;">RW {{ !empty($item['rw_list']) ? implode(' — RW ', $item['rw_list']) : '-' }} · 3 RT</small>
+                                <strong style="color:#0f172a; font-size:14px;">Dusun {{ $row['dusun'] }}</strong>
+                                <br><small style="color: #94a3b8;">
+                                    RW {{ !empty($row['rw_list']) ? implode(' — RW ', $row['rw_list']) : '-' }} · {{ count($row['rw_detail'] ?? []) }} Kelompok RW
+                                </small>
                             </span>
-                            <span class="badge-count" style="background:#fefdf0; color:#eab308;">{{ $item['total_jiwa'] ?? 0 }} jiwa</span>
                         </li>
                     @empty
                         <li>Belum ada data dusun.</li>
@@ -430,23 +432,21 @@
                     <div style="width:32px; height:32px; background:#f0fdf4; color:#16a34a; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:14px;"><i class="fas fa-th-large"></i></div>
                     <span style="font-weight: 700; color:#0f172a; font-size:14px;">Informasi RW</span>
                 </div>
-                <div style="font-size: 32px; font-weight: 800; color: #16a34a;">4</div>
+                <div style="font-size: 32px; font-weight: 800; color: #16a34a;">{{ $totalRw ?? 0 }}</div>
             </div>
-            <div class="kpi-sub" style="margin-bottom: 4px;">Total 10 RW</div>
+            <div class="kpi-sub" style="margin-bottom: 4px;">Total {{ $totalRw ?? 0 }} RW</div>
             <div class="list-wrap">
                 <ul class="mini-list">
-                    <li>
-                        <span>Dusun Sebalor RW 01 – 1, 2, 3</span>
-                    </li>
-                    <li>
-                        <span>Dusun Sebalor RW 02 – 1, 2, 3</span>
-                    </li>
-                    <li>
-                        <span>Dusun Sirah Kandang RW 03 – 1, 2, 3</span>
-                    </li>
-                    <li>
-                        <span>Dusun Sirah Kandang RW 04 – 1, 2, 3</span>
-                    </li>
+                    @forelse($wilayahStructureRows ?? [] as $row)
+                        @foreach($row['rw_detail'] ?? [] as $rwDet)
+                            <li>
+                                <span>Dusun {{ $row['dusun'] ?? '-' }} <strong>RW {{ $rwDet['nomor_rw'] }}</strong></span>
+                                <small style="color: #94a3b8;">{{ $rwDet['jumlah_rt'] }} RT Terikat</small>
+                            </li>
+                        @endforeach
+                    @empty
+                        <li>Belum ada data RW.</li>
+                    @endforelse
                 </ul>
             </div>
         </div>
@@ -457,17 +457,19 @@
                     <div style="width:32px; height:32px; background:#eff6ff; color:#2563eb; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:14px;"><i class="fas fa-home"></i></div>
                     <span style="font-weight: 700; color:#0f172a; font-size:14px;">Informasi RT</span>
                 </div>
-                <div style="font-size: 32px; font-weight: 800; color: #2563eb;">{{ $totalRt }}</div>
+                <div style="font-size: 32px; font-weight: 800; color: #2563eb;">{{ $totalRt ?? 0 }}</div>
             </div>
-            <div class="kpi-sub" style="margin-bottom: 4px;">Total {{ $totalRt }} RT</div>
+            <div class="kpi-sub" style="margin-bottom: 4px;">Total {{ $totalRt ?? 0 }} RT</div>
             <div class="list-wrap">
                 <ul class="mini-list" style="font-size: 12px;">
-                    <li>
-                        <span>Dusun Sebalor — RW 01: 1,2,3 ▪ RW 02: 1,2,3</span>
-                    </li>
-                    <li>
-                        <span>Dusun Sirah Kandang — RW 03: 1,2,3 ▪ RW 04: 1,2,3</span>
-                    </li>
+                    @forelse($wilayahStructureRows ?? [] as $row)
+                        <li>
+                            <span>Dusun {{ $row['dusun'] ?? '-' }}</span>
+                            <span class="badge-count" style="background:#eff6ff; color:#2563eb;">{{ count($row['rw_detail'] ?? []) }} Blok RW</span>
+                        </li>
+                    @empty
+                        <li>Belum ada rincian data RT.</li>
+                    @endforelse
                 </ul>
             </div>
         </div>
@@ -487,33 +489,31 @@
     <div class="chart-grid">
         <div class="panel">
             <h3>Rasio Jenis Kelamin</h3>
-            <div class="panel-sub">Komposisi gender penduduk</div>
+            <div class="panel-sub">Komposisi gender penduduk aktif</div>
             <div style="position: relative; height: 180px; display:flex; justify-content:center;">
                 <canvas id="genderChart"></canvas>
             </div>
-            
             <div class="custom-gender-legend">
                 <div class="custom-gender-legend-item">
                     <span class="legend-dot" style="background: #3b82f6;"></span>
                     <span>Laki-laki</span>
                 </div>
-                <div class="legend-val">{{ number_format($genderValues[0] ?? 166) }} jiwa <span style="color:#3b82f6; font-weight:500; margin-left:4px;">50%</span></div>
+                <div class="legend-val">{{ number_format($genderValues[0] ?? 0) }} jiwa <span style="color:#3b82f6; font-weight:500; margin-left:4px;">{{ $pctLaki }}%</span></div>
             </div>
             <div class="custom-gender-legend" style="margin-top:4px; border-top:none; padding-top:0;">
                 <div class="custom-gender-legend-item">
                     <span class="legend-dot" style="background: #ec4899;"></span>
                     <span>Perempuan</span>
                 </div>
-                <div class="legend-val">{{ number_format($genderValues[1] ?? 163) }} jiwa <span style="color:#ec4899; font-weight:500; margin-left:4px;">50%</span></div>
+                <div class="legend-val">{{ number_format($genderValues[1] ?? 0) }} jiwa <span style="color:#ec4899; font-weight:500; margin-left:4px;">{{ $pctPerempuan }}%</span></div>
             </div>
-
             <div class="gender-progress-bar">
-                <div class="gender-progress-fill" style="width: 50%; background: #3b82f6;"></div>
-                <div class="gender-progress-fill" style="width: 50%; background: #ec4899;"></div>
+                <div class="gender-progress-fill" style="width: {{ $pctLaki }}%; background: #3b82f6;"></div>
+                <div class="gender-progress-fill" style="width: {{ $pctPerempuan }}%; background: #ec4899;"></div>
             </div>
-            <div style="display:flex; justify-content:between; font-size:10px; color:#94a3b8; margin-top:4px;">
-                <div>Laki-laki 50%</div>
-                <div style="margin-left:auto;">Perempuan 50%</div>
+            <div style="display:flex; justify-content:space-between; font-size:10px; color:#94a3b8; margin-top:4px;">
+                <div>Laki-laki {{ $pctLaki }}%</div>
+                <div>Perempuan {{ $pctPerempuan }}%</div>
             </div>
         </div>
 
@@ -532,21 +532,21 @@
                         <div style="width:32px; height:32px; background:#ffffff; border-radius:50%; display:flex; align-items:center; justify-content:center;"><i class="fas fa-user-check"></i></div>
                         <span>Aktif</span>
                     </div>
-                    <div class="value-right">329 <span>jiwa</span></div>
+                    <div class="value-right">{{ number_format($totalAktif) }} <span>jiwa</span></div>
                 </div>
                 <div class="status-card-item keluar">
                     <div class="label-left">
                         <div style="width:32px; height:32px; background:#ffffff; border-radius:50%; display:flex; align-items:center; justify-content:center;"><i class="fas fa-sign-out-alt"></i></div>
                         <span>Keluar</span>
                     </div>
-                    <div class="value-right">52 <span>jiwa</span></div>
+                    <div class="value-right">{{ number_format($totalKeluar) }} <span>jiwa</span></div>
                 </div>
                 <div class="status-card-item meninggal">
                     <div class="label-left">
                         <div style="width:32px; height:32px; background:#ffffff; border-radius:50%; display:flex; align-items:center; justify-content:center;"><i class="fas fa-heart-broken"></i></div>
                         <span>Meninggal</span>
                     </div>
-                    <div class="value-right">83 <span>jiwa</span></div>
+                    <div class="value-right">{{ number_format($totalMeninggal) }} <span>jiwa</span></div>
                 </div>
             </div>
         </div>
@@ -558,7 +558,7 @@
         </div>
         <div style="flex-grow: 1;">
             <h2 style="font-size: 20px; color: #0f172a; font-weight: 800; margin: 0;">Sosial Ekonomi & Dinamika</h2>
-            <span style="font-size: 13px; color: #64748b;">Pendidikan, pekerjaan, dan pergerakan penduduk</span>
+            <span style="font-size: 13px; color: #64748b;">Pendidikan, pekerjaan, and pergerakan penduduk aktif</span>
         </div>
         <div style="flex-grow: 8; border-bottom: 1px solid #e2e8f0;"></div>
     </div>
@@ -566,26 +566,24 @@
     <div class="chart-grid">
         <div class="panel">
             <h3>Pendidikan Terakhir</h3>
-            <div class="panel-sub">Jenjang pendidikan warga (Agregat)</div>
+            <div class="panel-sub">Jenjang pendidikan warga aktif (Agregat)</div>
             <canvas id="educationChart"></canvas>
         </div>
-
         <div class="panel">
             <h3>Pekerjaan Utama</h3>
-            <div class="panel-sub">Jenis pekerjaan warga (Agregat)</div>
+            <div class="panel-sub">Jenis pekerjaan warga aktif (Agregat)</div>
             <canvas id="occupationChart"></canvas>
         </div>
-
         <div class="panel">
-            <div style="display:flex; align-items:flex-start; justify-content:between; gap:12px; flex-wrap:nowrap; margin-bottom: 4px;">
+            <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:nowrap; margin-bottom: 4px;">
                 <div>
                     <h3>Analisis Dinamika Penduduk</h3>
                     <div class="panel-sub" style="margin-bottom:0;">Kelahiran, kematian & migrasi</div>
                 </div>
                 <form method="GET" action="{{ route('public.statistik') }}" style="display:flex; align-items:center; gap:6px;">
                     <select id="tahun_analisis" name="tahun_analisis" onchange="this.form.submit()" style="padding:4px 8px; border:1px solid #e2e8f0; border-radius:6px; font-size:12px; font-weight:600; background:#f8fafc; color:#334155;">
-                        @foreach($tahunOptions as $value => $label)
-                            <option value="{{ $value }}" {{ (int) $value === (int) $analysisYear ? 'selected' : '' }}>{{ $label }}</option>
+                        @foreach($tahunOptions ?? [date('Y') => date('Y')] as $value => $label)
+                            <option value="{{ $value }}" {{ (int) $value === (int) ($analysisYear ?? date('Y')) ? 'selected' : '' }}>{{ $label }}</option>
                         @endforeach
                     </select>
                 </form>
@@ -617,7 +615,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($dusunPopulationRows as $index => $row)
+                    @forelse($dusunPopulationRows ?? [] as $index => $row)
                         <tr>
                             <td>{{ $index + 1 }}</td>
                             <td><strong>{{ $row['nama'] }}</strong></td>
@@ -634,7 +632,6 @@
         <div id="publicStatMap"></div>
     </div>
 </section>
-@endsection
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
@@ -642,251 +639,296 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
 <script>
-// KONFIGURASI WARNA PRESISI SESUAI GAMBAR BARU
-const c = {
-    blueGender: '#3b82f6',
-    pinkGender: '#ec4899',
-    success: '#10b981',
-    warning: '#f59e0b',
-    danger: '#ef4444',
-    primaryBar: '#6366f1',
-    orangeBar: '#f97316',
-    purpleBar: '#a855f7'
-};
+document.addEventListener("DOMContentLoaded", function() {
+    const c = {
+        blueGender: '#3b82f6',
+        pinkGender: '#ec4899',
+        success: '#10b981',
+        warning: '#f59e0b',
+        danger: '#ef4444',
+        primaryBar: '#6366f1',
+        orangeBar: '#f97316',
+        purpleBar: '#a855f7'
+    };
 
-// 1. CHART GENDER (DOUGHNUT WITH CENTER TEXT)
-new Chart(document.getElementById('genderChart').getContext('2d'), {
-    type: 'doughnut',
-    data: {
-        labels: ['Laki-laki', 'Perempuan'],
-        datasets: [{
-            data: [166, 163],
-            backgroundColor: [c.blueGender, c.pinkGender],
-            borderWidth: 4,
-            borderColor: '#ffffff',
-            hoverOffset: 4
-        }]
-    },
-    options: { 
-        responsive: true, 
-        maintainAspectRatio: false,
-        cutout: '75%',
-        plugins: { 
-            legend: { display: false } 
-        } 
-    },
-    plugins: [{
-        id: 'centerText',
-        beforeDraw(chart) {
-            const { width, height, ctx } = chart;
-            ctx.restore();
-            
-            // Text "329"
-            ctx.font = "extrabold 28px sans-serif";
-            ctx.textBaseline = "middle";
-            ctx.fillStyle = "#0f172a";
-            const text = "329",
-                  textX = Math.round((width - ctx.measureText(text).width) / 2),
-                  textY = height / 2 - 10;
-            ctx.fillText(text, textX, textY);
-
-            // Text "Total"
-            ctx.font = "500 12px sans-serif";
-            ctx.fillStyle = "#94a3b8";
-            const textSub = "Total",
-                  textSubX = Math.round((width - ctx.measureText(textSub).width) / 2),
-                  textSubY = height / 2 + 14;
-            ctx.fillText(textSub, textSubX, textSubY);
-            
-            ctx.save();
-        }
-    }]
-});
-
-// 2. CHART STATUS KEPENDUDUKAN (DONUT WITH CENTER TOTAL)
-new Chart(document.getElementById('statusChart').getContext('2d'), {
-    type: 'doughnut',
-    data: {
-        labels: ['Aktif', 'Keluar', 'Meninggal'],
-        datasets: [{
-            data: [329, 52, 83],
-            backgroundColor: [c.success, c.warning, c.danger],
-            borderWidth: 4,
-            borderColor: '#ffffff'
-        }]
-    },
-    options: { 
-        responsive: true, 
-        maintainAspectRatio: false,
-        cutout: '75%',
-        plugins: { 
-            legend: { display: false }
-        } 
-    },
-    plugins: [{
-        id: 'centerTextStatus',
-        beforeDraw(chart) {
-            const { width, height, ctx } = chart;
-            ctx.restore();
-            ctx.font = "extrabold 28px sans-serif";
-            ctx.textBaseline = "middle";
-            ctx.fillStyle = "#0f172a";
-            const text = "464",
-                  textX = Math.round((width - ctx.measureText(text).width) / 2),
-                  textY = height / 2 - 10;
-            ctx.fillText(text, textX, textY);
-
-            ctx.font = "500 12px sans-serif";
-            ctx.fillStyle = "#94a3b8";
-            const textSub = "Total",
-                  textSubX = Math.round((width - ctx.measureText(textSub).width) / 2),
-                  textSubY = height / 2 + 14;
-            ctx.fillText(textSub, textSubX, textSubY);
-            ctx.save();
-        }
-    }]
-});
-
-// 3. CHART PENDIDIKAN (HORIZONTAL BAR)
-new Chart(document.getElementById('educationChart').getContext('2d'), {
-    type: 'bar',
-    data: {
-        labels: ['Tamat SD', 'SMP', 'SMA', 'DIPLOMA III', 'DIPLOMA IV/STRATA I', 'STRATA II', 'Lainnya'],
-        datasets: [{
-            label: 'Jumlah',
-            data: [58, 72, 196, 14, 22, 8, 12],
-            backgroundColor: '#6366f1',
-            borderRadius: 6,
-            barThickness: 10
-        }]
-    },
-    options: { 
-        responsive: true, 
-        indexAxis: 'y', 
-        plugins: { legend: { display: false } }, 
-        scales: { 
-            x: { display: false, grid: { display: false } },
-            y: { grid: { display: false }, ticks: { font: { weight: 'bold', size: 11 }, color: '#475569' } }
-        } 
-    },
-    plugins: [{
-        id: 'valueLabels',
-        afterDatasetsDraw(chart) {
-            const { ctx, data, scales: { x, y } } = chart;
-            ctx.save();
-            ctx.font = "bold 12px sans-serif";
-            ctx.fillStyle = "#0f172a";
-            chart.getDatasetMeta(0).data.forEach((bar, index) => {
-                const value = data.datasets[0].data[index];
-                ctx.fillText(value, bar.x + 8, bar.y + 4);
-            });
-        }
-    }]
-});
-
-// 4. CHART PEKERJAAN (HORIZONTAL BAR)
-new Chart(document.getElementById('occupationChart').getContext('2d'), {
-    type: 'bar',
-    data: {
-        labels: ['Pelajar', 'Petani', 'IRT', 'Wiraswasta', 'Guru', 'Dosen', 'PNS', 'TNI', 'POLRI', 'Lainnya'],
-        datasets: [{
-            label: 'Jumlah',
-            data: [72, 45, 112, 38, 18, 6, 14, 4, 3, 17],
-            backgroundColor: [
-                '#eab308', '#14b8a6', '#3b82f6', '#f97316', '#a855f7', 
-                '#ec4899', '#22c55e', '#f43f5e', '#64748b', '#06b6d4'
-            ],
-            borderRadius: 6,
-            barThickness: 10
-        }]
-    },
-    options: {
-        responsive: true,
-        indexAxis: 'y',
-        plugins: { legend: { display: false } },
-        scales: {
-            x: { display: false, grid: { display: false } },
-            y: { grid: { display: false }, ticks: { font: { weight: 'bold', size: 11 }, color: '#475569' } }
-        }
-    },
-    plugins: [{
-        id: 'valueLabelsOcc',
-        afterDatasetsDraw(chart) {
-            const { ctx, data } = chart;
-            ctx.save();
-            ctx.font = "bold 12px sans-serif";
-            ctx.fillStyle = "#0f172a";
-            chart.getDatasetMeta(0).data.forEach((bar, index) => {
-                const value = data.datasets[0].data[index];
-                ctx.fillText(value, bar.x + 8, bar.y + 4);
-            });
-        }
-    }]
-});
-
-// 5. CHART DINAMIKA PENDUDUK (LINE CHART SMOOTH WITH DOTS)
-new Chart(document.getElementById('dynamicsChart').getContext('2d'), {
-    type: 'line',
-    data: {
-        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'],
-        datasets: [
-            {
-                label: 'Kelahiran',
-                data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                borderColor: c.success,
-                borderWidth: 2,
-                pointBackgroundColor: c.success,
-                tension: 0.3,
-                fill: false
-            },
-            {
-                label: 'Kematian',
-                data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                borderColor: c.danger,
-                borderWidth: 2,
-                pointBackgroundColor: c.danger,
-                tension: 0.3,
-                fill: false
-            },
-            {
-                label: 'Migrasi Masuk',
-                data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                borderColor: '#3b82f6',
-                borderWidth: 2,
-                pointBackgroundColor: '#3b82f6',
-                tension: 0.3,
-                fill: false
-            },
-            {
-                label: 'Migrasi Keluar',
-                data: [2, 0, 1, 0, 2, 1, 0, 0, 0, 0, 0, 0],
-                borderColor: '#eab308',
-                borderWidth: 2,
-                pointBackgroundColor: '#eab308',
-                backgroundColor: 'rgba(234, 179, 8, 0.08)',
-                tension: 0.3,
-                fill: true
-            }
-        ]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { 
-            legend: { 
-                position: 'bottom',
-                labels: { boxWidth: 12, usePointStyle: true, pointStyle: 'circle', font: { size: 11 } }
+    // 1. CHART GENDER (Hanya Penduduk Aktif)
+    new Chart(document.getElementById('genderChart').getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Laki-laki', 'Perempuan'],
+            datasets: [{
+                data: @json($genderValues ?? [0, 0]),
+                backgroundColor: [c.blueGender, c.pinkGender],
+                borderWidth: 4,
+                borderColor: '#ffffff',
+                hoverOffset: 4
+            }]
+        },
+        options: { 
+            responsive: true, 
+            maintainAspectRatio: false,
+            cutout: '75%',
+            plugins: { 
+                legend: { display: false } 
             } 
         },
-        scales: { 
-            y: { min: 0, max: 4, ticks: { stepSize: 1 } },
-            x: { grid: { display: false } }
-        }
-    }
-});
+        plugins: [{
+            id: 'centerText',
+            beforeDraw(chart) {
+                const { width, height, ctx } = chart;
+                ctx.restore();
+                ctx.font = "extrabold 28px sans-serif";
+                ctx.textBaseline = "middle";
+                ctx.fillStyle = "#0f172a";
+                const text = "{{ $totalAktif }}",
+                      textX = Math.round((width - ctx.measureText(text).width) / 2),
+                      textY = height / 2 - 10;
+                ctx.fillText(text, textX, textY);
 
-// LEAFLET MAP RESIZE SAFE INITIALIZATION
-const map = L.map('publicStatMap').setView([{{ (float) $mapCenterLat }}, {{ (float) $mapCenterLng }}], 13);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+                ctx.font = "500 12px sans-serif";
+                ctx.fillStyle = "#94a3b8";
+                const textSub = "Total",
+                      textSubX = Math.round((width - ctx.measureText(textSub).width) / 2),
+                      textSubY = height / 2 + 14;
+                ctx.fillText(textSub, textSubX, textSubY);
+                ctx.save();
+            }
+        }]
+    });
+
+    // 2. CHART STATUS KEPENDUDUKAN (Agregat Seluruh Status)
+    new Chart(document.getElementById('statusChart').getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Aktif', 'Keluar', 'Meninggal'],
+            datasets: [{
+                data: [{{ $totalAktif }}, {{ $totalKeluar }}, {{ $totalMeninggal }}],
+                backgroundColor: [c.success, c.warning, c.danger],
+                borderWidth: 4,
+                borderColor: '#ffffff'
+            }]
+        },
+        options: { 
+            responsive: true, 
+            maintainAspectRatio: false,
+            cutout: '75%',
+            plugins: { 
+                legend: { display: false }
+            } 
+        },
+        plugins: [{
+            id: 'centerTextStatus',
+            beforeDraw(chart) {
+                const { width, height, ctx } = chart;
+                ctx.restore();
+                ctx.font = "extrabold 28px sans-serif";
+                ctx.textBaseline = "middle";
+                ctx.fillStyle = "#0f172a";
+                const text = "{{ $totalSemuaStatus }}",
+                      textX = Math.round((width - ctx.measureText(text).width) / 2),
+                      textY = height / 2 - 10;
+                ctx.fillText(text, textX, textY);
+
+                ctx.font = "500 12px sans-serif";
+                ctx.fillStyle = "#94a3b8";
+                const textSub = "Total",
+                      textSubX = Math.round((width - ctx.measureText(textSub).width) / 2),
+                      textSubY = height / 2 + 14;
+                ctx.fillText(textSub, textSubX, textSubY);
+                ctx.save();
+            }
+        }]
+    });
+
+    // 3. CHART PENDIDIKAN (Dinamis - Hanya Penduduk Aktif)
+    new Chart(document.getElementById('educationChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: @json($educationLabels ?? []),
+            datasets: [{
+                label: 'Jumlah',
+                data: @json($educationValues ?? []),
+                backgroundColor: '#6366f1',
+                borderRadius: 6,
+                barThickness: 10
+            }]
+        },
+        options: { 
+            responsive: true, 
+            indexAxis: 'y', 
+            plugins: { legend: { display: false } }, 
+            scales: { 
+                x: { display: false, grid: { display: false } },
+                y: { grid: { display: false }, ticks: { font: { weight: 'bold', size: 11 }, color: '#475569' } }
+            } 
+        },
+        plugins: [{
+            id: 'valueLabels',
+            afterDatasetsDraw(chart) {
+                const { ctx, data } = chart;
+                ctx.save();
+                ctx.font = "bold 12px sans-serif";
+                ctx.fillStyle = "#0f172a";
+                chart.getDatasetMeta(0).data.forEach((bar, index) => {
+                    const value = data.datasets[0].data[index];
+                    ctx.fillText(value, bar.x + 8, bar.y + 4);
+                });
+            }
+        }]
+    });
+
+    // 4. CHART PEKERJAAN (Dinamis - Hanya Penduduk Aktif)
+    new Chart(document.getElementById('occupationChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: @json($occupationLabels ?? []),
+            datasets: [{
+                label: 'Jumlah',
+                data: @json($occupationValues ?? []),
+                backgroundColor: [
+                    '#eab308', '#14b8a6', '#3b82f6', '#f97316', '#a855f7', 
+                    '#ec4899', '#22c55e', '#f43f5e', '#64748b', '#06b6d4'
+                ],
+                borderRadius: 6,
+                barThickness: 10
+            }]
+        },
+        options: {
+            responsive: true,
+            indexAxis: 'y',
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { display: false, grid: { display: false } },
+                y: { grid: { display: false }, ticks: { font: { weight: 'bold', size: 11 }, color: '#475569' } }
+            }
+        },
+        plugins: [{
+            id: 'valueLabelsOcc',
+            afterDatasetsDraw(chart) {
+                const { ctx, data } = chart;
+                ctx.save();
+                ctx.font = "bold 12px sans-serif";
+                ctx.fillStyle = "#0f172a";
+                chart.getDatasetMeta(0).data.forEach((bar, index) => {
+                    const value = data.datasets[0].data[index];
+                    ctx.fillText(value, bar.x + 8, bar.y + 4);
+                });
+            }
+        }]
+    });
+
+    // 5. CHART DINAMIKA PENDUDUK (Dinamis Berdasarkan Tahun Filter)
+    new Chart(document.getElementById('dynamicsChart').getContext('2d'), {
+        type: 'line',
+        data: {
+            labels: @json($trendLabels ?? []),
+            datasets: [
+                {
+                    label: 'Kelahiran',
+                    data: @json($kelahiranSeries ?? array_fill(0, 12, 0)),
+                    borderColor: c.success,
+                    borderWidth: 2,
+                    pointBackgroundColor: c.success,
+                    tension: 0.3,
+                    fill: false
+                },
+                {
+                    label: 'Kematian',
+                    data: @json($kematianSeries ?? array_fill(0, 12, 0)),
+                    borderColor: c.danger,
+                    borderWidth: 2,
+                    pointBackgroundColor: c.danger,
+                    tension: 0.3,
+                    fill: false
+                },
+                {
+                    label: 'Migrasi Masuk',
+                    data: @json($migrasiMasukSeries ?? array_fill(0, 12, 0)),
+                    borderColor: '#3b82f6',
+                    borderWidth: 2,
+                    pointBackgroundColor: '#3b82f6',
+                    tension: 0.3,
+                    fill: false
+                },
+                {
+                    label: 'Migrasi Keluar',
+                    data: @json($migrasiKeluarSeries ?? array_fill(0, 12, 0)),
+                    borderColor: '#eab308',
+                    borderWidth: 2,
+                    pointBackgroundColor: '#eab308',
+                    backgroundColor: 'rgba(234, 179, 8, 0.04)',
+                    tension: 0.3,
+                    fill: true
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { 
+                legend: { 
+                    position: 'bottom',
+                    labels: { boxWidth: 12, usePointStyle: true, pointStyle: 'circle', font: { size: 11 } }
+                } 
+            },
+            scales: { 
+                y: { beginAtZero: true, ticks: { stepSize: 1 } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+
+    // 6. INITIALIZATION MAP LEAFLET (SINKRON DATA TERBARU)
+    const mapCenterLat = {{ (float) ($mapCenterLat ?? -8.0500) }};
+    const mapCenterLng = {{ (float) ($mapCenterLng ?? 111.9000) }};
+    const map = L.map('publicStatMap').setView([mapCenterLat, mapCenterLng], 14);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Render Pin Titik Dusun, Menggunakan properti gabungan dinamis
+    const sebaranData = @json($dusunPopulationRows ?? []);
+    sebaranData.forEach(function(row) {
+        if(row.lat && row.lng) {
+            // Pembuatan Teks HTML Struktur RW & RT untuk balon pin
+            let infoWilayahHtml = "";
+            if (row.rw_detail && row.rw_detail.length > 0) {
+                row.rw_detail.forEach(rw => {
+                    let rts = rw.rt_list.length > 0 ? rw.rt_list.join(', ') : '-';
+                    infoWilayahHtml += `<li><b>RW ${rw.nomor_rw}</b> (RT: ${rts})</li>`;
+                });
+            } else {
+                infoWilayahHtml = "<li>Belum ada pembagian RW/RT</li>";
+            }
+
+            let popupContent = `
+                <div style="font-family: sans-serif; min-width: 210px;">
+                    <h4 style="margin: 0 0 5px 0; color: #2C3E50;">Dusun ${row.nama}</h4>
+                    <hr style="margin: 5px 0; border: 0; border-top: 1px solid #eee;">
+                    <table style="width: 100%; font-size: 12px; border-collapse: collapse;">
+                        <tr><td>👥 Jiwa Aktif:</td><td style="text-align: right;"><b>${row.total_penduduk}</b> Jiwa</td></tr>
+                        <tr style="color: #e74c3c;"><td>💀 Meninggal:</td><td style="text-align: right;"><b>${row.total_meninggal}</b> Jiwa</td></tr>
+                        <tr style="color: #e67e22;"><td>🚶 Keluar:</td><td style="text-align: right;"><b>${row.total_keluar}</b> Jiwa</td></tr>
+                    </table>
+                    <hr style="margin: 5px 0; border: 0; border-top: 1px solid #eee;">
+                    <p style="margin: 0 0 3px 0; font-size: 11px;"><b>Pembagian RT / RW:</b></p>
+                    <ul style="margin: 0; padding-left: 15px; font-size: 11px; max-height: 120px; overflow-y: auto;">
+                        ${infoWilayahHtml}
+                    </ul>
+                </div>
+            `;
+
+            L.marker([parseFloat(row.lat), parseFloat(row.lng)])
+             .addTo(map)
+             .bindPopup(popupContent);
+        }
+    });
+
+    // Validasi ukuran layer Leaflet anti-blank saat inisialisasi di layout tab/card
+    setTimeout(() => {
+        map.invalidateSize();
+    }, 400);
+});
 </script>
-@endpush
+@endsection
