@@ -298,13 +298,36 @@ class PublicStatisticController extends Controller
         $mapCenterLat = $coordinatedDusun->isNotEmpty() ? (float) $coordinatedDusun->avg('lat') : -7.50;
         $mapCenterLng = $coordinatedDusun->isNotEmpty() ? (float) $coordinatedDusun->avg('lng') : 110.50;
 
+        // Data titik pin untuk dusun/rw/rt agar peta sebaran di statistik publik bisa menampilkan pin sesuai tabel wilayah
+        $wilayahMapPoints = Wilayah::query()
+            ->select(['id','tipe','nama','nomor_rt','nomor_rw','latitude','longitude','id_dusun','luas_wilayah'])
+            ->whereNotNull('latitude')
+            ->whereNotNull('longitude')
+            ->orderBy('tipe')
+            ->orderBy('nama')
+            ->get()
+            ->map(fn($w) => [
+                'id' => (int)$w->id,
+                'tipe' => $w->tipe,
+                'nama' => $w->nama,
+                'nomor_rt' => $w->nomor_rt !== null ? (int)$w->nomor_rt : null,
+                'nomor_rw' => $w->nomor_rw !== null ? (int)$w->nomor_rw : null,
+                'id_dusun' => $w->id_dusun !== null ? (int)$w->id_dusun : null,
+                'latitude' => $w->latitude !== null ? (float)$w->latitude : null,
+                'longitude' => $w->longitude !== null ? (float)$w->longitude : null,
+                'luas_wilayah' => $w->luas_wilayah !== null ? (float)$w->luas_wilayah : null,
+            ])
+            ->values()
+            ->all();
+
         return view('masyarakat.statistik', compact(
             'privacyThreshold', 'totalPendudukAktif', 'totalKK', 'totalDusun', 'totalRw', 'totalRt', 
             'totalLuasDesaKm2', 'totalWilayahHa', 'kepadatan', 'genderLabels', 'genderValues', 'genderPercent', 
             'ageLabels', 'ageValues', 'statusLabels', 'statusValues', 'statusPercentages', 'educationLabels', 
             'educationValues', 'occupationLabels', 'occupationValues', 'trendLabels', 'kelahiranSeries', 
             'kematianSeries', 'migrasiMasukSeries', 'migrasiKeluarSeries', 'analysisYear', 'tahunOptions', 
-            'dusunPopulationRows', 'wilayahStructureRows', 'mapCenterLat', 'mapCenterLng', 'rwMapRows', 'rtMapRows'
+            'dusunPopulationRows', 'wilayahStructureRows', 'mapCenterLat', 'mapCenterLng', 'rwMapRows', 'rtMapRows',
+            'wilayahMapPoints'
         ));
     }
 }

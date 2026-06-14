@@ -902,26 +902,134 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 
     // 6. INITIALIZATION LEAFLET MAP
-    const mapCenter = @json($mapCenterCoordinates ?? [-7.9123, 111.9032]); // Default koordinat Sebalor/Tulungagung
+    const mapCenter = @json([$mapCenterLat ?? -7.5, $mapCenterLng ?? 110.5]);
     const map = L.map('publicStatMap').setView(mapCenter, 14);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors'
     }).addTo(map);
 
-    // Tambahkan markers/polygon dusun jika datanya dikirim dari Controller
-    const geojsonData = @json($dusunGeoJson ?? null);
-    if(geojsonData) {
-        L.geoJSON(geojsonData, {
-            style: function(feature) {
-                return { color: "#076653", weight: 2, fillOpacity: 0.1 };
-            },
-            onEachFeature: function(feature, layer) {
-                if (feature.properties && feature.properties.name) {
-                    layer.bindPopup("<strong>Dusun " + feature.properties.name + "</strong>");
-                }
-            }
-        }).addTo(map);
+    // Ambil data wilayah dari database (dusun/rw/rt) agar pin sesuai tabel wilayah
+    const wilayahData = @json($wilayahMapPoints ?? []);
+
+
+    const dusunById = new Map(wilayahData.filter(x => x.tipe === 'dusun' && x.id_dusun === null).map(x => [Number(x.id), x]));
+
+    function buildPinIcon(color) {
+        return L.divIcon({
+            className: 'custom-div-icon',
+            html: `<div class="custom-marker-pin" style="background: ${color};"></div>`,
+            iconSize: [32, 32],
+            iconAnchor: [16, 32],
+            popupAnchor: [0, -28],
+        });
     }
+
+    // CSS pin (di halaman masyarakat)
+    const pinCss = document.createElement('style');
+    pinCss.innerHTML = `
+        .custom-marker-pin { 
+            display:flex; align-items:center; justify-content:center;
+            width:32px; height:32px; border-radius:50% 50% 50% 0;
+            transform: rotate(-45deg);
+            box-shadow:-1px 3px 6px rgba(0,0,0,0.3);
+        }
+        .custom-marker-pin::after {
+            content:''; width:14px; height:14px; margin:0 0 1px 1px;
+            background:#fff; border-radius:50%; transform: rotate(45deg);
+        }
+    `;
+    document.head.appendChild(pinCss);
+
+    const mainLayer = L.layerGroup().addTo(map);
+    const bounds = [];
+
+    wilayahData.forEach(item => {
+        if (item.latitude == null || item.longitude == null) return;
+
+        let color = '#10b981'; // rt default
+        if (item.tipe === 'dusun') color = '#ff9f43';
+        else if (item.tipe === 'rw') color = '#10b981';
+        else if (item.tipe === 'rt') color = '#3b82f6';
+
+        const marker = L.marker([item.latitude, item.longitude], { icon: buildPinIcon(color) });
+
+        let popupHtml = '';
+        if (item.tipe === 'dusun') {
+            popupHtml = `
+                <div style="font-family: 'Segoe UI', sans-serif;">
+                    <h3 style="margin: 0 0 8px 0; color: #0C342C; font-size: 15px;">Dusun ${item.nama}</h3>
+                    <p style="margin: 4px 0; font-size: 12px; color: #6b7280;"><strong>Koordinat:</strong> ${item.latitude}, ${item.longitude}</p>
+                    <p style="margin: 4px 0; font-size: 12px; color: #6b7280;"><strong>Luas:</strong> ${item.luas_wilayah ? item.luas_wilayah + ' Ha' : '-'}</p>
+                </div>
+            `;
+        } else if (item.tipe === 'rw') {
+            const dusun = item.id_dusun ? dusunById.get(Number(item.id_dusun)) : null;
+            popupHtml = `
+                <div style="font-family: 'Segoe UI', sans-serif;">
+                    <h3 style="margin: 0 0 8px 0; color: #0C342C; font-size: 15px;">RW ${item.nomor_rw}</h3>
+                    <p style="margin: 4px 0; font-size: 12px; color: #6b7280;"><strong>Dusun:</strong> ${dusun ? dusun.nama : '-'}</p>
+                    <p style="margin: 4px 0; font-size: 12px; color: #6b7280;"><strong>Koordinat:</strong> ${item.latitude}, ${item.longitude}</p>
+                </div>
+            `;
+        } else if (item.tipe === 'rt') {
+            const dusun = item.id_dusun ? dusunById.get(Number(item.id_dusun)) : null;
+            popupHtml = `
+                <div style="font-family: 'Segoe UI', sans-serif;">
+                    <h3 style="margin: 0 0 8px 0; color: #0C342C; font-size: 15px;">RT ${item.nomor_rt}</h3>
+                    <p style="margin: 4px 0; font-size: 12px; color: #6b7280;"><strong>Dusun:</strong> ${dusun ? dusun.nama : '-'}</p>
+                    <p style="margin: 4px 0; font-size: 12px; color: #6b7280;"><strong>RW:</strong> ${item.nomor_rw ?? '-'}</p>
+                    <p style="margin: 4px 0; font-size: 12px; color: #6b7280;"><strong>Koordinat:</strong> ${item.latitude}, ${item.longitude}</p>
+                </div>
+            `;
+        }
+
+        marker.bindPopup(popupHtml);
+        marker.addTo(mainLayer);
+        bounds.push([Number(item.latitude), Number(item.longitude)]);
+    });
+
+    if (bounds.length > 0) {
+        map.fitBounds(bounds, { padding: [40, 40] });
+    }
+
+    // 7. Garis penanda merah putus untuk luas wilayah desa sebalor
+    //    Ambil boundary dari file GeoJSON yang tersedia di public.
+    //    (Saat ini file sebalor-boundary.geojson kemungkinan bertipe Point; tetap render aman.)
+    fetch(@json(asset('data/sebalor-boundary.geojson')))
+
+        .then(r => r.json())
+        .then(geo => {
+            // Jika ternyata bukan Polygon/LineString, tampilkan fallback (marker titik) tanpa putus.
+            L.geoJSON(geo, {
+                style: function(feature) {
+                    const t = feature.geometry && feature.geometry.type ? feature.geometry.type : '';
+                    if (t === 'Polygon' || t === 'MultiPolygon' || t === 'LineString' || t === 'MultiLineString') {
+                        return {
+                            color: '#dc2626',
+                            weight: 3,
+                            dashArray: '8, 6',
+                            opacity: 0.9,
+                            fillOpacity: t.includes('Polygon') ? 0.05 : 0
+                        };
+                    }
+                    return { color: '#dc2626', weight: 3, dashArray: '8, 6', opacity: 0.9 };
+                },
+                pointToLayer: function(feature, latlng) {
+                    // fallback untuk Point
+                    return L.circleMarker(latlng, { radius: 6, color:'#dc2626', weight:3, fillOpacity:0.2 });
+                },
+                onEachFeature: function(feature, layer) {
+                    if (feature.properties) {
+                        const luas = feature.properties.luas_ha ? feature.properties.luas_ha + ' Ha' : '-';
+                        layer.bindPopup(`<strong>Desa Sebalor</strong><br><span style="font-size:12px;color:#6b7280;">Luas: ${luas}</span>`);
+                    }
+                }
+            }).addTo(map);
+        })
+        .catch(() => {
+            // silent
+        });
 });
+
 </script>
 @endpush
