@@ -205,6 +205,18 @@
         gap: 12px;
         font-size: 14px;
     }
+    
+    .status-card-item .label-left .icon-circle {
+        width: 32px !important;
+        height: 32px !important;
+        background: #ffffff !important;
+        border-radius: 50% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        box-shadow: none !important;
+    }
+
     .status-card-item .value-right {
         font-size: 20px;
         font-weight: 800;
@@ -253,6 +265,7 @@
         border-radius: 16px;
         margin-top: 20px;
         border: 1px solid #e2e8f0;
+        z-index: 1;
     }
 
     /* CUSTOM LEGEND FOR GENDER CHART */
@@ -525,25 +538,30 @@
             </div>
         </div>
 
-        <div class="panel" style="box-shadow: none; background: transparent; border: none; padding: 0;">
+        <div class="panel">
+            <h3 style="margin-bottom: 2px;">Status Kependudukan</h3>
+            <div class="panel-sub" style="margin-bottom: 16px;">Aktif, keluar & meninggal</div>
+            
             <div class="status-summary-box">
                 <div class="status-card-item aktif">
                     <div class="label-left">
-                        <div style="width:32px; height:32px; background:#ffffff; border-radius:50%; display:flex; align-items:center; justify-content:center;"><i class="fas fa-user-check"></i></div>
+                        <div class="icon-circle"><i class="fas fa-user-check"></i></div>
                         <span>Aktif</span>
                     </div>
                     <div class="value-right">{{ number_format($totalAktif) }} <span>jiwa</span></div>
                 </div>
+                
                 <div class="status-card-item keluar">
                     <div class="label-left">
-                        <div style="width:32px; height:32px; background:#ffffff; border-radius:50%; display:flex; align-items:center; justify-content:center;"><i class="fas fa-sign-out-alt"></i></div>
+                        <div class="icon-circle"><i class="fas fa-sign-out-alt"></i></div>
                         <span>Keluar</span>
                     </div>
                     <div class="value-right">{{ number_format($totalKeluar) }} <span>jiwa</span></div>
                 </div>
+                
                 <div class="status-card-item meninggal">
                     <div class="label-left">
-                        <div style="width:32px; height:32px; background:#ffffff; border-radius:50%; display:flex; align-items:center; justify-content:center;"><i class="fas fa-heart-broken"></i></div>
+                        <div class="icon-circle"><i class="fas fa-heart-broken"></i></div>
                         <span>Meninggal</span>
                     </div>
                     <div class="value-right">{{ number_format($totalMeninggal) }} <span>jiwa</span></div>
@@ -632,11 +650,15 @@
         <div id="publicStatMap"></div>
     </div>
 </section>
+@endsection
+
+@push('styles')
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+@endpush
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
 <script>
 document.addEventListener("DOMContentLoaded", function() {
@@ -680,7 +702,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 ctx.font = "extrabold 28px sans-serif";
                 ctx.textBaseline = "middle";
                 ctx.fillStyle = "#0f172a";
-                const text = "{{ $totalAktif }}",
+                const text = "{{ $totalAktif ?? 0 }}",
                       textX = Math.round((width - ctx.measureText(text).width) / 2),
                       textY = height / 2 - 10;
                 ctx.fillText(text, textX, textY);
@@ -702,7 +724,7 @@ document.addEventListener("DOMContentLoaded", function() {
         data: {
             labels: ['Aktif', 'Keluar', 'Meninggal'],
             datasets: [{
-                data: [{{ $totalAktif }}, {{ $totalKeluar }}, {{ $totalMeninggal }}],
+                data: [{{ $totalAktif ?? 0 }}, {{ $totalKeluar ?? 0 }}, {{ $totalMeninggal ?? 0 }}],
                 backgroundColor: [c.success, c.warning, c.danger],
                 borderWidth: 4,
                 borderColor: '#ffffff'
@@ -724,7 +746,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 ctx.font = "extrabold 28px sans-serif";
                 ctx.textBaseline = "middle";
                 ctx.fillStyle = "#0f172a";
-                const text = "{{ $totalSemuaStatus }}",
+                const text = "{{ $totalSemuaStatus ?? 0 }}",
                       textX = Math.round((width - ctx.measureText(text).width) / 2),
                       textY = height / 2 - 10;
                 ctx.fillText(text, textX, textY);
@@ -769,10 +791,15 @@ document.addEventListener("DOMContentLoaded", function() {
                 ctx.save();
                 ctx.font = "bold 12px sans-serif";
                 ctx.fillStyle = "#0f172a";
-                chart.getDatasetMeta(0).data.forEach((bar, index) => {
-                    const value = data.datasets[0].data[index];
-                    ctx.fillText(value, bar.x + 8, bar.y + 4);
-                });
+                const meta = chart.getDatasetMeta(0);
+                if (meta && meta.data) {
+                    meta.data.forEach((bar, index) => {
+                        const value = data.datasets[0].data[index];
+                        if (value > 0) { 
+                            ctx.fillText(value, bar.x + 8, bar.y + 4);
+                        }
+                    });
+                }
             }
         }]
     });
@@ -809,126 +836,92 @@ document.addEventListener("DOMContentLoaded", function() {
                 ctx.save();
                 ctx.font = "bold 12px sans-serif";
                 ctx.fillStyle = "#0f172a";
-                chart.getDatasetMeta(0).data.forEach((bar, index) => {
-                    const value = data.datasets[0].data[index];
-                    ctx.fillText(value, bar.x + 8, bar.y + 4);
-                });
+                const meta = chart.getDatasetMeta(0);
+                if (meta && meta.data) {
+                    meta.data.forEach((bar, index) => {
+                        const value = data.datasets[0].data[index];
+                        if (value > 0) {
+                            ctx.fillText(value, bar.x + 8, bar.y + 4);
+                        }
+                    });
+                }
             }
         }]
     });
 
-    // 5. CHART DINAMIKA PENDUDUK (Dinamis Berdasarkan Tahun Filter)
+    // 5. CHART DINAMIKA PENDUDUK (Line Chart)
     new Chart(document.getElementById('dynamicsChart').getContext('2d'), {
         type: 'line',
         data: {
-            labels: @json($trendLabels ?? []),
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'],
             datasets: [
                 {
                     label: 'Kelahiran',
-                    data: @json($kelahiranSeries ?? array_fill(0, 12, 0)),
+                    data: @json($monthlyBirths ?? array_fill(0, 12, 0)),
                     borderColor: c.success,
-                    borderWidth: 2,
-                    pointBackgroundColor: c.success,
-                    tension: 0.3,
-                    fill: false
+                    backgroundColor: 'transparent',
+                    tension: 0.3
                 },
                 {
                     label: 'Kematian',
-                    data: @json($kematianSeries ?? array_fill(0, 12, 0)),
+                    data: @json($monthlyDeaths ?? array_fill(0, 12, 0)),
                     borderColor: c.danger,
-                    borderWidth: 2,
-                    pointBackgroundColor: c.danger,
-                    tension: 0.3,
-                    fill: false
+                    backgroundColor: 'transparent',
+                    tension: 0.3
                 },
                 {
                     label: 'Migrasi Masuk',
-                    data: @json($migrasiMasukSeries ?? array_fill(0, 12, 0)),
-                    borderColor: '#3b82f6',
-                    borderWidth: 2,
-                    pointBackgroundColor: '#3b82f6',
-                    tension: 0.3,
-                    fill: false
+                    data: @json($monthlyMigrateIn ?? array_fill(0, 12, 0)),
+                    borderColor: c.blueGender,
+                    backgroundColor: 'transparent',
+                    tension: 0.3
                 },
                 {
                     label: 'Migrasi Keluar',
-                    data: @json($migrasiKeluarSeries ?? array_fill(0, 12, 0)),
-                    borderColor: '#eab308',
-                    borderWidth: 2,
-                    pointBackgroundColor: '#eab308',
-                    backgroundColor: 'rgba(234, 179, 8, 0.04)',
-                    tension: 0.3,
-                    fill: true
+                    data: @json($monthlyMigrateOut ?? array_fill(0, 12, 0)),
+                    borderColor: c.warning,
+                    backgroundColor: 'transparent',
+                    tension: 0.3
                 }
             ]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { 
-                legend: { 
+            plugins: {
+                legend: {
                     position: 'bottom',
-                    labels: { boxWidth: 12, usePointStyle: true, pointStyle: 'circle', font: { size: 11 } }
-                } 
+                    labels: { boxWidth: 12, font: { size: 11 } }
+                }
             },
-            scales: { 
-                y: { beginAtZero: true, ticks: { stepSize: 1 } },
+            scales: {
+                y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
                 x: { grid: { display: false } }
             }
         }
     });
 
-    // 6. INITIALIZATION MAP LEAFLET (SINKRON DATA TERBARU)
-    const mapCenterLat = {{ (float) ($mapCenterLat ?? -8.0500) }};
-    const mapCenterLng = {{ (float) ($mapCenterLng ?? 111.9000) }};
-    const map = L.map('publicStatMap').setView([mapCenterLat, mapCenterLng], 14);
-
+    // 6. INITIALIZATION LEAFLET MAP
+    const mapCenter = @json($mapCenterCoordinates ?? [-7.9123, 111.9032]); // Default koordinat Sebalor/Tulungagung
+    const map = L.map('publicStatMap').setView(mapCenter, 14);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors'
+        attribution: '© OpenStreetMap contributors'
     }).addTo(map);
 
-    // Render Pin Titik Dusun, Menggunakan properti gabungan dinamis
-    const sebaranData = @json($dusunPopulationRows ?? []);
-    sebaranData.forEach(function(row) {
-        if(row.lat && row.lng) {
-            // Pembuatan Teks HTML Struktur RW & RT untuk balon pin
-            let infoWilayahHtml = "";
-            if (row.rw_detail && row.rw_detail.length > 0) {
-                row.rw_detail.forEach(rw => {
-                    let rts = rw.rt_list.length > 0 ? rw.rt_list.join(', ') : '-';
-                    infoWilayahHtml += `<li><b>RW ${rw.nomor_rw}</b> (RT: ${rts})</li>`;
-                });
-            } else {
-                infoWilayahHtml = "<li>Belum ada pembagian RW/RT</li>";
+    // Tambahkan markers/polygon dusun jika datanya dikirim dari Controller
+    const geojsonData = @json($dusunGeoJson ?? null);
+    if(geojsonData) {
+        L.geoJSON(geojsonData, {
+            style: function(feature) {
+                return { color: "#076653", weight: 2, fillOpacity: 0.1 };
+            },
+            onEachFeature: function(feature, layer) {
+                if (feature.properties && feature.properties.name) {
+                    layer.bindPopup("<strong>Dusun " + feature.properties.name + "</strong>");
+                }
             }
-
-            let popupContent = `
-                <div style="font-family: sans-serif; min-width: 210px;">
-                    <h4 style="margin: 0 0 5px 0; color: #2C3E50;">Dusun ${row.nama}</h4>
-                    <hr style="margin: 5px 0; border: 0; border-top: 1px solid #eee;">
-                    <table style="width: 100%; font-size: 12px; border-collapse: collapse;">
-                        <tr><td>👥 Jiwa Aktif:</td><td style="text-align: right;"><b>${row.total_penduduk}</b> Jiwa</td></tr>
-                        <tr style="color: #e74c3c;"><td>💀 Meninggal:</td><td style="text-align: right;"><b>${row.total_meninggal}</b> Jiwa</td></tr>
-                        <tr style="color: #e67e22;"><td>🚶 Keluar:</td><td style="text-align: right;"><b>${row.total_keluar}</b> Jiwa</td></tr>
-                    </table>
-                    <hr style="margin: 5px 0; border: 0; border-top: 1px solid #eee;">
-                    <p style="margin: 0 0 3px 0; font-size: 11px;"><b>Pembagian RT / RW:</b></p>
-                    <ul style="margin: 0; padding-left: 15px; font-size: 11px; max-height: 120px; overflow-y: auto;">
-                        ${infoWilayahHtml}
-                    </ul>
-                </div>
-            `;
-
-            L.marker([parseFloat(row.lat), parseFloat(row.lng)])
-             .addTo(map)
-             .bindPopup(popupContent);
-        }
-    });
-
-    // Validasi ukuran layer Leaflet anti-blank saat inisialisasi di layout tab/card
-    setTimeout(() => {
-        map.invalidateSize();
-    }, 400);
+        }).addTo(map);
+    }
 });
 </script>
-@endsection
+@endpush
