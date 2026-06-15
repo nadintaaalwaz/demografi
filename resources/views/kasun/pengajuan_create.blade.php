@@ -138,19 +138,31 @@
 
             {{-- Kematian & Migrasi Keluar: tampilkan tambahan --}}
             <div class="field" style="margin-top:12px; display:none;" id="fieldKeteranganMeninggalKeluar">
-                <label>Data tambahan untuk Kasi</label>
+                <label style="font-size: 14px; margin-bottom: 10px; color: #0C342C;">Data Tambahan Untuk Kasi</label>
 
                 <div class="grid-2" style="margin-top:10px;" id="fieldTanggalKeterangan">
-                    <input name="tanggal" id="tanggal" placeholder="Tanggal kejadian/surat" value="{{ old('tanggal') }}" />
-                    <input name="keterangan" id="keterangan" placeholder="Keterangan singkat" value="{{ old('keterangan') }}" />
+                    <div class="field">
+                        <label for="tanggal" style="font-weight: normal; color: #6b7280;">Tanggal Kejadian / Surat</label>
+                        <input type="date" name="tanggal" id="tanggal" value="{{ old('tanggal') }}" />
+                    </div>
+                    <div class="field">
+                        <label for="keterangan" style="font-weight: normal; color: #6b7280;">Keterangan Singkat</label>
+                        <input type="text" name="keterangan" id="keterangan" placeholder="Contoh: Surat Pengantar RT 02" value="{{ old('keterangan') }}" />
+                    </div>
                 </div>
 
                 <div class="grid-2" style="margin-top:10px;" id="fieldTanggalMeninggal">
-                    <input name="tanggal_meninggal" id="tanggal_meninggal" placeholder="Tanggal meninggal" value="{{ old('tanggal_meninggal') }}" />
+                    <div class="field">
+                        <label for="tanggal_meninggal" style="font-weight: normal; color: #6b7280;">Tanggal Meninggal</label>
+                        <input type="date" name="tanggal_meninggal" id="tanggal_meninggal" value="{{ old('tanggal_meninggal') }}" />
+                    </div>
                 </div>
 
                 <div class="grid-2" style="margin-top:10px;" id="fieldTujuanPindah">
-                    <input name="tujuan_pindah" id="tujuan_pindah" placeholder="Tujuan Pindah" value="{{ old('tujuan_pindah') }}" />
+                    <div class="field">
+                        <label for="tujuan_pindah" style="font-weight: normal; color: #6b7280;">Alamat Tujuan Pindah</label>
+                        <input type="text" name="tujuan_pindah" id="tujuan_pindah" placeholder="Contoh: Kota Surabaya, Jawa Timur" value="{{ old('tujuan_pindah') }}" />
+                    </div>
                 </div>
 
                 <div class="help" style="margin-top:8px;">Catatan: data ini disimpan ke <b>data_pengajuan</b> (JSON) dan diproses oleh Kasi via menu resmi.</div>
