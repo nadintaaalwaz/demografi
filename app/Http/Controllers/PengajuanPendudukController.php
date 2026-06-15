@@ -96,7 +96,6 @@ class PengajuanPendudukController extends Controller
             'jenis_pengajuan' => 'required',
             'nik' => 'nullable',
             'catatan' => 'nullable',
-            // Lampiran bersifat opsional untuk semua jenis.
             'lampiran.*' => 'nullable|file|mimes:jpg,jpeg,png,pdf,webp|max:10240',
         ]);
 
@@ -110,26 +109,29 @@ class PengajuanPendudukController extends Controller
             }
         }
         
+        // Ambil semua input tambahan yang dinamis di form
+        $extraData = $request->except([
+            '_token',
+            'jenis_pengajuan',
+            'nik',
+            'catatan',
+            'lampiran',
+        ]);
+
+        // Filter data tambahan agar tidak menyimpan string kosong dari input tersembunyi
+        $extraDataFiltered = array_filter($extraData, function($value) {
+            return $value !== null && $value !== '';
+        });
+
+        $extraDataFiltered['lampiran'] = $lampiran;
+
         PengajuanPenduduk::create([
-            // Pastikan id_pengaju berupa integer (sesuai foreignId)
             'id_pengaju' => Auth::user()->id,
             'nik' => $request->nik,
             'kode_pengajuan' => 'PGJ-' . now()->format('YmdHis'),
             'jenis_pengajuan' => $request->jenis_pengajuan,
             'status' => 'menunggu',
-            'data_pengajuan' => array_filter([
-
-                // Jika tidak ada field tambahan, tetap simpan data yang ada.
-                // Semua field selain token dan kolom pengajuan akan ikut tersimpan.
-                ...$request->except([
-                    '_token',
-                    'jenis_pengajuan',
-                    'nik',
-                    'catatan',
-                    'lampiran',
-                ]),
-                'lampiran' => $lampiran,
-            ]),
+            'data_pengajuan' => $extraDataFiltered, // Menyimpan array bersih ke kolom JSON
             'catatan' => $request->catatan,
         ]);
 

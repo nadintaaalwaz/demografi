@@ -110,13 +110,12 @@
             </div>
             <div class="field" style="margin-top:12px;" id="fieldLampiran">
                 <label for="lampiran">Upload Lampiran</label>
-                <input
+                    <input
                     type="file"
                     name="lampiran[]"
                     id="lampiran"
                     multiple
                     accept="image/*,application/pdf"
-                    required
                 >
                 <div class="help">Lampiran opsional. Bisa lebih dari 1 file (pdf/jpg/png/webp).</div>
                 @error('lampiran')
@@ -126,11 +125,10 @@
 
             <div class="field" style="margin-top:12px;" id="fieldCatatan">
                 <label for="catatan">Catatan</label>
-                <textarea
+                    <textarea
                     name="catatan"
                     id="catatan"
                     placeholder="Catatan tambahan dari Kasun..."
-                    required
                 >{{ old('catatan') }}</textarea>
                 <div class="help">Catatan opsional untuk Kasi Pemerintahan.</div>
                 @error('catatan')
@@ -143,16 +141,16 @@
                 <label>Data tambahan untuk Kasi</label>
 
                 <div class="grid-2" style="margin-top:10px;" id="fieldTanggalKeterangan">
-                    <input name="tanggal" placeholder="Tanggal kejadian/surat" value="{{ old('tanggal') }}" required />
-                    <input name="keterangan" placeholder="Keterangan singkat" value="{{ old('keterangan') }}" required />
+                    <input name="tanggal" id="tanggal" placeholder="Tanggal kejadian/surat" value="{{ old('tanggal') }}" />
+                    <input name="keterangan" id="keterangan" placeholder="Keterangan singkat" value="{{ old('keterangan') }}" />
                 </div>
 
                 <div class="grid-2" style="margin-top:10px;" id="fieldTanggalMeninggal">
-                    <input name="tanggal_meninggal" placeholder="Tanggal meninggal" value="{{ old('tanggal_meninggal') }}" required />
+                    <input name="tanggal_meninggal" id="tanggal_meninggal" placeholder="Tanggal meninggal" value="{{ old('tanggal_meninggal') }}" />
                 </div>
 
                 <div class="grid-2" style="margin-top:10px;" id="fieldTujuanPindah">
-                    <input name="tujuan_pindah" placeholder="Tujuan Pindah" value="{{ old('tujuan_pindah') }}" required />
+                    <input name="tujuan_pindah" id="tujuan_pindah" placeholder="Tujuan Pindah" value="{{ old('tujuan_pindah') }}" />
                 </div>
 
                 <div class="help" style="margin-top:8px;">Catatan: data ini disimpan ke <b>data_pengajuan</b> (JSON) dan diproses oleh Kasi via menu resmi.</div>
@@ -166,6 +164,12 @@
                     const fieldTanggalMeninggal = document.getElementById('fieldTanggalMeninggal');
                     const fieldTujuanPindah = document.getElementById('fieldTujuanPindah');
                     const fieldJenis = document.getElementById('fieldJenis');
+
+                    // Ambil element input tambahan
+                    const inputTanggal = document.getElementById('tanggal');
+                    const inputKeterangan = document.getElementById('keterangan');
+                    const inputTglMeninggal = document.getElementById('tanggal_meninggal');
+                    const inputTujuanPindah = document.getElementById('tujuan_pindah');
 
                     function syncNikRequired() {
                         const fieldNikEl = document.getElementById('fieldNik');
@@ -200,6 +204,30 @@
                             fieldJenis?.classList.add('full-width');
                         } else {
                             fieldJenis?.classList.remove('full-width');
+                        }
+
+                        // JALANKAN SYNC NIK REQUIRED
+                        syncNikRequired();
+
+                        // SYNC REQUIRED UNTUK INPUT TAMBAHAN SECARA DINAMIS
+                        if (isKematian) {
+                            inputTanggal?.setAttribute('required', 'required');
+                            inputKeterangan?.setAttribute('required', 'required');
+                            inputTglMeninggal?.setAttribute('required', 'required');
+                            
+                            inputTujuanPindah?.removeAttribute('required');
+                        } else if (isMigrasiKeluar) {
+                            inputTanggal?.setAttribute('required', 'required');
+                            inputKeterangan?.setAttribute('required', 'required');
+                            inputTujuanPindah?.setAttribute('required', 'required');
+                            
+                            inputTglMeninggal?.removeAttribute('required');
+                        } else {
+                            // Jika kelahiran atau migrasi masuk, hapus semua required input tersembunyi
+                            inputTanggal?.removeAttribute('required');
+                            inputKeterangan?.removeAttribute('removeAttribute');
+                            inputTglMeninggal?.removeAttribute('required');
+                            inputTujuanPindah?.removeAttribute('required');
                         }
                     }
 
@@ -260,10 +288,10 @@
 
                                 item.addEventListener('click', () => {
                                     nikSelect.value = nikVal;
-                                    // tampilkan nama + NIK supaya terlihat jelas
                                     nikSearch.value = `${nama} (${nikVal})`;
-                                    // sembunyikan hasil
                                     nikResults.innerHTML = '';
+                                    // Validasi ulang setelah diisi manual
+                                    nikSelect.dispatchEvent(new Event('change'));
                                 });
 
                                 item.addEventListener('mouseover', () => {
@@ -281,7 +309,6 @@
                             renderResults(nikSearch.value);
                         });
 
-                        // init
                         renderResults('');
                     }
                 })();
